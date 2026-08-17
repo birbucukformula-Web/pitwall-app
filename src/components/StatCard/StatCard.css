@@ -1,0 +1,60 @@
+.stat-card {
+  min-height: 115px;
+
+  padding: 19px 20px;
+
+  background: white;
+
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+}
+
+.stat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  color: #777777;
+
+  font-size: 12px;
+}
+
+.stat-dot {
+  width: 8px;
+  height: 8px;
+
+  border-radius: 50%;
+}
+
+.stat-dot.black {
+  background: #111111;
+}
+
+.stat-dot.red {
+  background: #e21d2c;
+}
+
+.stat-dot.orange {
+  background: #e7a52d;
+}
+
+.stat-dot.green {
+  background: #3aa768;
+}
+
+.stat-card > strong {
+  display: block;
+
+  margin-top: 10px;
+
+  font-size: 32px;
+  line-height: 1;
+}
+
+.stat-card p {
+  margin: 6px 0 0;
+
+  color: #aaaaaa;
+
+  font-size: 11px;
+}

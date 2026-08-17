@@ -1,0 +1,111 @@
+.kanban-column {
+  min-height: 560px;
+
+  padding: 18px;
+
+  border-right: 1px solid #e8e8e8;
+}
+
+.kanban-column:last-child {
+  border-right: none;
+}
+
+.column-header {
+  min-height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 10px;
+
+  color: #777777;
+}
+
+.column-header > div {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+}
+
+.column-header strong {
+  color: #4b4b4b;
+
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.column-indicator {
+  width: 8px;
+  height: 8px;
+
+  border-radius: 50%;
+}
+
+.column-indicator.todo {
+  background: #777777;
+}
+
+.column-indicator.progress {
+  background: #e21d2c;
+}
+
+.column-indicator.review {
+  background: #e7a52d;
+}
+
+.column-indicator.done {
+  background: #3aa768;
+}
+
+.task-count {
+  min-width: 22px;
+  height: 22px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #eeeeee;
+
+  border-radius: 20px;
+
+  color: #777777;
+
+  font-size: 10px;
+}
+
+.task-list {
+  display: flex;
+  flex-direction: column;
+
+  gap: 12px;
+}
+
+.add-card-button {
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 6px;
+
+  background: transparent;
+
+  border: 1px dashed #d8d8d8;
+  border-radius: 7px;
+
+  color: #999999;
+
+  font-size: 11px;
+
+  cursor: pointer;
+}
+
+.add-card-button:hover {
+  color: #e21d2c;
+
+  border-color: #e21d2c;
+}
