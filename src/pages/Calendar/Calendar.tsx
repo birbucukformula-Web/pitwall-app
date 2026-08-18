@@ -1,12 +1,470 @@
+import { useMemo, useState } from "react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+} from "lucide-react";
+
+import TaskDrawer from "../../components/TaskDrawer/TaskDrawer";
+
+import { mockTasks } from "../../data/mockTasks";
+
+import type { Task } from "../../types/task";
+
 import "./Calendar.css";
 
-export default function Calendar() {
+const WEEK_DAYS = [
+  "Pzt",
+  "Sal",
+  "Çar",
+  "Per",
+  "Cum",
+  "Cmt",
+  "Paz",
+];
+
+const MONTHS = [
+  "Ocak",
+  "Şubat",
+  "Mart",
+  "Nisan",
+  "Mayıs",
+  "Haziran",
+  "Temmuz",
+  "Ağustos",
+  "Eylül",
+  "Ekim",
+  "Kasım",
+  "Aralık",
+];
+
+type CalendarDay = {
+  date: Date;
+  isCurrentMonth: boolean;
+};
+
+function createCalendarDays(
+  year: number,
+  month: number,
+): CalendarDay[] {
+  const firstDay = new Date(year, month, 1);
+
+  const lastDay = new Date(
+    year,
+    month + 1,
+    0,
+  );
+
+  const firstDayIndex =
+    (firstDay.getDay() + 6) % 7;
+
+  const days: CalendarDay[] = [];
+
+  const previousMonthLastDay = new Date(
+    year,
+    month,
+    0,
+  ).getDate();
+
+  for (
+    let i = firstDayIndex - 1;
+    i >= 0;
+    i--
+  ) {
+    days.push({
+      date: new Date(
+        year,
+        month - 1,
+        previousMonthLastDay - i,
+      ),
+      isCurrentMonth: false,
+    });
+  }
+
+  for (
+    let day = 1;
+    day <= lastDay.getDate();
+    day++
+  ) {
+    days.push({
+      date: new Date(year, month, day),
+      isCurrentMonth: true,
+    });
+  }
+
+  let nextMonthDay = 1;
+
+  while (days.length < 42) {
+    days.push({
+      date: new Date(
+        year,
+        month + 1,
+        nextMonthDay,
+      ),
+      isCurrentMonth: false,
+    });
+
+    nextMonthDay++;
+  }
+
+  return days;
+}
+
+function getWeekDays(date: Date) {
+  const currentDay =
+    (date.getDay() + 6) % 7;
+
+  const monday = new Date(date);
+
+  monday.setDate(
+    date.getDate() - currentDay,
+  );
+
+  return Array.from(
+    { length: 7 },
+    (_, index) => {
+      const day = new Date(monday);
+
+      day.setDate(
+        monday.getDate() + index,
+      );
+
+      return day;
+    },
+  );
+}
+
+function isSameDate(
+  date: Date,
+  dateString: string,
+) {
+  const taskDate = new Date(
+    `${dateString}T00:00:00`,
+  );
+
   return (
-    <section className="page">
-      <h2>Takvim</h2>
-      <p>
-        Görevler burada aylık takvim görünümünde gösterilecek.
-      </p>
-    </section>
+    date.getFullYear() ===
+      taskDate.getFullYear() &&
+    date.getMonth() ===
+      taskDate.getMonth() &&
+    date.getDate() ===
+      taskDate.getDate()
+  );
+}
+
+function isToday(date: Date) {
+  const today = new Date();
+
+  return (
+    date.getFullYear() ===
+      today.getFullYear() &&
+    date.getMonth() === today.getMonth() &&
+    date.getDate() === today.getDate()
+  );
+}
+
+export default function Calendar() {
+  const today = new Date();
+
+  const [currentDate, setCurrentDate] =
+    useState(today);
+
+  const [view, setView] =
+    useState<"month" | "week">("month");
+
+  const [selectedTask, setSelectedTask] =
+    useState<Task | null>(null);
+
+  const calendarDays = useMemo(
+    () =>
+      createCalendarDays(
+        currentDate.getFullYear(),
+        currentDate.getMonth(),
+      ),
+    [currentDate],
+  );
+
+  const weekDays = useMemo(
+    () => getWeekDays(currentDate),
+    [currentDate],
+  );
+
+  function previousPeriod() {
+    setCurrentDate((date) => {
+      const newDate = new Date(date);
+
+      if (view === "month") {
+        newDate.setMonth(
+          newDate.getMonth() - 1,
+        );
+      } else {
+        newDate.setDate(
+          newDate.getDate() - 7,
+        );
+      }
+
+      return newDate;
+    });
+  }
+
+  function nextPeriod() {
+    setCurrentDate((date) => {
+      const newDate = new Date(date);
+
+      if (view === "month") {
+        newDate.setMonth(
+          newDate.getMonth() + 1,
+        );
+      } else {
+        newDate.setDate(
+          newDate.getDate() + 7,
+        );
+      }
+
+      return newDate;
+    });
+  }
+
+  function goToToday() {
+    setCurrentDate(new Date());
+  }
+
+  return (
+    <>
+      <section className="calendar-page">
+        <div className="calendar-page-header">
+          <div>
+            <h2>Takvim</h2>
+
+            <p>
+              Görevlerini ve teslim tarihlerini
+              takvim üzerinden takip et.
+            </p>
+          </div>
+
+          <button className="calendar-new-task">
+            <Plus size={18} />
+            Yeni Görev
+          </button>
+        </div>
+
+        <div className="calendar-container">
+          <div className="calendar-toolbar">
+            <div className="calendar-navigation">
+              <button
+                className="today-button"
+                onClick={goToToday}
+              >
+                Bugün
+              </button>
+
+              <div className="month-buttons">
+                <button
+                  onClick={previousPeriod}
+                  aria-label="Önceki dönem"
+                >
+                  <ChevronLeft size={19} />
+                </button>
+
+                <button
+                  onClick={nextPeriod}
+                  aria-label="Sonraki dönem"
+                >
+                  <ChevronRight size={19} />
+                </button>
+              </div>
+
+              <h3>
+                {
+                  MONTHS[
+                    currentDate.getMonth()
+                  ]
+                }{" "}
+                {currentDate.getFullYear()}
+              </h3>
+            </div>
+
+            <div className="calendar-view-switch">
+              <button
+                className={
+                  view === "month"
+                    ? "active"
+                    : ""
+                }
+                onClick={() =>
+                  setView("month")
+                }
+              >
+                Ay
+              </button>
+
+              <button
+                className={
+                  view === "week"
+                    ? "active"
+                    : ""
+                }
+                onClick={() =>
+                  setView("week")
+                }
+              >
+                Hafta
+              </button>
+            </div>
+          </div>
+
+          {view === "month" ? (
+            <>
+              <div className="calendar-weekdays">
+                {WEEK_DAYS.map((day) => (
+                  <div key={day}>
+                    {day}
+                  </div>
+                ))}
+              </div>
+
+              <div className="calendar-grid">
+                {calendarDays.map(
+                  ({
+                    date,
+                    isCurrentMonth,
+                  }) => {
+                    const dayTasks =
+                      mockTasks.filter(
+                        (task) =>
+                          isSameDate(
+                            date,
+                            task.dueDate,
+                          ),
+                      );
+
+                    return (
+                      <div
+                        className={`calendar-day ${
+                          !isCurrentMonth
+                            ? "other-month"
+                            : ""
+                        }`}
+                        key={date.toISOString()}
+                      >
+                        <div className="day-number-row">
+                          <span
+                            className={
+                              isToday(date)
+                                ? "day-number today"
+                                : "day-number"
+                            }
+                          >
+                            {date.getDate()}
+                          </span>
+                        </div>
+
+                        <div className="day-tasks">
+                          {dayTasks.map(
+                            (task) => (
+                              <button
+                                className={`calendar-task calendar-task-${task.status}`}
+                                key={task.id}
+                                onClick={() =>
+                                  setSelectedTask(
+                                    task,
+                                  )
+                                }
+                              >
+                                <span className="calendar-task-dot" />
+
+                                <span className="calendar-task-title">
+                                  {task.title}
+                                </span>
+                              </button>
+                            ),
+                          )}
+                        </div>
+                      </div>
+                    );
+                  },
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="calendar-weekdays">
+                {weekDays.map(
+                  (date, index) => (
+                    <div
+                      key={date.toISOString()}
+                    >
+                      {WEEK_DAYS[index]}{" "}
+                      {date.getDate()}
+                    </div>
+                  ),
+                )}
+              </div>
+
+              <div className="week-grid">
+                {weekDays.map((date) => {
+                  const dayTasks =
+                    mockTasks.filter(
+                      (task) =>
+                        isSameDate(
+                          date,
+                          task.dueDate,
+                        ),
+                    );
+
+                  return (
+                    <div
+                      className="week-day"
+                      key={date.toISOString()}
+                    >
+                      <div className="week-day-header">
+                        <span
+                          className={
+                            isToday(date)
+                              ? "week-day-number today"
+                              : "week-day-number"
+                          }
+                        >
+                          {date.getDate()}
+                        </span>
+                      </div>
+
+                      <div className="day-tasks">
+                        {dayTasks.map(
+                          (task) => (
+                            <button
+                              className={`calendar-task calendar-task-${task.status}`}
+                              key={task.id}
+                              onClick={() =>
+                                setSelectedTask(
+                                  task,
+                                )
+                              }
+                            >
+                              <span className="calendar-task-dot" />
+
+                              <span className="calendar-task-title">
+                                {task.title}
+                              </span>
+                            </button>
+                          ),
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </div>
+      </section>
+
+      <TaskDrawer
+        task={selectedTask}
+        onClose={() =>
+          setSelectedTask(null)
+        }
+      />
+    </>
   );
 }

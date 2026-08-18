@@ -14,11 +14,14 @@ button {
 
 .app {
   min-height: 100vh;
-
   display: flex;
 
-  background: #f7f7f7;
-  color: #171717;
+  background: var(--bg);
+  color: var(--text);
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
 }
 
 .main {
