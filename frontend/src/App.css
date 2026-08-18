@@ -1,0 +1,35 @@
+* {
+  box-sizing: border-box;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  border: 0;
+}
+
+.app {
+  min-height: 100vh;
+
+  display: flex;
+
+  background: #f7f7f7;
+  color: #171717;
+}
+
+.main {
+  width: calc(100% - 260px);
+
+  margin-left: 260px;
+}
+
+@media (max-width: 800px) {
+  .main {
+    width: calc(100% - 78px);
+    margin-left: 78px;
+  }
+}
