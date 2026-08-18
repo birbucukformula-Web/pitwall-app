@@ -7,14 +7,16 @@ import {
 import Sidebar from "./components/Sidebar/Sidebar";
 import Header from "./components/Header/Header";
 
+import Login from "./pages/Login/Login";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Calendar from "./pages/Calendar/Calendar";
 import Projects from "./pages/Projects/Projects";
+import ProjectDetail from "./pages/ProjectDetail/ProjectDetail";
 import Announcements from "./pages/Announcements/Announcements";
 
 import "./App.css";
 
-function App() {
+function AppLayout() {
   return (
     <div className="app">
       <Sidebar />
@@ -23,16 +25,6 @@ function App() {
         <Header />
 
         <Routes>
-          <Route
-            path="/"
-            element={
-              <Navigate
-                to="/dashboard"
-                replace
-              />
-            }
-          />
-
           <Route
             path="/dashboard"
             element={<Dashboard />}
@@ -49,12 +41,43 @@ function App() {
           />
 
           <Route
+            path="/projects/:projectId"
+            element={<ProjectDetail />}
+          />
+
+          <Route
             path="/announcements"
             element={<Announcements />}
           />
         </Routes>
       </main>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <Routes>
+      <Route
+        path="/login"
+        element={<Login />}
+      />
+
+      <Route
+        path="/*"
+        element={<AppLayout />}
+      />
+
+      <Route
+        path="/"
+        element={
+          <Navigate
+            to="/login"
+            replace
+          />
+        }
+      />
+    </Routes>
   );
 }
 

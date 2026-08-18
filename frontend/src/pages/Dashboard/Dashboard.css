@@ -60,9 +60,9 @@
 }
 
 .board-section {
-  background: white;
+  background: var(--surface);
 
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--border);
   border-radius: 9px;
 
   overflow: hidden;
@@ -77,11 +77,15 @@
 
   padding: 0 20px;
 
-  border-bottom: 1px solid #e8e8e8;
+  background: var(--surface);
+
+  border-bottom: 1px solid var(--border);
 }
 
 .board-toolbar h3 {
   margin: 0;
+
+  color: var(--text);
 
   font-size: 17px;
   font-weight: 700;
@@ -92,7 +96,7 @@
 
   margin-top: 4px;
 
-  color: #999999;
+  color: var(--text-muted);
 
   font-size: 11px;
 }
@@ -107,14 +111,19 @@
 
   padding: 0 13px;
 
-  background: white;
+  background: var(--surface);
+  color: var(--text);
 
-  border: 1px solid #dedede;
+  border: 1px solid var(--border);
   border-radius: 6px;
 
   font-size: 12px;
 
   cursor: pointer;
+}
+
+.filter-button:hover {
+  background: var(--surface-hover);
 }
 
 .kanban {
@@ -123,7 +132,7 @@
   grid-template-columns:
     repeat(4, minmax(280px, 1fr));
 
-  background: #fafafa;
+  background: var(--kanban-bg);
 
   overflow-x: auto;
 }
