@@ -14,6 +14,7 @@ import Projects from "./pages/Projects/Projects";
 import ProjectDetail from "./pages/ProjectDetail/ProjectDetail";
 import Announcements from "./pages/Announcements/Announcements";
 import Profile from "./pages/Profile/Profile";
+import Settings from "./pages/Settings/Settings";
 
 import "./App.css";
 
@@ -55,7 +56,14 @@ function AppLayout() {
             path="/profile"
             element={<Profile />}
           />
+          
+          <Route
+          path="/settings"
+          element={<Settings />}
+        />
         </Routes>
+
+        
       </main>
     </div>
   );
