@@ -9,6 +9,7 @@ import {
   MoreHorizontal,
   Settings,
   UserRound,
+  X,
 } from "lucide-react";
 
 import {
@@ -20,7 +21,15 @@ import formulaLogo from "../../assets/formula-logo.png";
 
 import "./Sidebar.css";
 
-export default function Sidebar() {
+type SidebarProps = {
+  isOpen: boolean;
+  onClose: () => void;
+};
+
+export default function Sidebar({
+  isOpen,
+  onClose,
+}: SidebarProps) {
   const [
     showProfileMenu,
     setShowProfileMenu,
@@ -28,83 +37,156 @@ export default function Sidebar() {
 
   const navigate = useNavigate();
 
+  function handleNavigation() {
+    setShowProfileMenu(false);
+    onClose();
+  }
+
+  function handleProfileNavigation(
+    path: string,
+  ) {
+    setShowProfileMenu(false);
+    onClose();
+    navigate(path);
+  }
+
   function handleLogout() {
-  setShowProfileMenu(false);
+    setShowProfileMenu(false);
 
-  // Backend authentication geldiğinde burada:
-  // - access token temizlenecek
-  // - refresh token temizlenecek
-  // - kullanıcı session bilgisi temizlenecek
-  // - gerekiyorsa logout endpoint çağrılacak
+    /*
+      Backend authentication geldiğinde:
+      - logout endpoint çağrılacak
+      - access token temizlenecek
+      - refresh token temizlenecek
+      - session/user state temizlenecek
+    */
 
-  localStorage.removeItem("accessToken");
-  localStorage.removeItem("refreshToken");
+    localStorage.removeItem(
+      "accessToken",
+    );
 
-  navigate("/login");
-}
+    localStorage.removeItem(
+      "refreshToken",
+    );
+
+    onClose();
+
+    navigate("/login");
+  }
 
   return (
-    <aside className="sidebar">
-      <NavLink
-        to="/dashboard"
-        className="brand"
-        aria-label="Görev Panosu'na dön"
-      >
-        <img
-          src={formulaLogo}
-          alt="1.5 Adana Formula Student"
-          className="brand-logo"
-        />
+    <aside
+      className={`sidebar ${
+        isOpen
+          ? "sidebar-open"
+          : ""
+      }`}
+    >
+      <div className="sidebar-brand-row">
+        <NavLink
+          to="/dashboard"
+          className="brand"
+          aria-label="Görev Panosu'na dön"
+          onClick={handleNavigation}
+        >
+          <img
+            src={formulaLogo}
+            alt="1.5 Adana Formula Student"
+            className="brand-logo"
+          />
 
-        <div className="brand-text">
-          <strong>1.5 ADANA</strong>
-          <span>FORMULA STUDENT</span>
-        </div>
-      </NavLink>
+          <div className="brand-text">
+            <strong>
+              1.5 ADANA
+            </strong>
+
+            <span>
+              FORMULA STUDENT
+            </span>
+          </div>
+        </NavLink>
+
+        <button
+          type="button"
+          className="sidebar-close-button"
+          onClick={onClose}
+          aria-label="Menüyü kapat"
+        >
+          <X size={20} />
+        </button>
+      </div>
 
       <nav className="navigation">
         <NavLink
           to="/dashboard"
+          onClick={handleNavigation}
           className={({ isActive }) =>
-            `nav-item ${isActive ? "active" : ""
+            `nav-item ${
+              isActive
+                ? "active"
+                : ""
             }`
           }
         >
           <LayoutDashboard size={20} />
-          <span>Görev Panosu</span>
+
+          <span>
+            Görev Panosu
+          </span>
         </NavLink>
 
         <NavLink
           to="/calendar"
+          onClick={handleNavigation}
           className={({ isActive }) =>
-            `nav-item ${isActive ? "active" : ""
+            `nav-item ${
+              isActive
+                ? "active"
+                : ""
             }`
           }
         >
           <CalendarDays size={20} />
-          <span>Takvim</span>
+
+          <span>
+            Takvim
+          </span>
         </NavLink>
 
         <NavLink
           to="/projects"
+          onClick={handleNavigation}
           className={({ isActive }) =>
-            `nav-item ${isActive ? "active" : ""
+            `nav-item ${
+              isActive
+                ? "active"
+                : ""
             }`
           }
         >
           <FolderKanban size={20} />
-          <span>Projeler</span>
+
+          <span>
+            Projeler
+          </span>
         </NavLink>
 
         <NavLink
           to="/announcements"
+          onClick={handleNavigation}
           className={({ isActive }) =>
-            `nav-item ${isActive ? "active" : ""
+            `nav-item ${
+              isActive
+                ? "active"
+                : ""
             }`
           }
         >
           <Megaphone size={20} />
-          <span>Duyurular</span>
+
+          <span>
+            Duyurular
+          </span>
         </NavLink>
       </nav>
 
@@ -141,7 +223,7 @@ export default function Sidebar() {
                   </strong>
 
                   <span>
-                    Frontend Developer
+                    Web &amp; Yazılım
                   </span>
                 </div>
               </div>
@@ -151,24 +233,28 @@ export default function Sidebar() {
               <button
                 type="button"
                 className="profile-menu-item"
-                onClick={() => {
-                  setShowProfileMenu(false);
-                  navigate("/profile");
-                }}
+                onClick={() =>
+                  handleProfileNavigation(
+                    "/profile",
+                  )
+                }
               >
                 <UserRound size={16} />
+
                 Profilim
               </button>
 
               <button
                 type="button"
                 className="profile-menu-item"
-                onClick={() => {
-                  setShowProfileMenu(false);
-                  navigate("/settings");
-                }}
+                onClick={() =>
+                  handleProfileNavigation(
+                    "/settings",
+                  )
+                }
               >
                 <Settings size={16} />
+
                 Ayarlar
               </button>
 
@@ -180,6 +266,7 @@ export default function Sidebar() {
                 onClick={handleLogout}
               >
                 <LogOut size={16} />
+
                 Çıkış Yap
               </button>
             </div>
@@ -190,7 +277,8 @@ export default function Sidebar() {
             className="profile-button"
             onClick={() =>
               setShowProfileMenu(
-                (previous) => !previous,
+                (previous) =>
+                  !previous,
               )
             }
           >
@@ -204,7 +292,7 @@ export default function Sidebar() {
               </strong>
 
               <span>
-                Frontend Developer
+                Web &amp; Yazılım
               </span>
             </div>
 
