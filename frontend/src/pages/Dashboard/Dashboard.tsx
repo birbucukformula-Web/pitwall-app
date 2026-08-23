@@ -8,6 +8,7 @@ import {
 import StatCard from "../../components/StatCard/StatCard";
 import KanbanColumn from "../../components/KanbanColumn/KanbanColumn";
 import TaskDrawer from "../../components/TaskDrawer/TaskDrawer";
+import TaskModal from "../../components/TaskModal/TaskModal";
 
 import { mockTasks } from "../../data/mockTasks";
 
@@ -18,6 +19,21 @@ import "./Dashboard.css";
 export default function Dashboard() {
   const [selectedTask, setSelectedTask] =
     useState<Task | null>(null);
+
+  const [tasks, setTasks] =
+    useState<Task[]>(mockTasks);
+
+  const [showTaskModal, setShowTaskModal] =
+    useState(false);
+
+  function handleCreateTask(
+    newTask: Task,
+  ) {
+    setTasks((previousTasks) => [
+      ...previousTasks,
+      newTask,
+    ]);
+  }
 
   return (
     <>
@@ -32,7 +48,12 @@ export default function Dashboard() {
             </p>
           </div>
 
-          <button className="new-task-button">
+          <button
+            className="new-task-button"
+            onClick={() =>
+              setShowTaskModal(true)
+            }
+          >
             <Plus size={18} />
             Yeni Görev
           </button>
@@ -88,28 +109,28 @@ export default function Dashboard() {
             <KanbanColumn
               title="Yapılacak"
               status="todo"
-              tasks={mockTasks}
+              tasks={tasks}
               onTaskClick={setSelectedTask}
             />
 
             <KanbanColumn
               title="Devam Ediyor"
               status="progress"
-              tasks={mockTasks}
+              tasks={tasks}
               onTaskClick={setSelectedTask}
             />
 
             <KanbanColumn
               title="İncelemede"
               status="review"
-              tasks={mockTasks}
+              tasks={tasks}
               onTaskClick={setSelectedTask}
             />
 
             <KanbanColumn
               title="Tamamlandı"
               status="done"
-              tasks={mockTasks}
+              tasks={tasks}
               onTaskClick={setSelectedTask}
             />
           </div>
@@ -118,7 +139,17 @@ export default function Dashboard() {
 
       <TaskDrawer
         task={selectedTask}
-        onClose={() => setSelectedTask(null)}
+        onClose={() =>
+          setSelectedTask(null)
+        }
+      />
+
+      <TaskModal
+        isOpen={showTaskModal}
+        onClose={() =>
+          setShowTaskModal(false)
+        }
+        onCreate={handleCreateTask}
       />
     </>
   );
