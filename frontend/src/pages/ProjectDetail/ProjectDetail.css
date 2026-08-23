@@ -1,10 +1,15 @@
 .project-detail-page {
   padding: 30px 34px 40px;
+
+  color: var(--text);
 }
+
+/* BACK */
 
 .back-button {
   display: flex;
   align-items: center;
+
   gap: 7px;
 
   margin-bottom: 22px;
@@ -12,7 +17,9 @@
   padding: 0;
 
   background: transparent;
-  color: #777;
+  color: var(--text-muted);
+
+  border: 0;
 
   font-size: 12px;
   font-weight: 600;
@@ -21,8 +28,10 @@
 }
 
 .back-button:hover {
-  color: #e21d2c;
+  color: var(--accent);
 }
+
+/* HEADER */
 
 .project-detail-header {
   display: flex;
@@ -39,7 +48,7 @@
 
   margin-bottom: 6px;
 
-  color: #e21d2c;
+  color: var(--accent);
 
   font-size: 9px;
   font-weight: 800;
@@ -50,6 +59,8 @@
 .project-detail-header h2 {
   margin: 0;
 
+  color: var(--text);
+
   font-size: 28px;
   font-weight: 700;
 }
@@ -59,18 +70,37 @@
 
   margin: 8px 0 0;
 
-  color: #888;
+  color: var(--text-muted);
 
   font-size: 13px;
   line-height: 1.6;
 }
 
+/* MEMBERS */
+
+.project-detail-members-wrapper {
+  position: relative;
+}
+
 .project-detail-members {
   display: flex;
   align-items: center;
+
   gap: 10px;
 
-  color: #888;
+  padding: 6px;
+
+  background: transparent;
+  color: var(--text-muted);
+
+  border: 0;
+  border-radius: 8px;
+
+  cursor: pointer;
+}
+
+.project-detail-members:hover {
+  background: var(--surface-hover);
 }
 
 .detail-avatars {
@@ -88,9 +118,9 @@
   margin-left: -6px;
 
   background: #171717;
-  color: white;
+  color: #ffffff;
 
-  border: 2px solid #f7f7f7;
+  border: 2px solid var(--bg);
   border-radius: 50%;
 
   font-size: 8px;
@@ -102,16 +132,20 @@
 }
 
 .detail-avatars span:nth-child(2) {
-  background: #e21d2c;
+  background: var(--accent);
 }
 
 .detail-avatars span:nth-child(3) {
-  background: #555;
+  background: #555555;
 }
+
+/* SUMMARY */
 
 .project-summary {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+
+  grid-template-columns:
+    repeat(4, 1fr);
 
   gap: 14px;
 
@@ -121,16 +155,16 @@
 .project-summary > div {
   padding: 16px 18px;
 
-  background: #ffffff;
+  background: var(--surface);
 
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--border);
   border-radius: 8px;
 }
 
 .project-summary span {
   display: block;
 
-  color: #888;
+  color: var(--text-muted);
 
   font-size: 11px;
 }
@@ -140,17 +174,21 @@
 
   margin-top: 8px;
 
+  color: var(--text);
+
   font-size: 27px;
 }
+
+/* PROGRESS */
 
 .project-progress-box {
   margin-bottom: 24px;
 
   padding: 17px 18px;
 
-  background: #ffffff;
+  background: var(--surface);
 
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--border);
   border-radius: 8px;
 }
 
@@ -165,7 +203,7 @@
 }
 
 .project-progress-box span {
-  color: #777;
+  color: var(--text-muted);
 }
 
 .project-detail-progress {
@@ -173,7 +211,7 @@
 
   overflow: hidden;
 
-  background: #eeeeee;
+  background: var(--surface-soft);
 
   border-radius: 50px;
 }
@@ -181,17 +219,19 @@
 .project-detail-progress > div {
   height: 100%;
 
-  background: #e21d2c;
+  background: var(--accent);
 
   border-radius: 50px;
 }
 
+/* TASK BOARD */
+
 .project-task-board {
   overflow: hidden;
 
-  background: #ffffff;
+  background: var(--surface);
 
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--border);
   border-radius: 9px;
 }
 
@@ -203,11 +243,15 @@
 
   padding: 0 20px;
 
-  border-bottom: 1px solid #e8e8e8;
+  background: var(--surface);
+
+  border-bottom: 1px solid var(--border);
 }
 
 .project-task-heading h3 {
   margin: 0;
+
+  color: var(--text);
 
   font-size: 17px;
 }
@@ -215,49 +259,29 @@
 .project-task-heading p {
   margin: 4px 0 0;
 
-  color: #999;
+  color: var(--text-muted);
 
   font-size: 11px;
 }
 
 .project-task-board .kanban {
   display: grid;
+
   grid-template-columns:
     repeat(4, minmax(280px, 1fr));
 
-  background: #fafafa;
+  background: var(--kanban-bg);
 
   overflow-x: auto;
 }
 
-.project-detail-members-wrapper {
-  position: relative;
-}
-
-.project-detail-members {
-  display: flex;
-  align-items: center;
-
-  gap: 10px;
-
-  padding: 6px;
-
-  background: transparent;
-  color: #888888;
-
-  border-radius: 8px;
-
-  cursor: pointer;
-}
-
-.project-detail-members:hover {
-  background: #eeeeee;
-}
+/* MEMBERS POPOVER */
 
 .members-popover {
   width: 260px;
 
   position: absolute;
+
   right: 0;
   top: calc(100% + 10px);
 
@@ -265,20 +289,20 @@
 
   padding: 12px;
 
-  background: #ffffff;
+  background: var(--surface);
 
-  border: 1px solid #e4e4e4;
+  border: 1px solid var(--border);
   border-radius: 10px;
 
   box-shadow:
     0 12px 35px
-    rgba(0, 0, 0, 0.12);
+    rgba(0, 0, 0, 0.18);
 }
 
 .members-popover-header {
   padding: 4px 5px 12px;
 
-  color: #777777;
+  color: var(--text-muted);
 
   font-size: 11px;
   font-weight: 700;
@@ -286,7 +310,7 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
 
-  border-bottom: 1px solid #eeeeee;
+  border-bottom: 1px solid var(--border-soft);
 }
 
 .members-list {
@@ -310,7 +334,7 @@
 }
 
 .member-item:hover {
-  background: #f6f6f6;
+  background: var(--surface-hover);
 }
 
 .member-avatar {
@@ -334,7 +358,7 @@
 
 .member-item:nth-child(2)
 .member-avatar {
-  background: #e21d2c;
+  background: var(--accent);
 }
 
 .member-item > div {
@@ -345,17 +369,19 @@
 }
 
 .member-item strong {
-  color: #222222;
+  color: var(--text);
 
   font-size: 12px;
   font-weight: 600;
 }
 
 .member-item div span {
-  color: #999999;
+  color: var(--text-muted);
 
   font-size: 10px;
 }
+
+/* RESPONSIVE */
 
 @media (max-width: 1000px) {
   .project-summary {
