@@ -30,6 +30,8 @@ export default function Sidebar() {
 
   function handleLogout() {
     setShowProfileMenu(false);
+    // Backend auth geldiğinde:
+    // token / session burada temizlenecek.
     navigate("/login");
   }
 
@@ -56,8 +58,7 @@ export default function Sidebar() {
         <NavLink
           to="/dashboard"
           className={({ isActive }) =>
-            `nav-item ${
-              isActive ? "active" : ""
+            `nav-item ${isActive ? "active" : ""
             }`
           }
         >
@@ -68,8 +69,7 @@ export default function Sidebar() {
         <NavLink
           to="/calendar"
           className={({ isActive }) =>
-            `nav-item ${
-              isActive ? "active" : ""
+            `nav-item ${isActive ? "active" : ""
             }`
           }
         >
@@ -80,8 +80,7 @@ export default function Sidebar() {
         <NavLink
           to="/projects"
           className={({ isActive }) =>
-            `nav-item ${
-              isActive ? "active" : ""
+            `nav-item ${isActive ? "active" : ""
             }`
           }
         >
@@ -92,8 +91,7 @@ export default function Sidebar() {
         <NavLink
           to="/announcements"
           className={({ isActive }) =>
-            `nav-item ${
-              isActive ? "active" : ""
+            `nav-item ${isActive ? "active" : ""
             }`
           }
         >
@@ -145,6 +143,10 @@ export default function Sidebar() {
               <button
                 type="button"
                 className="profile-menu-item"
+                onClick={() => {
+                  setShowProfileMenu(false);
+                  navigate("/profile");
+                }}
               >
                 <UserRound size={16} />
                 Profilim
@@ -153,6 +155,10 @@ export default function Sidebar() {
               <button
                 type="button"
                 className="profile-menu-item"
+                onClick={() => {
+                  setShowProfileMenu(false);
+                  navigate("/settings");
+                }}
               >
                 <Settings size={16} />
                 Ayarlar
