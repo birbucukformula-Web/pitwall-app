@@ -1,5 +1,6 @@
 .announcements-page {
   padding: 30px 34px 40px;
+  color: var(--text);
 }
 
 .announcements-header {
@@ -15,6 +16,8 @@
 .announcements-header h2 {
   margin: 0;
 
+  color: var(--text);
+
   font-size: 26px;
   font-weight: 700;
 }
@@ -22,10 +25,12 @@
 .announcements-header p {
   margin: 7px 0 0;
 
-  color: #888888;
+  color: var(--text-muted);
 
   font-size: 13px;
 }
+
+/* NEW ANNOUNCEMENT */
 
 .new-announcement-button {
   height: 42px;
@@ -37,20 +42,31 @@
 
   padding: 0 17px;
 
-  background: #e21d2c;
+  background: var(--accent);
   color: #ffffff;
 
+  border: 0;
   border-radius: 7px;
 
   font-size: 13px;
   font-weight: 600;
 
   cursor: pointer;
+
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease;
 }
 
 .new-announcement-button:hover {
-  background: #ca1724;
+  background: var(--accent-hover);
 }
+
+.new-announcement-button:active {
+  transform: scale(0.97);
+}
+
+/* LAYOUT */
 
 .announcements-layout {
   display: grid;
@@ -70,6 +86,8 @@
   gap: 12px;
 }
 
+/* CARD */
+
 .announcement-card {
   display: flex;
 
@@ -77,14 +95,16 @@
 
   padding: 18px;
 
-  background: #ffffff;
+  background: var(--surface);
+  color: var(--text);
 
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--border);
   border-radius: 9px;
 
   transition:
     transform 0.15s ease,
-    box-shadow 0.15s ease;
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .announcement-card:hover {
@@ -92,12 +112,14 @@
 
   box-shadow:
     0 8px 24px
-    rgba(0, 0, 0, 0.05);
+    rgba(0, 0, 0, 0.12);
 }
 
 .announcement-card.important {
-  border-left: 4px solid #e21d2c;
+  border-left: 4px solid var(--accent);
 }
+
+/* ICON */
 
 .announcement-icon {
   width: 42px;
@@ -109,17 +131,19 @@
 
   flex-shrink: 0;
 
-  background: #f3f3f3;
-  color: #444444;
+  background: var(--surface-soft);
+  color: var(--text-secondary);
 
   border-radius: 8px;
 }
 
 .announcement-card.important
 .announcement-icon {
-  background: #fff0f1;
-  color: #e21d2c;
+  background: var(--accent-soft);
+  color: var(--accent);
 }
+
+/* CONTENT */
 
 .announcement-content {
   flex: 1;
@@ -135,6 +159,8 @@
 .announcement-title-row h3 {
   margin: 0;
 
+  color: var(--text);
+
   font-size: 15px;
   font-weight: 700;
 }
@@ -142,8 +168,8 @@
 .important-badge {
   padding: 4px 7px;
 
-  background: #fff0f1;
-  color: #d6202f;
+  background: var(--accent-soft);
+  color: var(--accent);
 
   border-radius: 4px;
 
@@ -156,7 +182,7 @@
 .announcement-content > p {
   margin: 8px 0 13px;
 
-  color: #666666;
+  color: var(--text-secondary);
 
   font-size: 12px;
   line-height: 1.65;
@@ -168,7 +194,7 @@
 
   gap: 8px;
 
-  color: #999999;
+  color: var(--text-muted);
 
   font-size: 10px;
 }
@@ -181,8 +207,10 @@
 }
 
 .meta-separator {
-  color: #cccccc;
+  color: var(--border);
 }
+
+/* INFO CARD */
 
 .announcement-info-card {
   padding: 20px;
@@ -190,6 +218,7 @@
   background: #161616;
   color: #ffffff;
 
+  border: 1px solid #292929;
   border-radius: 9px;
 }
 
@@ -203,13 +232,16 @@
 
   margin-bottom: 17px;
 
-  background: #e21d2c;
+  background: var(--accent);
+  color: #ffffff;
 
   border-radius: 8px;
 }
 
 .announcement-info-card h3 {
   margin: 0;
+
+  color: #ffffff;
 
   font-size: 16px;
 }
@@ -231,6 +263,8 @@
 
 .announcement-count strong {
   display: block;
+
+  color: #ffffff;
 
   font-size: 27px;
 }
@@ -259,7 +293,9 @@
 
   padding: 20px;
 
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(0, 0, 0, 0.42);
+
+  backdrop-filter: blur(3px);
 }
 
 .announcement-modal {
@@ -267,13 +303,15 @@
 
   overflow: hidden;
 
-  background: #ffffff;
+  background: var(--surface);
+  color: var(--text);
 
+  border: 1px solid var(--border);
   border-radius: 11px;
 
   box-shadow:
     0 20px 60px
-    rgba(0, 0, 0, 0.18);
+    rgba(0, 0, 0, 0.22);
 }
 
 .announcement-modal-header {
@@ -283,7 +321,7 @@
 
   padding: 21px 22px;
 
-  border-bottom: 1px solid #eeeeee;
+  border-bottom: 1px solid var(--border);
 }
 
 .announcement-modal-header span {
@@ -291,7 +329,7 @@
 
   margin-bottom: 4px;
 
-  color: #e21d2c;
+  color: var(--accent);
 
   font-size: 8px;
   font-weight: 800;
@@ -301,6 +339,8 @@
 
 .announcement-modal-header h3 {
   margin: 0;
+
+  color: var(--text);
 
   font-size: 20px;
 }
@@ -313,13 +353,23 @@
   align-items: center;
   justify-content: center;
 
-  background: #f4f4f4;
-  color: #666666;
+  padding: 0;
 
+  background: var(--surface-soft);
+  color: var(--text-muted);
+
+  border: 1px solid var(--border);
   border-radius: 7px;
 
   cursor: pointer;
 }
+
+.announcement-modal-header button:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+/* FORM */
 
 .announcement-form {
   display: flex;
@@ -336,7 +386,7 @@
 
   gap: 7px;
 
-  color: #444444;
+  color: var(--text-secondary);
 
   font-size: 11px;
   font-weight: 600;
@@ -349,10 +399,10 @@
 
   padding: 11px 12px;
 
-  background: #ffffff;
-  color: #222222;
+  background: var(--surface);
+  color: var(--text);
 
-  border: 1px solid #dddddd;
+  border: 1px solid var(--border);
   border-radius: 7px;
 
   outline: none;
@@ -361,9 +411,14 @@
   font-size: 12px;
 }
 
+.announcement-form input::placeholder,
+.announcement-form textarea::placeholder {
+  color: var(--text-muted);
+}
+
 .announcement-form input:focus,
 .announcement-form textarea:focus {
-  border-color: #e21d2c;
+  border-color: var(--accent);
 
   box-shadow:
     0 0 0 3px
@@ -371,10 +426,12 @@
 }
 
 .announcement-form textarea {
-  resize: vertical;
-
   min-height: 110px;
+
+  resize: vertical;
 }
+
+/* IMPORTANT */
 
 .important-option {
   flex-direction: row !important;
@@ -386,8 +443,10 @@
 }
 
 .important-option input {
-  accent-color: #e21d2c;
+  accent-color: var(--accent);
 }
+
+/* MODAL FOOTER */
 
 .announcement-modal-footer {
   display: flex;
@@ -397,9 +456,9 @@
 
   padding: 16px 22px;
 
-  background: #fafafa;
+  background: var(--surface-soft);
 
-  border-top: 1px solid #eeeeee;
+  border-top: 1px solid var(--border);
 }
 
 .cancel-button,
@@ -417,19 +476,25 @@
 }
 
 .cancel-button {
-  background: #ffffff;
-  color: #555555;
+  background: var(--surface);
+  color: var(--text-secondary);
 
-  border: 1px solid #dddddd;
+  border: 1px solid var(--border);
+}
+
+.cancel-button:hover {
+  background: var(--surface-hover);
 }
 
 .publish-button {
-  background: #e21d2c;
+  background: var(--accent);
   color: #ffffff;
+
+  border: 1px solid var(--accent);
 }
 
 .publish-button:hover {
-  background: #ca1724;
+  background: var(--accent-hover);
 }
 
 .publish-button:disabled {
@@ -437,6 +502,8 @@
 
   cursor: not-allowed;
 }
+
+/* RESPONSIVE */
 
 @media (max-width: 950px) {
   .announcements-layout {
