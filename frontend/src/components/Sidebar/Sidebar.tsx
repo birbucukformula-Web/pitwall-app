@@ -29,11 +29,19 @@ export default function Sidebar() {
   const navigate = useNavigate();
 
   function handleLogout() {
-    setShowProfileMenu(false);
-    // Backend auth geldiğinde:
-    // token / session burada temizlenecek.
-    navigate("/login");
-  }
+  setShowProfileMenu(false);
+
+  // Backend authentication geldiğinde burada:
+  // - access token temizlenecek
+  // - refresh token temizlenecek
+  // - kullanıcı session bilgisi temizlenecek
+  // - gerekiyorsa logout endpoint çağrılacak
+
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("refreshToken");
+
+  navigate("/login");
+}
 
   return (
     <aside className="sidebar">
