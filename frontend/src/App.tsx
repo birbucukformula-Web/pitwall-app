@@ -13,6 +13,7 @@ import Calendar from "./pages/Calendar/Calendar";
 import Projects from "./pages/Projects/Projects";
 import ProjectDetail from "./pages/ProjectDetail/ProjectDetail";
 import Announcements from "./pages/Announcements/Announcements";
+import Profile from "./pages/Profile/Profile";
 
 import "./App.css";
 
@@ -48,6 +49,11 @@ function AppLayout() {
           <Route
             path="/announcements"
             element={<Announcements />}
+          />
+
+          <Route
+            path="/profile"
+            element={<Profile />}
           />
         </Routes>
       </main>
