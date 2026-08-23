@@ -639,6 +639,16 @@
   background: transparent;
 }
 
+.assignee-empty {
+  padding: 22px 12px;
+
+  color: var(--text-muted);
+
+  font-size: 11px;
+
+  text-align: center;
+}
+
 /* RESPONSIVE */
 
 @media (max-width: 650px) {
