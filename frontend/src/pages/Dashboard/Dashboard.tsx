@@ -26,6 +26,11 @@ export default function Dashboard() {
   const [showTaskModal, setShowTaskModal] =
     useState(false);
 
+  const [
+    taskModalStatus,
+    setTaskModalStatus,
+  ] = useState<Task["status"]>("todo");
+
   function handleCreateTask(
     newTask: Task,
   ) {
@@ -33,6 +38,13 @@ export default function Dashboard() {
       ...previousTasks,
       newTask,
     ]);
+  }
+
+  function openTaskModal(
+    status: Task["status"] = "todo",
+  ) {
+    setTaskModalStatus(status);
+    setShowTaskModal(true);
   }
 
   return (
@@ -51,7 +63,7 @@ export default function Dashboard() {
           <button
             className="new-task-button"
             onClick={() =>
-              setShowTaskModal(true)
+              openTaskModal("todo")
             }
           >
             <Plus size={18} />
@@ -62,29 +74,44 @@ export default function Dashboard() {
         <section className="stats-grid">
           <StatCard
             title="Toplam Görev"
-            value={13}
+            value={tasks.length}
             description="Bu sprintte"
             color="black"
           />
 
           <StatCard
             title="Devam Ediyor"
-            value={4}
+            value={
+              tasks.filter(
+                (task) =>
+                  task.status === "progress",
+              ).length
+            }
             description="Aktif görev"
             color="red"
           />
 
           <StatCard
             title="İncelemede"
-            value={2}
+            value={
+              tasks.filter(
+                (task) =>
+                  task.status === "review",
+              ).length
+            }
             description="Onay bekliyor"
             color="orange"
           />
 
           <StatCard
             title="Tamamlanan"
-            value={7}
-            description="%54 tamamlandı"
+            value={
+              tasks.filter(
+                (task) =>
+                  task.status === "done",
+              ).length
+            }
+            description="Tamamlanan görev"
             color="green"
           />
         </section>
@@ -111,6 +138,9 @@ export default function Dashboard() {
               status="todo"
               tasks={tasks}
               onTaskClick={setSelectedTask}
+              onAddTask={() =>
+                openTaskModal("todo")
+              }
             />
 
             <KanbanColumn
@@ -118,6 +148,9 @@ export default function Dashboard() {
               status="progress"
               tasks={tasks}
               onTaskClick={setSelectedTask}
+              onAddTask={() =>
+                openTaskModal("progress")
+              }
             />
 
             <KanbanColumn
@@ -125,6 +158,9 @@ export default function Dashboard() {
               status="review"
               tasks={tasks}
               onTaskClick={setSelectedTask}
+              onAddTask={() =>
+                openTaskModal("review")
+              }
             />
 
             <KanbanColumn
@@ -132,6 +168,9 @@ export default function Dashboard() {
               status="done"
               tasks={tasks}
               onTaskClick={setSelectedTask}
+              onAddTask={() =>
+                openTaskModal("done")
+              }
             />
           </div>
         </section>
@@ -150,6 +189,7 @@ export default function Dashboard() {
           setShowTaskModal(false)
         }
         onCreate={handleCreateTask}
+        defaultStatus={taskModalStatus}
       />
     </>
   );
