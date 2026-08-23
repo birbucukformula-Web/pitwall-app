@@ -31,6 +31,18 @@ export default function Dashboard() {
     setTaskModalStatus,
   ] = useState<Task["status"]>("todo");
 
+  const [showFilters, setShowFilters] =
+    useState(false);
+
+  const [projectFilter, setProjectFilter] =
+    useState("all");
+
+  const [priorityFilter, setPriorityFilter] =
+    useState("all");
+
+  const [assigneeFilter, setAssigneeFilter] =
+    useState("all");
+
   function handleCreateTask(
     newTask: Task,
   ) {
@@ -45,6 +57,59 @@ export default function Dashboard() {
   ) {
     setTaskModalStatus(status);
     setShowTaskModal(true);
+  }
+
+  const availableProjects = Array.from(
+    new Set(tasks.map((task) => task.project)),
+  );
+
+  const availableAssignees = Array.from(
+    new Map(
+      tasks
+        .flatMap((task) => task.assignees)
+        .map((member) => [
+          member.id,
+          member,
+        ]),
+    ).values(),
+  );
+
+  const filteredTasks = tasks.filter(
+    (task) => {
+      const matchesProject =
+        projectFilter === "all" ||
+        task.project === projectFilter;
+
+      const matchesPriority =
+        priorityFilter === "all" ||
+        task.priority === priorityFilter;
+
+      const matchesAssignee =
+        assigneeFilter === "all" ||
+        task.assignees.some(
+          (member) =>
+            member.id.toString() ===
+            assigneeFilter,
+        );
+
+      return (
+        matchesProject &&
+        matchesPriority &&
+        matchesAssignee
+      );
+    },
+  );
+
+  const activeFilterCount = [
+    projectFilter !== "all",
+    priorityFilter !== "all",
+    assigneeFilter !== "all",
+  ].filter(Boolean).length;
+
+  function clearFilters() {
+    setProjectFilter("all");
+    setPriorityFilter("all");
+    setAssigneeFilter("all");
   }
 
   return (
@@ -126,17 +191,162 @@ export default function Dashboard() {
               </span>
             </div>
 
-            <button className="filter-button">
-              <SlidersHorizontal size={17} />
-              Filtrele
-            </button>
+            <div className="filter-wrapper">
+              <button
+                className={`filter-button ${activeFilterCount > 0
+                    ? "active"
+                    : ""
+                  }`}
+                onClick={() =>
+                  setShowFilters(
+                    (previous) => !previous,
+                  )
+                }
+              >
+                <SlidersHorizontal size={17} />
+
+                Filtrele
+
+                {activeFilterCount > 0 && (
+                  <span className="filter-count">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </button>
+
+              {showFilters && (
+                <div className="filter-panel">
+                  <div className="filter-panel-header">
+                    <div>
+                      <strong>Görevleri filtrele</strong>
+                      <span>
+                        Görmek istediğin görevleri daralt.
+                      </span>
+                    </div>
+
+                    {activeFilterCount > 0 && (
+                      <button
+                        type="button"
+                        className="clear-filter-button"
+                        onClick={clearFilters}
+                      >
+                        Temizle
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="filter-fields">
+                    <label>
+                      Proje
+
+                      <select
+                        value={projectFilter}
+                        onChange={(event) =>
+                          setProjectFilter(
+                            event.target.value,
+                          )
+                        }
+                      >
+                        <option value="all">
+                          Tüm projeler
+                        </option>
+
+                        {availableProjects.map(
+                          (project) => (
+                            <option
+                              key={project}
+                              value={project}
+                            >
+                              {project}
+                            </option>
+                          ),
+                        )}
+                      </select>
+                    </label>
+
+                    <label>
+                      Öncelik
+
+                      <select
+                        value={priorityFilter}
+                        onChange={(event) =>
+                          setPriorityFilter(
+                            event.target.value,
+                          )
+                        }
+                      >
+                        <option value="all">
+                          Tüm öncelikler
+                        </option>
+
+                        <option value="low">
+                          Düşük
+                        </option>
+
+                        <option value="medium">
+                          Orta
+                        </option>
+
+                        <option value="high">
+                          Yüksek
+                        </option>
+                      </select>
+                    </label>
+
+                    <label>
+                      Atanan kişi
+
+                      <select
+                        value={assigneeFilter}
+                        onChange={(event) =>
+                          setAssigneeFilter(
+                            event.target.value,
+                          )
+                        }
+                      >
+                        <option value="all">
+                          Tüm ekip
+                        </option>
+
+                        {availableAssignees.map(
+                          (member) => (
+                            <option
+                              key={member.id}
+                              value={member.id}
+                            >
+                              {member.name}
+                            </option>
+                          ),
+                        )}
+                      </select>
+                    </label>
+                  </div>
+
+                  <div className="filter-panel-footer">
+                    <span>
+                      {filteredTasks.length} görev
+                      gösteriliyor
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowFilters(false)
+                      }
+                    >
+                      Tamam
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="kanban">
             <KanbanColumn
               title="Yapılacak"
               status="todo"
-              tasks={tasks}
+              tasks={filteredTasks}
               onTaskClick={setSelectedTask}
               onAddTask={() =>
                 openTaskModal("todo")
@@ -146,7 +356,7 @@ export default function Dashboard() {
             <KanbanColumn
               title="Devam Ediyor"
               status="progress"
-              tasks={tasks}
+              tasks={filteredTasks}
               onTaskClick={setSelectedTask}
               onAddTask={() =>
                 openTaskModal("progress")
@@ -156,7 +366,7 @@ export default function Dashboard() {
             <KanbanColumn
               title="İncelemede"
               status="review"
-              tasks={tasks}
+              tasks={filteredTasks}
               onTaskClick={setSelectedTask}
               onAddTask={() =>
                 openTaskModal("review")
@@ -166,7 +376,7 @@ export default function Dashboard() {
             <KanbanColumn
               title="Tamamlandı"
               status="done"
-              tasks={tasks}
+              tasks={filteredTasks}
               onTaskClick={setSelectedTask}
               onAddTask={() =>
                 openTaskModal("done")
