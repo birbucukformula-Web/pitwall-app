@@ -3,9 +3,10 @@ import { useNavigate } from "react-router-dom";
 
 import {
   Bell,
+  CheckCheck,
+  Menu,
   Search,
   X,
-  CheckCheck,
 } from "lucide-react";
 
 import TaskDrawer from "../TaskDrawer/TaskDrawer";
@@ -16,6 +17,10 @@ import { mockTasks } from "../../data/mockTasks";
 import type { Task } from "../../types/task";
 
 import "./Header.css";
+
+type HeaderProps = {
+  onMenuClick: () => void;
+};
 
 type Notification = {
   id: number;
@@ -145,20 +150,37 @@ const initialNotifications: Notification[] = [
   },
 ];
 
-export default function Header() {
+export default function Header({
+  onMenuClick,
+}: HeaderProps) {
   const navigate = useNavigate();
 
-  const [showNotifications, setShowNotifications] =
-    useState(false);
+  const [
+    showNotifications,
+    setShowNotifications,
+  ] = useState(false);
 
-  const [notifications, setNotifications] =
-    useState<Notification[]>(initialNotifications);
+  const [
+    notifications,
+    setNotifications,
+  ] = useState<Notification[]>(
+    initialNotifications,
+  );
 
-  const [selectedTask, setSelectedTask] =
-    useState<Task | null>(null);
+  const [
+    selectedTask,
+    setSelectedTask,
+  ] = useState<Task | null>(null);
 
-  const [searchTerm, setSearchTerm] =
-    useState("");
+  const [
+    searchTerm,
+    setSearchTerm,
+  ] = useState("");
+
+  const [
+    showMobileSearch,
+    setShowMobileSearch,
+  ] = useState(false);
 
   const searchResults =
     searchTerm.trim().length > 0
@@ -207,13 +229,15 @@ export default function Header() {
       "announcement"
     ) {
       navigate("/announcements");
+
       return;
     }
 
     if (notification.taskId) {
       const task = mockTasks.find(
-        (task) =>
-          task.id === notification.taskId,
+        (item) =>
+          item.id ===
+          notification.taskId,
       );
 
       if (task) {
@@ -224,10 +248,12 @@ export default function Header() {
 
   function markAllAsRead() {
     setNotifications((previous) =>
-      previous.map((notification) => ({
-        ...notification,
-        unread: false,
-      })),
+      previous.map(
+        (notification) => ({
+          ...notification,
+          unread: false,
+        }),
+      ),
     );
   }
 
@@ -236,186 +262,329 @@ export default function Header() {
   ) {
     setSelectedTask(task);
     setSearchTerm("");
+    setShowMobileSearch(false);
+  }
+
+  function closeMobileSearch() {
+    setSearchTerm("");
+    setShowMobileSearch(false);
   }
 
   return (
     <>
       <header className="topbar">
-        <div>
-          <p className="eyebrow">
-            PITWALL
-          </p>
+        <div className="topbar-left">
+          <button
+            type="button"
+            className="mobile-menu-button"
+            onClick={onMenuClick}
+            aria-label="Menüyü aç"
+          >
+            <Menu size={21} />
+          </button>
 
-          <h1>
-            Görev Panosu
-          </h1>
-        </div>
-
-       <div className="topbar-actions">
-
-  {/* BİLDİRİM */}
-  <div className="notification-wrapper">
-    <button
-      className="header-notification-button"
-      onClick={() =>
-        setShowNotifications(
-          (previous) => !previous,
-        )
-      }
-      aria-label="Bildirimler"
-    >
-      <Bell size={20} />
-
-      {unreadCount > 0 && (
-        <span className="notification-count">
-          {unreadCount}
-        </span>
-      )}
-    </button>
-
-    {showNotifications && (
-      <div className="notification-dropdown">
-        <div className="notification-header">
           <div>
-            <h3>Bildirimler</h3>
+            <p className="eyebrow">
+              PITWALL
+            </p>
 
-            <span>
-              {unreadCount > 0
-                ? `${unreadCount} okunmamış bildirim`
-                : "Tüm bildirimler okundu"}
-            </span>
-          </div>
-
-          <div className="notification-header-actions">
-            <button
-              onClick={() =>
-                setShowNotifications(false)
-              }
-              title="Kapat"
-            >
-              <X size={18} />
-            </button>
+            <h1>
+              Görev Panosu
+            </h1>
           </div>
         </div>
 
-        <div className="notification-list">
-          {notifications.map(
-            (notification) => (
-              <button
-                className={`notification-item ${
-                  notification.unread
-                    ? "unread"
-                    : ""
-                }`}
-                key={notification.id}
-                onClick={() =>
-                  handleNotificationClick(
-                    notification,
-                  )
-                }
-              >
-                <span className="notification-indicator" />
+        <div className="topbar-actions">
+          {/* NOTIFICATIONS */}
 
-                <div className="notification-content">
-                  <div className="notification-title-row">
-                    <strong>
-                      {notification.title}
-                    </strong>
+          <div className="notification-wrapper">
+            <button
+              type="button"
+              className="header-notification-button"
+              onClick={() =>
+                setShowNotifications(
+                  (previous) =>
+                    !previous,
+                )
+              }
+              aria-label="Bildirimler"
+            >
+              <Bell size={20} />
+
+              {unreadCount > 0 && (
+                <span className="notification-count">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+
+            {showNotifications && (
+              <div className="notification-dropdown">
+                <div className="notification-header">
+                  <div>
+                    <h3>
+                      Bildirimler
+                    </h3>
 
                     <span>
-                      {notification.time}
+                      {unreadCount > 0
+                        ? `${unreadCount} okunmamış bildirim`
+                        : "Tüm bildirimler okundu"}
                     </span>
                   </div>
 
-                  <p>
-                    {notification.description}
-                  </p>
+                  <div className="notification-header-actions">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowNotifications(
+                          false,
+                        )
+                      }
+                      aria-label="Bildirimleri kapat"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
                 </div>
-              </button>
-            ),
-          )}
-        </div>
 
-        <div className="notification-footer">
-          <button onClick={markAllAsRead}>
-            <CheckCheck size={14} />
-            Tümünü okundu işaretle
-          </button>
-        </div>
-      </div>
-    )}
-  </div>
+                <div className="notification-list">
+                  {notifications.map(
+                    (notification) => (
+                      <button
+                        type="button"
+                        className={`notification-item ${
+                          notification.unread
+                            ? "unread"
+                            : ""
+                        }`}
+                        key={
+                          notification.id
+                        }
+                        onClick={() =>
+                          handleNotificationClick(
+                            notification,
+                          )
+                        }
+                      >
+                        <span className="notification-indicator" />
 
-  {/* ARAMA */}
-  <div className="search-wrapper">
-    <div className="search-box">
-      <Search size={18} />
+                        <div className="notification-content">
+                          <div className="notification-title-row">
+                            <strong>
+                              {
+                                notification.title
+                              }
+                            </strong>
 
-      <input
-        value={searchTerm}
-        onChange={(event) =>
-          setSearchTerm(
-            event.target.value,
-          )
-        }
-        placeholder="Görevlerde ara..."
-      />
+                            <span>
+                              {
+                                notification.time
+                              }
+                            </span>
+                          </div>
 
-      {searchTerm && (
-        <button
-          className="search-clear"
-          onClick={() =>
-            setSearchTerm("")
-          }
-          aria-label="Aramayı temizle"
-        >
-          ×
-        </button>
-      )}
-    </div>
+                          <p>
+                            {
+                              notification.description
+                            }
+                          </p>
+                        </div>
+                      </button>
+                    ),
+                  )}
+                </div>
 
-    {searchTerm.trim() && (
-      <div className="search-results">
-        {searchResults.length > 0 ? (
-          searchResults.map((task) => (
+                <div className="notification-footer">
+                  <button
+                    type="button"
+                    onClick={
+                      markAllAsRead
+                    }
+                  >
+                    <CheckCheck
+                      size={14}
+                    />
+
+                    Tümünü okundu işaretle
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* SEARCH */}
+
+          <div className="search-wrapper">
+            <div className="search-box desktop-search-box">
+              <Search size={18} />
+
+              <input
+                value={searchTerm}
+                onChange={(event) =>
+                  setSearchTerm(
+                    event.target.value,
+                  )
+                }
+                placeholder="Görevlerde ara..."
+              />
+
+              {searchTerm && (
+                <button
+                  type="button"
+                  className="search-clear"
+                  onClick={() =>
+                    setSearchTerm("")
+                  }
+                  aria-label="Aramayı temizle"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+
             <button
-              className="search-result-item"
-              key={task.id}
+              type="button"
+              className="mobile-search-button"
               onClick={() =>
-                handleSearchResultClick(
-                  task,
+                setShowMobileSearch(
+                  true,
                 )
               }
+              aria-label="Görevlerde ara"
             >
-              <div className="search-result-top">
-                <strong>
-                  {task.title}
-                </strong>
-
-                <span>
-                  {task.project}
-                </span>
-              </div>
-
-              <p>
-                {task.department}
-              </p>
+              <Search size={19} />
             </button>
-          ))
-        ) : (
-          <div className="search-empty">
-            Görev bulunamadı.
+
+            {searchTerm.trim() &&
+              !showMobileSearch && (
+                <div className="search-results desktop-search-results">
+                  {searchResults.length >
+                  0 ? (
+                    searchResults.map(
+                      (task) => (
+                        <button
+                          type="button"
+                          className="search-result-item"
+                          key={task.id}
+                          onClick={() =>
+                            handleSearchResultClick(
+                              task,
+                            )
+                          }
+                        >
+                          <div className="search-result-top">
+                            <strong>
+                              {
+                                task.title
+                              }
+                            </strong>
+
+                            <span>
+                              {
+                                task.project
+                              }
+                            </span>
+                          </div>
+
+                          <p>
+                            {
+                              task.department
+                            }
+                          </p>
+                        </button>
+                      ),
+                    )
+                  ) : (
+                    <div className="search-empty">
+                      Görev bulunamadı.
+                    </div>
+                  )}
+                </div>
+              )}
           </div>
-        )}
-      </div>
-    )}
-  </div>
 
-  {/* LIGHT / DARK */}
-  <ThemeToggle />
-
-</div>
+          <ThemeToggle />
+        </div>
       </header>
+
+      {showMobileSearch && (
+        <div className="mobile-search-panel">
+          <div className="mobile-search-header">
+            <div className="mobile-search-input">
+              <Search size={19} />
+
+              <input
+                autoFocus
+                value={searchTerm}
+                onChange={(event) =>
+                  setSearchTerm(
+                    event.target.value,
+                  )
+                }
+                placeholder="Görevlerde ara..."
+              />
+            </div>
+
+            <button
+              type="button"
+              className="mobile-search-close"
+              onClick={
+                closeMobileSearch
+              }
+              aria-label="Aramayı kapat"
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          <div className="mobile-search-results">
+            {searchTerm.trim() ? (
+              searchResults.length > 0 ? (
+                searchResults.map(
+                  (task) => (
+                    <button
+                      type="button"
+                      className="search-result-item"
+                      key={task.id}
+                      onClick={() =>
+                        handleSearchResultClick(
+                          task,
+                        )
+                      }
+                    >
+                      <div className="search-result-top">
+                        <strong>
+                          {task.title}
+                        </strong>
+
+                        <span>
+                          {task.project}
+                        </span>
+                      </div>
+
+                      <p>
+                        {
+                          task.department
+                        }
+                      </p>
+                    </button>
+                  ),
+                )
+              ) : (
+                <div className="search-empty">
+                  Görev bulunamadı.
+                </div>
+              )
+            ) : (
+              <div className="search-empty">
+                Görev adı, proje veya
+                departman ara.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <TaskDrawer
         task={selectedTask}

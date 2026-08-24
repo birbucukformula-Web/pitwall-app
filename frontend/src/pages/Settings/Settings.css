@@ -1,0 +1,295 @@
+.settings-page {
+  padding: 34px 38px 44px;
+
+  color: var(--text);
+}
+
+.settings-header {
+  margin-bottom: 28px;
+}
+
+.settings-label {
+  display: block;
+
+  margin-bottom: 7px;
+
+  color: var(--accent);
+
+  font-size: 10px;
+  font-weight: 800;
+
+  letter-spacing: 1.5px;
+}
+
+.settings-header h2 {
+  margin: 0;
+
+  color: var(--text);
+
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.settings-header p {
+  max-width: 650px;
+
+  margin: 8px 0 0;
+
+  color: var(--text-muted);
+
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.settings-layout {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 20px;
+}
+
+.settings-card {
+  overflow: hidden;
+
+  background: var(--surface);
+
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.settings-card-heading {
+  display: flex;
+  align-items: center;
+
+  gap: 13px;
+
+  padding: 22px 24px;
+
+  border-bottom: 1px solid var(--border);
+}
+
+.settings-heading-icon {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  background: var(--surface-soft);
+  color: var(--text-secondary);
+
+  border: 1px solid var(--border);
+  border-radius: 9px;
+}
+
+.settings-card-heading h3 {
+  margin: 0;
+
+  color: var(--text);
+
+  font-size: 17px;
+}
+
+.settings-card-heading p {
+  margin: 5px 0 0;
+
+  color: var(--text-muted);
+
+  font-size: 11px;
+}
+
+.theme-options {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 14px;
+
+  padding: 22px;
+}
+
+.theme-option {
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  padding: 16px;
+
+  background: var(--surface-soft);
+  color: var(--text);
+
+  border: 1px solid var(--border);
+  border-radius: 10px;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.theme-option:hover {
+  background: var(--surface-hover);
+}
+
+.theme-option.active {
+  border-color: var(--accent);
+
+  background: var(--accent-soft);
+}
+
+.theme-option-icon {
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  background: var(--surface);
+
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.theme-option strong {
+  display: block;
+
+  font-size: 12px;
+}
+
+.theme-option span {
+  display: block;
+
+  margin-top: 4px;
+
+  color: var(--text-muted);
+
+  font-size: 10px;
+}
+
+.settings-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  padding: 18px 22px;
+
+  border-bottom: 1px solid var(--border);
+
+  cursor: pointer;
+}
+
+.settings-row:last-child {
+  border-bottom: 0;
+}
+
+.settings-row strong {
+  display: block;
+
+  color: var(--text);
+
+  font-size: 12px;
+}
+
+.settings-row span {
+  display: block;
+
+  max-width: 420px;
+
+  margin-top: 5px;
+
+  color: var(--text-muted);
+
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.settings-row input {
+  width: 18px;
+  height: 18px;
+
+  flex-shrink: 0;
+
+  accent-color: var(--accent);
+
+  cursor: pointer;
+}
+
+.account-settings-card {
+  grid-column: 1 / -1;
+}
+
+.settings-account-info {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 14px;
+
+  padding: 22px;
+}
+
+.settings-account-info > div {
+  padding: 16px;
+
+  background: var(--surface-soft);
+
+  border: 1px solid var(--border);
+  border-radius: 9px;
+}
+
+.settings-account-info span {
+  display: block;
+
+  color: var(--text-muted);
+
+  font-size: 9px;
+}
+
+.settings-account-info strong {
+  display: block;
+
+  margin-top: 5px;
+
+  color: var(--text);
+
+  font-size: 12px;
+}
+
+@media (max-width: 900px) {
+  .settings-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .account-settings-card {
+    grid-column: auto;
+  }
+
+  .settings-account-info {
+    grid-template-columns: 1fr;
+  }
+
+  .theme-options {
+    grid-template-columns: 1fr;
+  }
+}

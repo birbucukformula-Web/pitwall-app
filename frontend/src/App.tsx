@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import {
   Navigate,
   Route,
@@ -13,16 +15,43 @@ import Calendar from "./pages/Calendar/Calendar";
 import Projects from "./pages/Projects/Projects";
 import ProjectDetail from "./pages/ProjectDetail/ProjectDetail";
 import Announcements from "./pages/Announcements/Announcements";
+import Profile from "./pages/Profile/Profile";
+import Settings from "./pages/Settings/Settings";
 
 import "./App.css";
 
 function AppLayout() {
+  const [isSidebarOpen, setIsSidebarOpen] =
+    useState(false);
+
+  function openSidebar() {
+    setIsSidebarOpen(true);
+  }
+
+  function closeSidebar() {
+    setIsSidebarOpen(false);
+  }
+
   return (
     <div className="app">
-      <Sidebar />
+      <Sidebar
+        isOpen={isSidebarOpen}
+        onClose={closeSidebar}
+      />
+
+      {isSidebarOpen && (
+        <button
+          type="button"
+          className="sidebar-overlay"
+          onClick={closeSidebar}
+          aria-label="Menüyü kapat"
+        />
+      )}
 
       <main className="main">
-        <Header />
+        <Header
+          onMenuClick={openSidebar}
+        />
 
         <Routes>
           <Route
@@ -49,6 +78,16 @@ function AppLayout() {
             path="/announcements"
             element={<Announcements />}
           />
+
+          <Route
+            path="/profile"
+            element={<Profile />}
+          />
+
+          <Route
+            path="/settings"
+            element={<Settings />}
+          />
         </Routes>
       </main>
     </div>
@@ -64,11 +103,6 @@ function App() {
       />
 
       <Route
-        path="/*"
-        element={<AppLayout />}
-      />
-
-      <Route
         path="/"
         element={
           <Navigate
@@ -76,6 +110,11 @@ function App() {
             replace
           />
         }
+      />
+
+      <Route
+        path="/*"
+        element={<AppLayout />}
       />
     </Routes>
   );
