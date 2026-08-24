@@ -2,6 +2,8 @@
   padding: 30px 34px 40px;
 }
 
+/* WELCOME */
+
 .welcome-row {
   display: flex;
   align-items: flex-end;
@@ -13,6 +15,8 @@
 .welcome-row h2 {
   margin: 0;
 
+  color: var(--text);
+
   font-size: 26px;
   font-weight: 700;
 }
@@ -20,10 +24,12 @@
 .welcome-row p {
   margin: 7px 0 0;
 
-  color: #888888;
+  color: var(--text-muted);
 
   font-size: 13px;
 }
+
+/* NEW TASK BUTTON */
 
 .new-task-button {
   height: 42px;
@@ -35,20 +41,31 @@
 
   padding: 0 17px;
 
-  background: #e21d2c;
-  color: white;
+  background: var(--accent);
+  color: #ffffff;
 
+  border: 0;
   border-radius: 7px;
 
   font-size: 13px;
   font-weight: 600;
 
   cursor: pointer;
+
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease;
 }
 
 .new-task-button:hover {
-  background: #ca1724;
+  background: var(--accent-hover);
 }
+
+.new-task-button:active {
+  transform: scale(0.97);
+}
+
+/* STATS */
 
 .stats-grid {
   display: grid;
@@ -59,10 +76,12 @@
   margin-bottom: 26px;
 }
 
-.board-section {
-  background: white;
+/* BOARD */
 
-  border: 1px solid #e5e5e5;
+.board-section {
+  background: var(--surface);
+
+  border: 1px solid var(--border);
   border-radius: 9px;
 
   overflow: hidden;
@@ -77,11 +96,15 @@
 
   padding: 0 20px;
 
-  border-bottom: 1px solid #e8e8e8;
+  background: var(--surface);
+
+  border-bottom: 1px solid var(--border);
 }
 
 .board-toolbar h3 {
   margin: 0;
+
+  color: var(--text);
 
   font-size: 17px;
   font-weight: 700;
@@ -92,13 +115,21 @@
 
   margin-top: 4px;
 
-  color: #999999;
+  color: var(--text-muted);
 
   font-size: 11px;
 }
 
+/* FILTER */
+
+.filter-wrapper {
+  position: relative;
+}
+
 .filter-button {
   height: 38px;
+
+  position: relative;
 
   display: flex;
   align-items: center;
@@ -107,15 +138,248 @@
 
   padding: 0 13px;
 
-  background: white;
+  background: var(--surface);
+  color: var(--text);
 
-  border: 1px solid #dedede;
-  border-radius: 6px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
 
   font-size: 12px;
 
   cursor: pointer;
+
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease;
 }
+
+.filter-button:hover {
+  background: var(--accent-soft);
+
+  color: var(--accent);
+
+  border-color: var(--accent);
+}
+
+.filter-button:active {
+  transform: scale(0.97);
+}
+
+/* aktif filtre */
+
+.filter-button.active {
+  background: var(--accent);
+
+  color: #ffffff;
+
+  border-color: var(--accent);
+}
+
+.filter-button.active:hover {
+  background: var(--accent-hover);
+
+  color: #ffffff;
+
+  border-color: var(--accent-hover);
+}
+
+.filter-button.active svg {
+  color: #ffffff;
+}
+
+.filter-count {
+  min-width: 18px;
+  height: 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0 4px;
+
+  background: var(--accent);
+  color: #ffffff;
+
+  border-radius: 999px;
+
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.filter-button.active .filter-count {
+  background: #ffffff;
+  color: var(--accent);
+}
+
+/* FILTER PANEL */
+
+.filter-panel {
+  width: 320px;
+
+  position: absolute;
+
+  top: calc(100% + 9px);
+  right: 0;
+
+  z-index: 100;
+
+  overflow: hidden;
+
+  background: var(--surface);
+
+  border: 1px solid var(--border);
+  border-radius: 11px;
+
+  box-shadow:
+    0 16px 40px
+    rgba(0, 0, 0, 0.14);
+}
+
+.filter-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  padding: 15px 16px;
+
+  border-bottom: 1px solid var(--border);
+}
+
+.filter-panel-header > div {
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+.filter-panel-header strong {
+  color: var(--text);
+
+  font-size: 13px;
+}
+
+.filter-panel-header span {
+  color: var(--text-muted);
+
+  font-size: 10px;
+}
+
+.clear-filter-button {
+  padding: 0;
+
+  background: transparent;
+  color: var(--accent);
+
+  border: 0;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.clear-filter-button:hover {
+  text-decoration: underline;
+}
+
+/* FILTER FIELDS */
+
+.filter-fields {
+  display: flex;
+  flex-direction: column;
+
+  gap: 13px;
+
+  padding: 15px 16px;
+}
+
+.filter-fields label {
+  display: flex;
+  flex-direction: column;
+
+  gap: 7px;
+
+  color: var(--text-secondary);
+
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.filter-fields select {
+  width: 100%;
+  height: 39px;
+
+  padding: 0 10px;
+
+  background: var(--surface);
+  color: var(--text);
+
+  border: 1px solid var(--border);
+  border-radius: 7px;
+
+  outline: none;
+
+  font-size: 11px;
+
+  cursor: pointer;
+}
+
+.filter-fields select:focus {
+  border-color: var(--accent);
+
+  box-shadow:
+    0 0 0 3px
+    rgba(226, 29, 44, 0.06);
+}
+
+/* FILTER FOOTER */
+
+.filter-panel-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 10px 16px;
+
+  background: var(--surface-soft);
+
+  border-top: 1px solid var(--border);
+}
+
+.filter-panel-footer span {
+  color: var(--text-muted);
+
+  font-size: 10px;
+}
+
+.filter-panel-footer button {
+  height: 32px;
+
+  padding: 0 13px;
+
+  background: var(--accent);
+  color: #ffffff;
+
+  border: 0;
+  border-radius: 6px;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: background 0.15s ease;
+}
+
+.filter-panel-footer button:hover {
+  background: var(--accent-hover);
+}
+
+/* KANBAN */
 
 .kanban {
   display: grid;
@@ -123,10 +387,12 @@
   grid-template-columns:
     repeat(4, minmax(280px, 1fr));
 
-  background: #fafafa;
+  background: var(--kanban-bg);
 
   overflow-x: auto;
 }
+
+/* RESPONSIVE */
 
 @media (max-width: 1100px) {
   .stats-grid {

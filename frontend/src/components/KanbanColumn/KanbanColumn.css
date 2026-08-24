@@ -3,7 +3,9 @@
 
   padding: 18px;
 
-  border-right: 1px solid #e8e8e8;
+  background: transparent;
+
+  border-right: 1px solid var(--border);
 }
 
 .kanban-column:last-child {
@@ -19,7 +21,7 @@
 
   margin-bottom: 10px;
 
-  color: #777777;
+  color: var(--text-muted);
 }
 
 .column-header > div {
@@ -30,7 +32,7 @@
 }
 
 .column-header strong {
-  color: #4b4b4b;
+  color: var(--text-secondary);
 
   font-size: 14px;
   font-weight: 600;
@@ -60,20 +62,68 @@
 }
 
 .task-count {
-  min-width: 22px;
-  height: 22px;
+  min-width: 20px;
+  height: 20px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0 5px;
+
+  margin-left: 5px;
+
+  background: transparent;
+  color: var(--text-muted);
+
+  border: 1px solid var(--border);
+  border-radius: 999px;
+
+  font-size: 9px;
+  font-weight: 600;
+
+  line-height: 1;
+}
+
+.column-add-button {
+  width: 34px;
+  height: 34px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  background: #eeeeee;
+  padding: 0;
 
-  border-radius: 20px;
+  background: transparent;
+  color: var(--text-secondary);
 
-  color: #777777;
+  border: 1px solid var(--border);
+  border-radius: 8px;
 
-  font-size: 10px;
+  cursor: pointer;
+
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.column-add-button:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.column-add-button:active {
+  transform: scale(0.94);
+}
+
+.column-add-button svg {
+  width: 17px;
+  height: 17px;
+  stroke-width: 2;
 }
 
 .task-list {
@@ -94,18 +144,21 @@
 
   background: transparent;
 
-  border: 1px dashed #d8d8d8;
+  border: 1px dashed var(--border);
   border-radius: 7px;
 
-  color: #999999;
+  color: var(--text-muted);
 
   font-size: 11px;
 
   cursor: pointer;
 }
 
-.add-card-button:hover {
-  color: #e21d2c;
 
-  border-color: #e21d2c;
+.add-card-button:hover {
+  background: var(--surface-hover);
+
+  color: var(--accent);
+
+  border-color: var(--accent);
 }

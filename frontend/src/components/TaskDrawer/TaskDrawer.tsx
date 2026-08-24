@@ -36,10 +36,26 @@ const initialComments: Comment[] = [
         id: 2,
         user: "Furkan",
         initials: "FK",
-        message: "API bağlantısı için endpoint yapısını hazırlıyorum.",
+        message:
+            "API bağlantısı için endpoint yapısını hazırlıyorum.",
         time: "18 Ağustos, 15:10",
     },
 ];
+
+/*
+  Şimdilik mock isim eşleştirmesi.
+  Backend geldiğinde assignee nesnesinden doğrudan
+  name bilgisi gelecek ve buna ihtiyaç kalmayacak.
+*/
+const memberNames: Record<string, string> = {
+    LS: "Lidya Su",
+    FK: "Furkan",
+    MK: "Mert",
+    BC: "Busenur",
+    EA: "Eda",
+    TA: "Takım Üyesi",
+    NK: "Takım Üyesi",
+};
 
 export default function TaskDrawer({
     task,
@@ -95,17 +111,19 @@ export default function TaskDrawer({
             !event.shiftKey
         ) {
             event.preventDefault();
-
             handleAddComment();
         }
     }
 
     function formatDate(date: string) {
-        return new Intl.DateTimeFormat("tr-TR", {
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-        }).format(new Date(date));
+        return new Intl.DateTimeFormat(
+            "tr-TR",
+            {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+            },
+        ).format(new Date(date));
     }
 
     return (
@@ -116,6 +134,8 @@ export default function TaskDrawer({
             />
 
             <aside className="task-drawer">
+                {/* HEADER */}
+
                 <div className="drawer-header">
                     <div>
                         <span className="drawer-project">
@@ -126,6 +146,7 @@ export default function TaskDrawer({
                     </div>
 
                     <button
+                        type="button"
                         className="drawer-close"
                         onClick={onClose}
                         aria-label="Görev detayını kapat"
@@ -135,22 +156,30 @@ export default function TaskDrawer({
                 </div>
 
                 <div className="drawer-content">
+                    {/* TASK INFORMATION */}
+
                     <section className="drawer-section task-information">
                         <div className="info-row">
-                            <div className="info-row">
-                                <span>Proje</span>
-                                <strong>{task.project}</strong>
-                            </div>
+                            <span>Proje</span>
+
+                            <strong>
+                                {task.project}
+                            </strong>
+                        </div>
+
+                        <div className="info-row">
                             <span>Durum</span>
 
                             <strong className="status-badge">
                                 {task.status === "todo" &&
                                     "Yapılacak"}
 
-                                {task.status === "progress" &&
+                                {task.status ===
+                                    "progress" &&
                                     "Devam Ediyor"}
 
-                                {task.status === "review" &&
+                                {task.status ===
+                                    "review" &&
                                     "İncelemede"}
 
                                 {task.status === "done" &&
@@ -164,7 +193,8 @@ export default function TaskDrawer({
                             <strong>
                                 {task.priority === "high"
                                     ? "Yüksek"
-                                    : task.priority === "medium"
+                                    : task.priority ===
+                                        "medium"
                                         ? "Orta"
                                         : "Normal"}
                             </strong>
@@ -174,27 +204,45 @@ export default function TaskDrawer({
                             <span>Son Tarih</span>
 
                             <strong className="date-value">
-                                <CalendarDays size={16} />
-                                {formatDate(task.dueDate)}
+                                <CalendarDays
+                                    size={16}
+                                />
+
+                                {formatDate(
+                                    task.dueDate,
+                                )}
                             </strong>
                         </div>
                     </section>
+
+                    {/* ASSIGNEES */}
 
                     <section className="drawer-section">
                         <div className="section-title">
                             Atananlar
                         </div>
 
-                        {task.assignees.map((assignee) => (
-                            <div
-                                className="drawer-assignee"
-                                key={assignee.id}
-                                title={assignee.name}
-                            >
-                                {assignee.initials}
-                            </div>
-                        ))}
+                        <div className="drawer-assignees">
+                            {task.assignees.map(
+                                (assignee) => (
+                                    <div
+                                        className="drawer-assignee-row"
+                                        key={assignee.id}
+                                    >
+                                        <div className="drawer-assignee">
+                                            {assignee.initials}
+                                        </div>
+
+                                        <strong>
+                                            {assignee.name}
+                                        </strong>
+                                    </div>
+                                ),
+                            )}
+                        </div>
                     </section>
+
+                    {/* DESCRIPTION */}
 
                     <section className="drawer-section">
                         <div className="section-title">
@@ -206,6 +254,8 @@ export default function TaskDrawer({
                         </p>
                     </section>
 
+                    {/* COMMENTS */}
+
                     <section className="drawer-section comments-section">
                         <div className="comments-heading">
                             <div className="section-title">
@@ -213,7 +263,10 @@ export default function TaskDrawer({
                             </div>
 
                             <span>
-                                <MessageCircle size={15} />
+                                <MessageCircle
+                                    size={15}
+                                />
+
                                 {comments.length}
                             </span>
                         </div>
@@ -226,22 +279,30 @@ export default function TaskDrawer({
                                         key={comment.id}
                                     >
                                         <div className="comment-avatar">
-                                            {comment.initials}
+                                            {
+                                                comment.initials
+                                            }
                                         </div>
 
                                         <div className="comment-body">
                                             <div className="comment-meta">
                                                 <strong>
-                                                    {comment.user}
+                                                    {
+                                                        comment.user
+                                                    }
                                                 </strong>
 
                                                 <span>
-                                                    {comment.time}
+                                                    {
+                                                        comment.time
+                                                    }
                                                 </span>
                                             </div>
 
                                             <p>
-                                                {comment.message}
+                                                {
+                                                    comment.message
+                                                }
                                             </p>
                                         </div>
                                     </article>
@@ -250,6 +311,8 @@ export default function TaskDrawer({
                         </div>
                     </section>
                 </div>
+
+                {/* COMMENT COMPOSER */}
 
                 <div className="comment-composer">
                     <div className="composer-avatar">
@@ -264,13 +327,18 @@ export default function TaskDrawer({
                                     event.target.value,
                                 )
                             }
-                            onKeyDown={handleKeyDown}
+                            onKeyDown={
+                                handleKeyDown
+                            }
                             placeholder="Yorum yaz..."
                             rows={2}
                         />
 
                         <button
-                            onClick={handleAddComment}
+                            type="button"
+                            onClick={
+                                handleAddComment
+                            }
                             disabled={
                                 !newComment.trim()
                             }
