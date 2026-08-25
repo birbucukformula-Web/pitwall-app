@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+
 import {
   ChevronLeft,
   ChevronRight,
@@ -6,6 +7,7 @@ import {
 } from "lucide-react";
 
 import TaskDrawer from "../../components/TaskDrawer/TaskDrawer";
+import TaskModal from "../../components/TaskModal/TaskModal";
 
 import { mockTasks } from "../../data/mockTasks";
 
@@ -47,7 +49,11 @@ function createCalendarDays(
   year: number,
   month: number,
 ): CalendarDay[] {
-  const firstDay = new Date(year, month, 1);
+  const firstDay = new Date(
+    year,
+    month,
+    1,
+  );
 
   const lastDay = new Date(
     year,
@@ -60,11 +66,12 @@ function createCalendarDays(
 
   const days: CalendarDay[] = [];
 
-  const previousMonthLastDay = new Date(
-    year,
-    month,
-    0,
-  ).getDate();
+  const previousMonthLastDay =
+    new Date(
+      year,
+      month,
+      0,
+    ).getDate();
 
   for (
     let i = firstDayIndex - 1;
@@ -87,7 +94,11 @@ function createCalendarDays(
     day++
   ) {
     days.push({
-      date: new Date(year, month, day),
+      date: new Date(
+        year,
+        month,
+        day,
+      ),
       isCurrentMonth: true,
     });
   }
@@ -110,11 +121,14 @@ function createCalendarDays(
   return days;
 }
 
-function getWeekDays(date: Date) {
+function getWeekDays(
+  date: Date,
+) {
   const currentDay =
     (date.getDay() + 6) % 7;
 
-  const monday = new Date(date);
+  const monday =
+    new Date(date);
 
   monday.setDate(
     date.getDate() - currentDay,
@@ -123,7 +137,8 @@ function getWeekDays(date: Date) {
   return Array.from(
     { length: 7 },
     (_, index) => {
-      const day = new Date(monday);
+      const day =
+        new Date(monday);
 
       day.setDate(
         monday.getDate() + index,
@@ -138,9 +153,14 @@ function isSameDate(
   date: Date,
   dateString: string,
 ) {
-  const taskDate = new Date(
-    `${dateString}T00:00:00`,
-  );
+  if (!dateString) {
+    return false;
+  }
+
+  const taskDate =
+    new Date(
+      `${dateString}T00:00:00`,
+    );
 
   return (
     date.getFullYear() ===
@@ -152,81 +172,129 @@ function isSameDate(
   );
 }
 
-function isToday(date: Date) {
+function isToday(
+  date: Date,
+) {
   const today = new Date();
 
   return (
     date.getFullYear() ===
       today.getFullYear() &&
-    date.getMonth() === today.getMonth() &&
-    date.getDate() === today.getDate()
+    date.getMonth() ===
+      today.getMonth() &&
+    date.getDate() ===
+      today.getDate()
   );
 }
 
 export default function Calendar() {
   const today = new Date();
 
-  const [currentDate, setCurrentDate] =
-    useState(today);
+  const [
+    currentDate,
+    setCurrentDate,
+  ] = useState(today);
 
   const [view, setView] =
-    useState<"month" | "week">("month");
+    useState<"month" | "week">(
+      "month",
+    );
 
-  const [selectedTask, setSelectedTask] =
-    useState<Task | null>(null);
-
-  const calendarDays = useMemo(
-    () =>
-      createCalendarDays(
-        currentDate.getFullYear(),
-        currentDate.getMonth(),
-      ),
-    [currentDate],
+  const [
+    selectedTask,
+    setSelectedTask,
+  ] = useState<Task | null>(
+    null,
   );
 
-  const weekDays = useMemo(
-    () => getWeekDays(currentDate),
-    [currentDate],
+  const [
+    tasks,
+    setTasks,
+  ] = useState<Task[]>(
+    mockTasks,
   );
+
+  const [
+    showTaskModal,
+    setShowTaskModal,
+  ] = useState(false);
+
+  const calendarDays =
+    useMemo(
+      () =>
+        createCalendarDays(
+          currentDate.getFullYear(),
+          currentDate.getMonth(),
+        ),
+      [currentDate],
+    );
+
+  const weekDays =
+    useMemo(
+      () =>
+        getWeekDays(
+          currentDate,
+        ),
+      [currentDate],
+    );
 
   function previousPeriod() {
-    setCurrentDate((date) => {
-      const newDate = new Date(date);
+    setCurrentDate(
+      (date) => {
+        const newDate =
+          new Date(date);
 
-      if (view === "month") {
-        newDate.setMonth(
-          newDate.getMonth() - 1,
-        );
-      } else {
-        newDate.setDate(
-          newDate.getDate() - 7,
-        );
-      }
+        if (view === "month") {
+          newDate.setMonth(
+            newDate.getMonth() - 1,
+          );
+        } else {
+          newDate.setDate(
+            newDate.getDate() - 7,
+          );
+        }
 
-      return newDate;
-    });
+        return newDate;
+      },
+    );
   }
 
   function nextPeriod() {
-    setCurrentDate((date) => {
-      const newDate = new Date(date);
+    setCurrentDate(
+      (date) => {
+        const newDate =
+          new Date(date);
 
-      if (view === "month") {
-        newDate.setMonth(
-          newDate.getMonth() + 1,
-        );
-      } else {
-        newDate.setDate(
-          newDate.getDate() + 7,
-        );
-      }
+        if (view === "month") {
+          newDate.setMonth(
+            newDate.getMonth() + 1,
+          );
+        } else {
+          newDate.setDate(
+            newDate.getDate() + 7,
+          );
+        }
 
-      return newDate;
-    });
+        return newDate;
+      },
+    );
   }
 
   function goToToday() {
-    setCurrentDate(new Date());
+    setCurrentDate(
+      new Date(),
+    );
+  }
+
+  function handleCreateTask(
+    newTask: Task,
+  ) {
+    setTasks(
+      (previousTasks) => [
+        ...previousTasks,
+        newTask,
+      ],
+    );
   }
 
   return (
@@ -234,16 +302,27 @@ export default function Calendar() {
       <section className="calendar-page">
         <div className="calendar-page-header">
           <div>
-            <h2>Takvim</h2>
+            <h2>
+              Takvim
+            </h2>
 
             <p>
-              Görevlerini ve teslim tarihlerini
-              takvim üzerinden takip et.
+              Görevlerini ve teslim
+              tarihlerini takvim
+              üzerinden takip et.
             </p>
           </div>
 
-          <button className="calendar-new-task">
+          <button
+            className="calendar-new-task"
+            onClick={() =>
+              setShowTaskModal(
+                true,
+              )
+            }
+          >
             <Plus size={18} />
+
             Yeni Görev
           </button>
         </div>
@@ -253,24 +332,34 @@ export default function Calendar() {
             <div className="calendar-navigation">
               <button
                 className="today-button"
-                onClick={goToToday}
+                onClick={
+                  goToToday
+                }
               >
                 Bugün
               </button>
 
               <div className="month-buttons">
                 <button
-                  onClick={previousPeriod}
+                  onClick={
+                    previousPeriod
+                  }
                   aria-label="Önceki dönem"
                 >
-                  <ChevronLeft size={19} />
+                  <ChevronLeft
+                    size={19}
+                  />
                 </button>
 
                 <button
-                  onClick={nextPeriod}
+                  onClick={
+                    nextPeriod
+                  }
                   aria-label="Sonraki dönem"
                 >
-                  <ChevronRight size={19} />
+                  <ChevronRight
+                    size={19}
+                  />
                 </button>
               </div>
 
@@ -280,7 +369,9 @@ export default function Calendar() {
                     currentDate.getMonth()
                   ]
                 }{" "}
-                {currentDate.getFullYear()}
+                {
+                  currentDate.getFullYear()
+                }
               </h3>
             </div>
 
@@ -292,7 +383,9 @@ export default function Calendar() {
                     : ""
                 }
                 onClick={() =>
-                  setView("month")
+                  setView(
+                    "month",
+                  )
                 }
               >
                 Ay
@@ -305,7 +398,9 @@ export default function Calendar() {
                     : ""
                 }
                 onClick={() =>
-                  setView("week")
+                  setView(
+                    "week",
+                  )
                 }
               >
                 Hafta
@@ -316,11 +411,13 @@ export default function Calendar() {
           {view === "month" ? (
             <>
               <div className="calendar-weekdays">
-                {WEEK_DAYS.map((day) => (
-                  <div key={day}>
-                    {day}
-                  </div>
-                ))}
+                {WEEK_DAYS.map(
+                  (day) => (
+                    <div key={day}>
+                      {day}
+                    </div>
+                  ),
+                )}
               </div>
 
               <div className="calendar-grid">
@@ -330,7 +427,7 @@ export default function Calendar() {
                     isCurrentMonth,
                   }) => {
                     const dayTasks =
-                      mockTasks.filter(
+                      tasks.filter(
                         (task) =>
                           isSameDate(
                             date,
@@ -345,17 +442,23 @@ export default function Calendar() {
                             ? "other-month"
                             : ""
                         }`}
-                        key={date.toISOString()}
+                        key={
+                          date.toISOString()
+                        }
                       >
                         <div className="day-number-row">
                           <span
                             className={
-                              isToday(date)
+                              isToday(
+                                date,
+                              )
                                 ? "day-number today"
                                 : "day-number"
                             }
                           >
-                            {date.getDate()}
+                            {
+                              date.getDate()
+                            }
                           </span>
                         </div>
 
@@ -364,7 +467,9 @@ export default function Calendar() {
                             (task) => (
                               <button
                                 className={`calendar-task calendar-task-${task.status}`}
-                                key={task.id}
+                                key={
+                                  task.id
+                                }
                                 onClick={() =>
                                   setSelectedTask(
                                     task,
@@ -374,7 +479,9 @@ export default function Calendar() {
                                 <span className="calendar-task-dot" />
 
                                 <span className="calendar-task-title">
-                                  {task.title}
+                                  {
+                                    task.title
+                                  }
                                 </span>
                               </button>
                             ),
@@ -390,69 +497,92 @@ export default function Calendar() {
             <>
               <div className="calendar-weekdays">
                 {weekDays.map(
-                  (date, index) => (
+                  (
+                    date,
+                    index,
+                  ) => (
                     <div
-                      key={date.toISOString()}
+                      key={
+                        date.toISOString()
+                      }
                     >
-                      {WEEK_DAYS[index]}{" "}
-                      {date.getDate()}
+                      {
+                        WEEK_DAYS[
+                          index
+                        ]
+                      }{" "}
+                      {
+                        date.getDate()
+                      }
                     </div>
                   ),
                 )}
               </div>
 
               <div className="week-grid">
-                {weekDays.map((date) => {
-                  const dayTasks =
-                    mockTasks.filter(
-                      (task) =>
-                        isSameDate(
-                          date,
-                          task.dueDate,
-                        ),
-                    );
-
-                  return (
-                    <div
-                      className="week-day"
-                      key={date.toISOString()}
-                    >
-                      <div className="week-day-header">
-                        <span
-                          className={
-                            isToday(date)
-                              ? "week-day-number today"
-                              : "week-day-number"
-                          }
-                        >
-                          {date.getDate()}
-                        </span>
-                      </div>
-
-                      <div className="day-tasks">
-                        {dayTasks.map(
-                          (task) => (
-                            <button
-                              className={`calendar-task calendar-task-${task.status}`}
-                              key={task.id}
-                              onClick={() =>
-                                setSelectedTask(
-                                  task,
-                                )
-                              }
-                            >
-                              <span className="calendar-task-dot" />
-
-                              <span className="calendar-task-title">
-                                {task.title}
-                              </span>
-                            </button>
+                {weekDays.map(
+                  (date) => {
+                    const dayTasks =
+                      tasks.filter(
+                        (task) =>
+                          isSameDate(
+                            date,
+                            task.dueDate,
                           ),
-                        )}
+                      );
+
+                    return (
+                      <div
+                        className="week-day"
+                        key={
+                          date.toISOString()
+                        }
+                      >
+                        <div className="week-day-header">
+                          <span
+                            className={
+                              isToday(
+                                date,
+                              )
+                                ? "week-day-number today"
+                                : "week-day-number"
+                            }
+                          >
+                            {
+                              date.getDate()
+                            }
+                          </span>
+                        </div>
+
+                        <div className="day-tasks">
+                          {dayTasks.map(
+                            (task) => (
+                              <button
+                                className={`calendar-task calendar-task-${task.status}`}
+                                key={
+                                  task.id
+                                }
+                                onClick={() =>
+                                  setSelectedTask(
+                                    task,
+                                  )
+                                }
+                              >
+                                <span className="calendar-task-dot" />
+
+                                <span className="calendar-task-title">
+                                  {
+                                    task.title
+                                  }
+                                </span>
+                              </button>
+                            ),
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  },
+                )}
               </div>
             </>
           )}
@@ -462,8 +592,23 @@ export default function Calendar() {
       <TaskDrawer
         task={selectedTask}
         onClose={() =>
-          setSelectedTask(null)
+          setSelectedTask(
+            null,
+          )
         }
+      />
+
+      <TaskModal
+        isOpen={showTaskModal}
+        onClose={() =>
+          setShowTaskModal(
+            false,
+          )
+        }
+        onCreate={
+          handleCreateTask
+        }
+        defaultStatus="todo"
       />
     </>
   );
