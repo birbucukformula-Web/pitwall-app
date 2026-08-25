@@ -1,21 +1,15 @@
-from rest_framework import status, generics
-from rest_framework.response import Response
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from django.contrib.auth import get_user_model
-from .serializers import UserSerializer, RegisterSerializer
+from rest_framework import generics, permissions
+from rest_framework_simplejwt.views import TokenObtainPairView
+from .serializers import CustomTokenObtainPairSerializer, UserSerializer
 
-User = get_user_model()
+# /auth/login/ endpoint'i
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
 
-
-class RegisterView(generics.CreateAPIView):
-    queryset = User.objects.all()
-    permission_classes = (AllowAny,)
-    serializer_class = RegisterSerializer
-
-
-class ProfileView(generics.RetrieveUpdateAPIView):
-    permission_classes = (IsAuthenticated,)
+# /auth/me/ endpoint'i (O an giriş yapmış kullanıcının kendi bilgilerini döner)
+class UserMeView(generics.RetrieveAPIView):
     serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
         return self.request.user

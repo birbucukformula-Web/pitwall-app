@@ -1,15 +1,6 @@
 from django.contrib import admin
-from .models import Organization, Project
-
+from .models import Organization
 
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'created_at')
-    search_fields = ('name',)
-
-
-@admin.register(Project)
-class ProjectAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'organization', 'created_at')
-    list_filter = ('organization',)
-    search_fields = ('name',)
+    list_display = ('name', 'created_at') if hasattr(Organization, 'created_at') else ('name',)
