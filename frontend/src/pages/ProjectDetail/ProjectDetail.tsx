@@ -81,7 +81,7 @@ export default function ProjectDetail() {
 
     return tasks.filter(
       (task) =>
-        task.project === project.name,
+        task.project?.name === project.name,
     );
   }, [project, tasks]);
 
@@ -105,7 +105,12 @@ export default function ProjectDetail() {
   ) {
     const taskForProject: Task = {
       ...newTask,
-      project: project.name,
+
+      project: {
+        id: Number(projectId),
+        name: project.name,
+      },
+
       status: taskModalStatus,
     };
 
@@ -114,6 +119,7 @@ export default function ProjectDetail() {
       taskForProject,
     ]);
   }
+
 
   const completedCount =
     projectTasks.filter(
@@ -125,10 +131,10 @@ export default function ProjectDetail() {
     projectTasks.length === 0
       ? 0
       : Math.round(
-          (completedCount /
-            projectTasks.length) *
-            100,
-        );
+        (completedCount /
+          projectTasks.length) *
+        100,
+      );
 
   return (
     <>
@@ -253,7 +259,7 @@ export default function ProjectDetail() {
                 projectTasks.filter(
                   (task) =>
                     task.status ===
-                    "progress",
+                    "in_progress",
                 ).length
               }
             </strong>
@@ -331,14 +337,14 @@ export default function ProjectDetail() {
 
             <KanbanColumn
               title="Devam Ediyor"
-              status="progress"
+              status="in_progress"
               tasks={projectTasks}
               onTaskClick={
                 setSelectedTask
               }
               onAddTask={() =>
                 openTaskModal(
-                  "progress",
+                  "in_progress",
                 )
               }
             />

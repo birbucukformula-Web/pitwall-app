@@ -1,6 +1,6 @@
 export type TaskStatus =
   | "todo"
-  | "progress"
+  | "in_progress"
   | "review"
   | "done";
 
@@ -15,19 +15,35 @@ export type Assignee = {
   initials: string;
 };
 
+export type Unit = {
+  id: number;
+  name: string;
+  code: string;
+  color?: string;
+};
+
+export type Project = {
+  id: number;
+  name: string;
+  color?: string;
+};
+
 export type Task = {
   id: number;
+
   title: string;
   description: string;
-
-  project: string;
-  department: string;
 
   status: TaskStatus;
   priority: TaskPriority;
 
-  startDate?: string;
-  dueDate: string;
+  unit: Unit | null;
+  project: Project | null;
 
   assignees: Assignee[];
+
+  start_date?: string | null;
+  due_date: string;
+
+  order: number;
 };

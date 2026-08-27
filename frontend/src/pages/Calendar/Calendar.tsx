@@ -431,7 +431,7 @@ export default function Calendar() {
                         (task) =>
                           isSameDate(
                             date,
-                            task.dueDate,
+                            task.due_date,
                           ),
                       );
 
@@ -527,7 +527,7 @@ export default function Calendar() {
                         (task) =>
                           isSameDate(
                             date,
-                            task.dueDate,
+                            task.due_date,
                           ),
                       );
 

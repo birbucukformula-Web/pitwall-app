@@ -6,6 +6,11 @@ import type {
   Task,
 } from "../../types/task";
 
+import {
+  mockProjects,
+  mockUnits,
+} from "../../data/mockTasks";
+
 import "./TaskModal.css";
 
 type TaskModalProps = {
@@ -50,11 +55,15 @@ export default function TaskModal({
   const [description, setDescription] =
     useState("");
 
-  const [project, setProject] =
-    useState("Pitwall App");
+  const [projectId, setProjectId] =
+    useState(
+      mockProjects[0]?.id.toString() ?? "",
+    );
 
-  const [department, setDepartment] =
-    useState("Web & Yazılım");
+  const [unitId, setUnitId] =
+    useState(
+      mockUnits[0]?.id.toString() ?? "",
+    );
 
   const [priority, setPriority] =
     useState<Task["priority"]>("medium");
@@ -123,8 +132,16 @@ export default function TaskModal({
   function resetForm() {
     setTitle("");
     setDescription("");
-    setProject("Pitwall App");
-    setDepartment("Web & Yazılım");
+
+    setProjectId(
+      mockProjects[0]?.id.toString() ??
+        "",
+    );
+
+    setUnitId(
+      mockUnits[0]?.id.toString() ?? "",
+    );
+
     setPriority("medium");
     setDueDate("");
     setAssignees([]);
@@ -149,6 +166,19 @@ export default function TaskModal({
       return;
     }
 
+    const selectedProject =
+      mockProjects.find(
+        (project) =>
+          project.id ===
+          Number(projectId),
+      ) ?? null;
+
+    const selectedUnit =
+      mockUnits.find(
+        (unit) =>
+          unit.id === Number(unitId),
+      ) ?? null;
+
     const newTask: Task = {
       id: Date.now(),
 
@@ -157,14 +187,29 @@ export default function TaskModal({
       description:
         description.trim(),
 
-      project,
-      department,
+      project: selectedProject,
+
+      unit: selectedUnit,
 
       status: defaultStatus,
 
       priority,
 
-      dueDate,
+      start_date: null,
+
+      due_date: dueDate,
+
+      /*
+        Şimdilik yeni görev listenin
+        sonuna eklensin diye geçici değer.
+
+        Drag & drop geldiğinde gerçek
+        order hesabını yapacağız.
+
+        Backend bağlandığında order
+        API tarafından da kullanılacak.
+      */
+      order: Date.now(),
 
       assignees,
     };
@@ -245,53 +290,47 @@ export default function TaskModal({
               Proje
 
               <select
-                value={project}
+                value={projectId}
                 onChange={(event) =>
-                  setProject(
+                  setProjectId(
                     event.target.value,
                   )
                 }
               >
-                <option value="Pitwall App">
-                  Pitwall App
-                </option>
-
-                <option value="Formula Student Web Sitesi">
-                  Formula Student Web Sitesi
-                </option>
-
-                <option value="Araç Telemetri Sistemi">
-                  Araç Telemetri Sistemi
-                </option>
+                {mockProjects.map(
+                  (project) => (
+                    <option
+                      key={project.id}
+                      value={project.id}
+                    >
+                      {project.name}
+                    </option>
+                  ),
+                )}
               </select>
             </label>
 
             <label>
-              Departman
+              Birim
 
               <select
-                value={department}
+                value={unitId}
                 onChange={(event) =>
-                  setDepartment(
+                  setUnitId(
                     event.target.value,
                   )
                 }
               >
-                <option value="Web & Yazılım">
-                  Web & Yazılım
-                </option>
-
-                <option value="Elektronik">
-                  Elektronik
-                </option>
-
-                <option value="Mekanik">
-                  Mekanik
-                </option>
-
-                <option value="Sponsorluk">
-                  Sponsorluk
-                </option>
+                {mockUnits.map(
+                  (unit) => (
+                    <option
+                      key={unit.id}
+                      value={unit.id}
+                    >
+                      {unit.name}
+                    </option>
+                  ),
+                )}
               </select>
             </label>
           </div>
@@ -377,7 +416,9 @@ export default function TaskModal({
                 type="button"
                 className="assignee-add-button"
                 onClick={() =>
-                  setShowAssigneePicker(true)
+                  setShowAssigneePicker(
+                    true,
+                  )
                 }
                 aria-label="Kişi ekle"
               >

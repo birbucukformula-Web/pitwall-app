@@ -60,8 +60,15 @@ export default function Dashboard() {
   }
 
   const availableProjects = Array.from(
-    new Set(tasks.map((task) => task.project)),
-  );
+  new Map(
+    tasks
+      .filter((task) => task.project)
+      .map((task) => [
+        task.project!.id,
+        task.project!,
+      ]),
+  ).values(),
+);
 
   const availableAssignees = Array.from(
     new Map(
@@ -77,8 +84,9 @@ export default function Dashboard() {
   const filteredTasks = tasks.filter(
     (task) => {
       const matchesProject =
-        projectFilter === "all" ||
-        task.project === projectFilter;
+  projectFilter === "all" ||
+  task.project?.id.toString() ===
+    projectFilter;
 
       const matchesPriority =
         priorityFilter === "all" ||
@@ -149,7 +157,7 @@ export default function Dashboard() {
             value={
               tasks.filter(
                 (task) =>
-                  task.status === "progress",
+                  task.status === "in_progress",
               ).length
             }
             description="Aktif görev"
@@ -252,15 +260,15 @@ export default function Dashboard() {
                         </option>
 
                         {availableProjects.map(
-                          (project) => (
-                            <option
-                              key={project}
-                              value={project}
-                            >
-                              {project}
-                            </option>
-                          ),
-                        )}
+  (project) => (
+    <option
+      key={project.id}
+      value={project.id}
+    >
+      {project.name}
+    </option>
+  ),
+)}
                       </select>
                     </label>
 
@@ -355,11 +363,11 @@ export default function Dashboard() {
 
             <KanbanColumn
               title="Devam Ediyor"
-              status="progress"
+              status="in_progress"
               tasks={filteredTasks}
               onTaskClick={setSelectedTask}
               onAddTask={() =>
-                openTaskModal("progress")
+                openTaskModal("in_progress")
               }
             />
 

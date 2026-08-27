@@ -47,15 +47,6 @@ const initialComments: Comment[] = [
   Backend geldiğinde assignee nesnesinden doğrudan
   name bilgisi gelecek ve buna ihtiyaç kalmayacak.
 */
-const memberNames: Record<string, string> = {
-    LS: "Lidya Su",
-    FK: "Furkan",
-    MK: "Mert",
-    BC: "Busenur",
-    EA: "Eda",
-    TA: "Takım Üyesi",
-    NK: "Takım Üyesi",
-};
 
 export default function TaskDrawer({
     task,
@@ -139,7 +130,7 @@ export default function TaskDrawer({
                 <div className="drawer-header">
                     <div>
                         <span className="drawer-project">
-                            {task.department}
+                            {task.unit?.name ?? "Birim yok"} -{" "}
                         </span>
 
                         <h2>{task.title}</h2>
@@ -163,7 +154,7 @@ export default function TaskDrawer({
                             <span>Proje</span>
 
                             <strong>
-                                {task.project}
+                                {task.project?.name ?? "Proje yok"}
                             </strong>
                         </div>
 
@@ -175,7 +166,7 @@ export default function TaskDrawer({
                                     "Yapılacak"}
 
                                 {task.status ===
-                                    "progress" &&
+                                    "in_progress" &&
                                     "Devam Ediyor"}
 
                                 {task.status ===
@@ -209,7 +200,7 @@ export default function TaskDrawer({
                                 />
 
                                 {formatDate(
-                                    task.dueDate,
+                                    task.due_date,
                                 )}
                             </strong>
                         </div>

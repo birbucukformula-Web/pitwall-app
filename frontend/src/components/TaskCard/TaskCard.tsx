@@ -26,7 +26,7 @@ export default function TaskCard({
         <article className="task-card" onClick={onClick}>
             <div className="task-top">
                 <span className="department">
-                    {task.department}
+                    {task.unit?.name ?? "Birim yok"}
                 </span>
 
                 <button>
@@ -49,7 +49,7 @@ export default function TaskCard({
             <div className="task-footer">
                 <span className="task-date">
                     <CalendarDays size={15} />
-                    {formatDate(task.dueDate)}
+                    {formatDate(task.due_date)}
                 </span>
 
                 <div className="avatars">
