@@ -55,6 +55,9 @@ export default function ProjectDetail() {
   const [selectedTask, setSelectedTask] =
     useState<Task | null>(null);
 
+  const [editingTask, setEditingTask] =
+    useState<Task | null>(null);
+
   const [tasks, setTasks] =
     useState<Task[]>(mockTasks);
 
@@ -96,7 +99,15 @@ export default function ProjectDetail() {
   function openTaskModal(
     status: Task["status"],
   ) {
+    setEditingTask(null);
     setTaskModalStatus(status);
+    setShowTaskModal(true);
+  }
+
+  function openEditTaskModal(
+    task: Task,
+  ) {
+    setEditingTask(task);
     setShowTaskModal(true);
   }
 
@@ -118,6 +129,21 @@ export default function ProjectDetail() {
       ...previousTasks,
       taskForProject,
     ]);
+  }
+
+  function handleUpdateTask(
+    updatedTask: Task,
+  ) {
+    setTasks((previousTasks) =>
+      previousTasks.map((task) =>
+        task.id === updatedTask.id
+          ? updatedTask
+          : task,
+      ),
+    );
+
+    setSelectedTask(updatedTask);
+    setEditingTask(null);
   }
 
 
@@ -383,15 +409,22 @@ export default function ProjectDetail() {
         onClose={() =>
           setSelectedTask(null)
         }
+        onEdit={(task) => {
+          setSelectedTask(null);
+          openEditTaskModal(task);
+        }}
       />
 
       <TaskModal
         isOpen={showTaskModal}
-        onClose={() =>
-          setShowTaskModal(false)
-        }
+        onClose={() => {
+          setShowTaskModal(false);
+          setEditingTask(null);
+        }}
         onCreate={handleCreateTask}
+        onUpdate={handleUpdateTask}
         defaultStatus={taskModalStatus}
+        editingTask={editingTask}
       />
     </>
   );

@@ -1,4 +1,8 @@
-import { useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
+
 import { X } from "lucide-react";
 
 import type {
@@ -17,7 +21,9 @@ type TaskModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onCreate: (task: Task) => void;
+  onUpdate?: (task: Task) => void;
   defaultStatus?: Task["status"];
+  editingTask?: Task | null;
 };
 
 const teamMembers: Assignee[] = [
@@ -47,7 +53,9 @@ export default function TaskModal({
   isOpen,
   onClose,
   onCreate,
+  onUpdate,
   defaultStatus = "todo",
+  editingTask = null,
 }: TaskModalProps) {
   const [title, setTitle] =
     useState("");
@@ -83,6 +91,72 @@ export default function TaskModal({
     assigneeSearch,
     setAssigneeSearch,
   ] = useState("");
+
+  function resetForm() {
+    setTitle("");
+    setDescription("");
+
+    setProjectId(
+      mockProjects[0]?.id.toString() ?? "",
+    );
+
+    setUnitId(
+      mockUnits[0]?.id.toString() ?? "",
+    );
+
+    setPriority("medium");
+    setDueDate("");
+    setAssignees([]);
+    setShowAssigneePicker(false);
+    setAssigneeSearch("");
+  }
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    if (editingTask) {
+      setTitle(
+        editingTask.title,
+      );
+
+      setDescription(
+        editingTask.description,
+      );
+
+      setProjectId(
+        editingTask.project
+          ? editingTask.project.id.toString()
+          : "",
+      );
+
+      setUnitId(
+        editingTask.unit
+          ? editingTask.unit.id.toString()
+          : "",
+      );
+
+      setPriority(
+        editingTask.priority,
+      );
+
+      setDueDate(
+        editingTask.due_date,
+      );
+
+      setAssignees(
+        editingTask.assignees,
+      );
+
+      setShowAssigneePicker(false);
+      setAssigneeSearch("");
+
+      return;
+    }
+
+    resetForm();
+  }, [isOpen, editingTask]);
 
   const filteredTeamMembers =
     teamMembers.filter((member) => {
@@ -129,26 +203,6 @@ export default function TaskModal({
     });
   }
 
-  function resetForm() {
-    setTitle("");
-    setDescription("");
-
-    setProjectId(
-      mockProjects[0]?.id.toString() ??
-        "",
-    );
-
-    setUnitId(
-      mockUnits[0]?.id.toString() ?? "",
-    );
-
-    setPriority("medium");
-    setDueDate("");
-    setAssignees([]);
-    setShowAssigneePicker(false);
-    setAssigneeSearch("");
-  }
-
   function handleClose() {
     resetForm();
     onClose();
@@ -176,45 +230,82 @@ export default function TaskModal({
     const selectedUnit =
       mockUnits.find(
         (unit) =>
-          unit.id === Number(unitId),
+          unit.id ===
+          Number(unitId),
       ) ?? null;
+
+    if (
+      editingTask &&
+      onUpdate
+    ) {
+      const updatedTask: Task = {
+        ...editingTask,
+
+        title:
+          title.trim(),
+
+        description:
+          description.trim(),
+
+        project:
+          selectedProject,
+
+        unit:
+          selectedUnit,
+
+        priority,
+
+        due_date:
+          dueDate,
+
+        assignees,
+      };
+
+      onUpdate(
+        updatedTask,
+      );
+
+      resetForm();
+      onClose();
+
+      return;
+    }
 
     const newTask: Task = {
       id: Date.now(),
 
-      title: title.trim(),
+      title:
+        title.trim(),
 
       description:
         description.trim(),
 
-      project: selectedProject,
+      project:
+        selectedProject,
 
-      unit: selectedUnit,
+      unit:
+        selectedUnit,
 
-      status: defaultStatus,
+      status:
+        defaultStatus,
 
       priority,
 
-      start_date: null,
+      start_date:
+        null,
 
-      due_date: dueDate,
+      due_date:
+        dueDate,
 
-      /*
-        Şimdilik yeni görev listenin
-        sonuna eklensin diye geçici değer.
-
-        Drag & drop geldiğinde gerçek
-        order hesabını yapacağız.
-
-        Backend bağlandığında order
-        API tarafından da kullanılacak.
-      */
-      order: Date.now(),
+      order:
+        Date.now(),
 
       assignees,
     };
 
-    onCreate(newTask);
+    onCreate(
+      newTask,
+    );
 
     resetForm();
     onClose();
@@ -234,17 +325,23 @@ export default function TaskModal({
         <div className="task-modal-header">
           <div>
             <span>
-              YENİ GÖREV
+              {editingTask
+                ? "GÖREV DÜZENLE"
+                : "YENİ GÖREV"}
             </span>
 
             <h2>
-              Görev oluştur
+              {editingTask
+                ? "Görevi düzenle"
+                : "Görev oluştur"}
             </h2>
           </div>
 
           <button
             type="button"
-            onClick={handleClose}
+            onClick={
+              handleClose
+            }
             aria-label="Kapat"
           >
             <X size={19} />
@@ -253,16 +350,24 @@ export default function TaskModal({
 
         <form
           className="task-modal-form"
-          onSubmit={handleSubmit}
+          onSubmit={
+            handleSubmit
+          }
         >
           <label>
             Görev başlığı
 
             <input
-              value={title}
-              onChange={(event) =>
+              value={
+                title
+              }
+              onChange={(
+                event,
+              ) =>
                 setTitle(
-                  event.target.value,
+                  event
+                    .target
+                    .value,
                 )
               }
               placeholder="Örn. Login ekranını tamamla"
@@ -274,10 +379,16 @@ export default function TaskModal({
             Açıklama
 
             <textarea
-              value={description}
-              onChange={(event) =>
+              value={
+                description
+              }
+              onChange={(
+                event,
+              ) =>
                 setDescription(
-                  event.target.value,
+                  event
+                    .target
+                    .value,
                 )
               }
               placeholder="Görev detaylarını yaz..."
@@ -290,20 +401,34 @@ export default function TaskModal({
               Proje
 
               <select
-                value={projectId}
-                onChange={(event) =>
+                value={
+                  projectId
+                }
+                onChange={(
+                  event,
+                ) =>
                   setProjectId(
-                    event.target.value,
+                    event
+                      .target
+                      .value,
                   )
                 }
               >
                 {mockProjects.map(
-                  (project) => (
+                  (
+                    project,
+                  ) => (
                     <option
-                      key={project.id}
-                      value={project.id}
+                      key={
+                        project.id
+                      }
+                      value={
+                        project.id
+                      }
                     >
-                      {project.name}
+                      {
+                        project.name
+                      }
                     </option>
                   ),
                 )}
@@ -314,20 +439,34 @@ export default function TaskModal({
               Birim
 
               <select
-                value={unitId}
-                onChange={(event) =>
+                value={
+                  unitId
+                }
+                onChange={(
+                  event,
+                ) =>
                   setUnitId(
-                    event.target.value,
+                    event
+                      .target
+                      .value,
                   )
                 }
               >
                 {mockUnits.map(
-                  (unit) => (
+                  (
+                    unit,
+                  ) => (
                     <option
-                      key={unit.id}
-                      value={unit.id}
+                      key={
+                        unit.id
+                      }
+                      value={
+                        unit.id
+                      }
                     >
-                      {unit.name}
+                      {
+                        unit.name
+                      }
                     </option>
                   ),
                 )}
@@ -340,10 +479,15 @@ export default function TaskModal({
               Öncelik
 
               <select
-                value={priority}
-                onChange={(event) =>
+                value={
+                  priority
+                }
+                onChange={(
+                  event,
+                ) =>
                   setPriority(
-                    event.target
+                    event
+                      .target
                       .value as Task["priority"],
                   )
                 }
@@ -367,10 +511,16 @@ export default function TaskModal({
 
               <input
                 type="date"
-                value={dueDate}
-                onChange={(event) =>
+                value={
+                  dueDate
+                }
+                onChange={(
+                  event,
+                ) =>
                   setDueDate(
-                    event.target.value,
+                    event
+                      .target
+                      .value,
                   )
                 }
               />
@@ -384,17 +534,25 @@ export default function TaskModal({
 
             <div className="selected-assignees-row">
               {assignees.map(
-                (member) => (
+                (
+                  member,
+                ) => (
                   <div
-                    key={member.id}
+                    key={
+                      member.id
+                    }
                     className="selected-assignee"
                   >
                     <span>
-                      {member.initials}
+                      {
+                        member.initials
+                      }
                     </span>
 
                     <strong>
-                      {member.name}
+                      {
+                        member.name
+                      }
                     </strong>
 
                     <button
@@ -456,10 +614,16 @@ export default function TaskModal({
                 <div className="assignee-search">
                   <input
                     type="text"
-                    value={assigneeSearch}
-                    onChange={(event) =>
+                    value={
+                      assigneeSearch
+                    }
+                    onChange={(
+                      event,
+                    ) =>
                       setAssigneeSearch(
-                        event.target.value,
+                        event
+                          .target
+                          .value,
                       )
                     }
                     placeholder="Ekip üyesi ara..."
@@ -468,17 +632,23 @@ export default function TaskModal({
 
                 <div className="assignee-member-list">
                   {filteredTeamMembers.map(
-                    (member) => {
+                    (
+                      member,
+                    ) => {
                       const isSelected =
                         assignees.some(
-                          (assignee) =>
+                          (
+                            assignee,
+                          ) =>
                             assignee.id ===
                             member.id,
                         );
 
                       return (
                         <button
-                          key={member.id}
+                          key={
+                            member.id
+                          }
                           type="button"
                           className={`assignee-member-row ${
                             isSelected
@@ -527,16 +697,18 @@ export default function TaskModal({
 
                   {filteredTeamMembers.length ===
                     0 && (
-                    <div className="assignee-empty">
-                      Ekip üyesi bulunamadı.
-                    </div>
-                  )}
+                      <div className="assignee-empty">
+                        Ekip üyesi bulunamadı.
+                      </div>
+                    )}
                 </div>
 
                 <div className="assignee-panel-footer">
                   <span>
-                    {assignees.length} kişi
-                    seçildi
+                    {
+                      assignees.length
+                    }{" "}
+                    kişi seçildi
                   </span>
 
                   <button
@@ -558,7 +730,9 @@ export default function TaskModal({
             <button
               type="button"
               className="task-modal-cancel"
-              onClick={handleClose}
+              onClick={
+                handleClose
+              }
             >
               Vazgeç
             </button>
@@ -571,7 +745,9 @@ export default function TaskModal({
                 !dueDate
               }
             >
-              Görev Oluştur
+              {editingTask
+                ? "Değişiklikleri Kaydet"
+                : "Görev Oluştur"}
             </button>
           </div>
         </form>

@@ -3,7 +3,9 @@ import { useEffect, useState } from "react";
 import {
     CalendarDays,
     MessageCircle,
+    Pencil,
     Send,
+    Trash2,
     X,
 } from "lucide-react";
 
@@ -14,6 +16,8 @@ import "./TaskDrawer.css";
 type TaskDrawerProps = {
     task: Task | null;
     onClose: () => void;
+    onEdit?: (task: Task) => void;
+    onDelete?: (task: Task) => void;
 };
 
 type Comment = {
@@ -51,6 +55,8 @@ const initialComments: Comment[] = [
 export default function TaskDrawer({
     task,
     onClose,
+    onEdit,
+    onDelete,
 }: TaskDrawerProps) {
     const [comments, setComments] =
         useState<Comment[]>(initialComments);
@@ -136,14 +142,38 @@ export default function TaskDrawer({
                         <h2>{task.title}</h2>
                     </div>
 
-                    <button
-                        type="button"
-                        className="drawer-close"
-                        onClick={onClose}
-                        aria-label="Görev detayını kapat"
-                    >
-                        <X size={21} />
-                    </button>
+                    <div className="drawer-header-actions">
+                        {onEdit && (
+                            <button
+                                type="button"
+                                className="drawer-edit"
+                                onClick={() => onEdit(task)}
+                            >
+                                <Pencil size={15} />
+                                Düzenle
+                            </button>
+                        )}
+
+                        {onDelete && (
+                            <button
+                                type="button"
+                                className="drawer-delete"
+                                onClick={() => onDelete(task)}
+                            >
+                                <Trash2 size={15} />
+                                Sil
+                            </button>
+                        )}
+
+                        <button
+                            type="button"
+                            className="drawer-close"
+                            onClick={onClose}
+                            aria-label="Görev detayını kapat"
+                        >
+                            <X size={21} />
+                        </button>
+                    </div>
                 </div>
 
                 <div className="drawer-content">

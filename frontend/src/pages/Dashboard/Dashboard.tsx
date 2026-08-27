@@ -9,6 +9,7 @@ import StatCard from "../../components/StatCard/StatCard";
 import KanbanColumn from "../../components/KanbanColumn/KanbanColumn";
 import TaskDrawer from "../../components/TaskDrawer/TaskDrawer";
 import TaskModal from "../../components/TaskModal/TaskModal";
+import DeleteTaskModal from "../../components/DeleteTaskModal/DeleteTaskModal";
 
 import { mockTasks } from "../../data/mockTasks";
 
@@ -18,6 +19,12 @@ import "./Dashboard.css";
 
 export default function Dashboard() {
   const [selectedTask, setSelectedTask] =
+    useState<Task | null>(null);
+
+  const [editingTask, setEditingTask] =
+    useState<Task | null>(null);
+
+  const [deletingTask, setDeletingTask] =
     useState<Task | null>(null);
 
   const [tasks, setTasks] =
@@ -55,20 +62,28 @@ export default function Dashboard() {
   function openTaskModal(
     status: Task["status"] = "todo",
   ) {
+    setEditingTask(null);
     setTaskModalStatus(status);
     setShowTaskModal(true);
   }
 
+  function openEditTaskModal(
+    task: Task,
+  ) {
+    setEditingTask(task);
+    setShowTaskModal(true);
+  }
+
   const availableProjects = Array.from(
-  new Map(
-    tasks
-      .filter((task) => task.project)
-      .map((task) => [
-        task.project!.id,
-        task.project!,
-      ]),
-  ).values(),
-);
+    new Map(
+      tasks
+        .filter((task) => task.project)
+        .map((task) => [
+          task.project!.id,
+          task.project!,
+        ]),
+    ).values(),
+  );
 
   const availableAssignees = Array.from(
     new Map(
@@ -84,9 +99,9 @@ export default function Dashboard() {
   const filteredTasks = tasks.filter(
     (task) => {
       const matchesProject =
-  projectFilter === "all" ||
-  task.project?.id.toString() ===
-    projectFilter;
+        projectFilter === "all" ||
+        task.project?.id.toString() ===
+        projectFilter;
 
       const matchesPriority =
         priorityFilter === "all" ||
@@ -107,6 +122,35 @@ export default function Dashboard() {
       );
     },
   );
+
+  function handleUpdateTask(
+    updatedTask: Task,
+  ) {
+    setTasks((previousTasks) =>
+      previousTasks.map((task) =>
+        task.id === updatedTask.id
+          ? updatedTask
+          : task,
+      ),
+    );
+
+    setSelectedTask(updatedTask);
+    setEditingTask(null);
+  }
+
+  function handleDeleteTask(
+    taskToDelete: Task,
+  ) {
+    setTasks((previousTasks) =>
+      previousTasks.filter(
+        (task) =>
+          task.id !== taskToDelete.id,
+      ),
+    );
+
+    setSelectedTask(null);
+    setDeletingTask(null);
+  }
 
   const activeFilterCount = [
     projectFilter !== "all",
@@ -202,8 +246,8 @@ export default function Dashboard() {
             <div className="filter-wrapper">
               <button
                 className={`filter-button ${activeFilterCount > 0
-                    ? "active"
-                    : ""
+                  ? "active"
+                  : ""
                   }`}
                 onClick={() =>
                   setShowFilters(
@@ -260,15 +304,15 @@ export default function Dashboard() {
                         </option>
 
                         {availableProjects.map(
-  (project) => (
-    <option
-      key={project.id}
-      value={project.id}
-    >
-      {project.name}
-    </option>
-  ),
-)}
+                          (project) => (
+                            <option
+                              key={project.id}
+                              value={project.id}
+                            >
+                              {project.name}
+                            </option>
+                          ),
+                        )}
                       </select>
                     </label>
 
@@ -399,15 +443,32 @@ export default function Dashboard() {
         onClose={() =>
           setSelectedTask(null)
         }
+        onEdit={(task) => {
+          setSelectedTask(null);
+          openEditTaskModal(task);
+        }}
+        onDelete={(task) => {
+          setSelectedTask(null);
+          setDeletingTask(task);
+        }}
+      />
+
+      <DeleteTaskModal
+        task={deletingTask}
+        onClose={() => setDeletingTask(null)}
+        onConfirm={handleDeleteTask}
       />
 
       <TaskModal
         isOpen={showTaskModal}
-        onClose={() =>
-          setShowTaskModal(false)
-        }
+        onClose={() => {
+          setShowTaskModal(false);
+          setEditingTask(null);
+        }}
         onCreate={handleCreateTask}
+        onUpdate={handleUpdateTask}
         defaultStatus={taskModalStatus}
+        editingTask={editingTask}
       />
     </>
   );
