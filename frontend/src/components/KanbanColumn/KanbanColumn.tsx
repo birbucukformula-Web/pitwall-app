@@ -1,5 +1,14 @@
 import { Plus } from "lucide-react";
 
+import {
+  useDroppable,
+} from "@dnd-kit/core";
+
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+
 import type {
   Task,
   TaskStatus,
@@ -13,7 +22,11 @@ type KanbanColumnProps = {
   title: string;
   status: TaskStatus;
   tasks: Task[];
-  onTaskClick: (task: Task) => void;
+
+  onTaskClick: (
+    task: Task,
+  ) => void;
+
   onAddTask: () => void;
 };
 
@@ -24,19 +37,51 @@ export default function KanbanColumn({
   onTaskClick,
   onAddTask,
 }: KanbanColumnProps) {
-  const filteredTasks = tasks.filter(
-    (task) => task.status === status,
-  );
+  const {
+    setNodeRef,
+    isOver,
+  } = useDroppable({
+    id: `column:${status}`,
+
+    data: {
+      type: "column",
+      status,
+    },
+  });
+
+  const filteredTasks =
+    tasks
+      .filter(
+        (task) =>
+          task.status === status,
+      )
+      .sort(
+        (a, b) =>
+          a.order - b.order,
+      );
+
+  const taskIds =
+    filteredTasks.map(
+      (task) => task.id,
+    );
 
   return (
-    <div className="kanban-column">
+    <div
+      className={`kanban-column ${
+        isOver
+          ? "drag-over"
+          : ""
+      }`}
+    >
       <div className="column-header">
         <div>
           <span
             className={`column-indicator ${status}`}
           />
 
-          <strong>{title}</strong>
+          <strong>
+            {title}
+          </strong>
 
           <span className="task-count">
             {filteredTasks.length}
@@ -53,26 +98,38 @@ export default function KanbanColumn({
         </button>
       </div>
 
-      <div className="task-list">
-        {filteredTasks.map((task) => (
-          <TaskCard
-            key={task.id}
-            task={task}
-            onClick={() =>
-              onTaskClick(task)
-            }
-          />
-        ))}
-
-        <button
-          type="button"
-          className="add-card-button"
-          onClick={onAddTask}
+      <SortableContext
+        items={taskIds}
+        strategy={
+          verticalListSortingStrategy
+        }
+      >
+        <div
+          ref={setNodeRef}
+          className="task-list"
         >
-          <Plus size={17} />
-          Görev ekle
-        </button>
-      </div>
+          {filteredTasks.map(
+            (task) => (
+              <TaskCard
+                key={task.id}
+                task={task}
+                onClick={() =>
+                  onTaskClick(task)
+                }
+              />
+            ),
+          )}
+
+          <button
+            type="button"
+            className="add-card-button"
+            onClick={onAddTask}
+          >
+            <Plus size={17} />
+            Görev ekle
+          </button>
+        </div>
+      </SortableContext>
     </div>
   );
 }

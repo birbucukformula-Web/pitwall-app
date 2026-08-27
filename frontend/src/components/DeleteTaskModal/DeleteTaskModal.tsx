@@ -2,6 +2,7 @@ import { Trash2, X } from "lucide-react";
 
 import type { Task } from "../../types/task";
 
+
 import "./DeleteTaskModal.css";
 
 type DeleteTaskModalProps = {
