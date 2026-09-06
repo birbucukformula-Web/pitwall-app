@@ -16,6 +16,7 @@ import {
   NavLink,
   useNavigate,
 } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 
 import formulaLogo from "../../assets/formula-logo.png";
 
@@ -36,6 +37,7 @@ export default function Sidebar({
   ] = useState(false);
 
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
   function handleNavigation() {
     setShowProfileMenu(false);
@@ -52,27 +54,14 @@ export default function Sidebar({
 
   function handleLogout() {
     setShowProfileMenu(false);
-
-    /*
-      Backend authentication geldiğinde:
-      - logout endpoint çağrılacak
-      - access token temizlenecek
-      - refresh token temizlenecek
-      - session/user state temizlenecek
-    */
-
-    localStorage.removeItem(
-      "accessToken",
-    );
-
-    localStorage.removeItem(
-      "refreshToken",
-    );
-
     onClose();
-
+    logout();
     navigate("/login");
   }
+
+  const initials = user ? `${user.first_name.charAt(0)}${user.last_name.charAt(0)}` : "LS";
+  const fullName = user ? `${user.first_name} ${user.last_name}` : "Lidya Su";
+  const roleName = user?.organization?.name || "Web & Yazılım";
 
   return (
     <aside
@@ -214,16 +203,16 @@ export default function Sidebar({
             <div className="profile-menu">
               <div className="profile-menu-user">
                 <div className="profile-menu-avatar">
-                  LS
+                  {initials}
                 </div>
 
                 <div className="profile-menu-user-info">
                   <strong>
-                    Lidya Su
+                    {fullName}
                   </strong>
 
                   <span>
-                    Web &amp; Yazılım
+                    {roleName}
                   </span>
                 </div>
               </div>
@@ -283,16 +272,16 @@ export default function Sidebar({
             }
           >
             <div className="profile-avatar">
-              LS
+              {initials}
             </div>
 
             <div className="profile-info">
               <strong>
-                Lidya Su
+                {fullName}
               </strong>
 
               <span>
-                Web &amp; Yazılım
+                {roleName}
               </span>
             </div>
 

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "./contexts/AuthContext";
 
 import {
   Navigate,
@@ -94,19 +95,37 @@ function AppLayout() {
   );
 }
 
+function ProtectedRoute({ children }: { children: JSX.Element }) {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center' }}>Yükleniyor...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+}
+
 function App() {
+  const { isAuthenticated } = useAuth();
+
   return (
     <Routes>
       <Route
         path="/login"
-        element={<Login />}
+        element={
+          isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
+        }
       />
 
       <Route
         path="/"
         element={
           <Navigate
-            to="/login"
+            to="/dashboard"
             replace
           />
         }
@@ -114,7 +133,11 @@ function App() {
 
       <Route
         path="/*"
-        element={<AppLayout />}
+        element={
+          <ProtectedRoute>
+            <AppLayout />
+          </ProtectedRoute>
+        }
       />
     </Routes>
   );
