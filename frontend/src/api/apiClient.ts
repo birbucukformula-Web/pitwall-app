@@ -1,4 +1,5 @@
-const BASE_URL = "http://localhost:8000/api/v1";
+// VITE_API_URL yoksa (örn. geliştirme ortamında tanımlanmamışsa) fallback olarak localhost kullan.
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api/v1";
 
 interface FetchOptions extends RequestInit {
   requireAuth?: boolean;
