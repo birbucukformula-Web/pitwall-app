@@ -399,3 +399,9 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+.drag-overlay-wrapper {
+  width: 320px;
+
+  pointer-events: none;
+}

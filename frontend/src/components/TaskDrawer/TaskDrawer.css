@@ -2,34 +2,37 @@
   position: fixed;
   inset: 0;
 
-  z-index: 90;
+  z-index: 999;
 
   background: rgba(0, 0, 0, 0.25);
 }
 
+/* =========================
+   DRAWER
+========================= */
+
 .task-drawer {
-  width: 470px;
+  width: 500px;
+  max-width: 100%;
   height: 100vh;
 
   position: fixed;
   right: 0;
   top: 0;
 
-  z-index: 100;
+  z-index: 1000;
 
   display: flex;
   flex-direction: column;
 
   background: var(--surface);
-
   color: var(--text);
 
   box-shadow:
     -10px 0 35px
     rgba(0, 0, 0, 0.12);
 
-  animation:
-    drawer-slide 0.22s ease;
+  animation: drawer-slide 0.22s ease;
 }
 
 @keyframes drawer-slide {
@@ -53,12 +56,21 @@
   align-items: flex-start;
   justify-content: space-between;
 
-  gap: 20px;
+  gap: 16px;
 
-  padding: 24px;
+  padding: 22px 24px;
 
-  border-bottom:
-    1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+/*
+  Sol taraf gerektiğinde küçülebilsin.
+  Böylece sağdaki Düzenle / Sil / X
+  butonları drawer dışına taşmaz.
+*/
+.drawer-header > div:first-child {
+  flex: 1;
+  min-width: 0;
 }
 
 .drawer-project {
@@ -72,20 +84,110 @@
   font-weight: 700;
 
   letter-spacing: 0.7px;
-
   text-transform: uppercase;
 }
 
 .drawer-header h2 {
-  max-width: 340px;
-
   margin: 0;
 
   color: var(--text);
 
   font-size: 21px;
   line-height: 1.35;
+
+  overflow-wrap: anywhere;
 }
+
+/* HEADER ACTIONS */
+
+.drawer-header-actions {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  flex-shrink: 0;
+}
+
+/* EDIT */
+
+.drawer-edit {
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 6px;
+
+  padding: 0 10px;
+
+  background: transparent;
+  color: var(--text-secondary);
+
+  border: 1px solid var(--border);
+  border-radius: 7px;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.drawer-edit:hover {
+  background: var(--surface-hover);
+
+  color: var(--accent);
+
+  border-color: var(--accent);
+}
+
+/* DELETE */
+
+.drawer-delete {
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 6px;
+
+  padding: 0 10px;
+
+  background: transparent;
+  color: var(--text-muted);
+
+  border: 1px solid var(--border);
+  border-radius: 7px;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.drawer-delete:hover {
+  background: rgba(226, 29, 44, 0.08);
+
+  color: var(--accent);
+
+  border-color: var(--accent);
+}
+
+/* CLOSE */
 
 .drawer-close {
   width: 36px;
@@ -97,21 +199,28 @@
 
   flex-shrink: 0;
 
+  padding: 0;
+
   background: var(--surface-soft);
   color: var(--text-secondary);
 
+  border: 1px solid transparent;
   border-radius: 7px;
 
   cursor: pointer;
 
   transition:
     background 0.15s ease,
-    color 0.15s ease;
+    color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .drawer-close:hover {
   background: var(--surface-hover);
+
   color: var(--text);
+
+  border-color: var(--border);
 }
 
 /* =========================
@@ -129,8 +238,7 @@
 .drawer-section {
   padding: 22px 0;
 
-  border-bottom:
-    1px solid var(--border-soft);
+  border-bottom: 1px solid var(--border-soft);
 }
 
 .section-title {
@@ -243,49 +351,6 @@
   font-size: 12px;
   font-weight: 600;
 }
-/* COMPLETE BUTTON */
-
-.assignee-complete-button {
-  width: 31px;
-  height: 31px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  flex-shrink: 0;
-
-  padding: 0;
-
-  background: var(--surface);
-  color: var(--text-muted);
-
-  border: 1px solid var(--border);
-  border-radius: 50%;
-
-  cursor: pointer;
-
-  transition:
-    background 0.15s ease,
-    color 0.15s ease,
-    border-color 0.15s ease,
-    transform 0.15s ease;
-}
-
-.assignee-complete-button:hover {
-  color: var(--success);
-
-  border-color: var(--success);
-
-  transform: scale(1.05);
-}
-
-.assignee-complete-button.completed {
-  background: var(--success);
-  color: #ffffff;
-
-  border-color: var(--success);
-}
 
 /* =========================
    DESCRIPTION
@@ -359,7 +424,6 @@
 
 .comment-body {
   flex: 1;
-
   min-width: 0;
 }
 
@@ -408,8 +472,7 @@
 
   background: var(--surface);
 
-  border-top:
-    1px solid var(--border);
+  border-top: 1px solid var(--border);
 }
 
 .composer-avatar {
@@ -457,7 +520,6 @@
 
 .composer-input textarea {
   flex: 1;
-
   min-width: 0;
 
   resize: none;
@@ -539,7 +601,43 @@
   .drawer-header {
     min-height: auto;
 
-    padding: 20px;
+    align-items: flex-start;
+
+    padding: 18px;
+  }
+
+  .drawer-header-actions {
+    gap: 5px;
+  }
+
+  /*
+    Mobilde alan dar olduğu için
+    butonlarda sadece ikon gösteriyoruz.
+  */
+  .drawer-edit,
+  .drawer-delete {
+    width: 34px;
+
+    justify-content: center;
+
+    padding: 0;
+
+    font-size: 0;
+  }
+
+  .drawer-edit svg,
+  .drawer-delete svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .drawer-close {
+    width: 34px;
+    height: 36px;
+  }
+
+  .drawer-header h2 {
+    font-size: 19px;
   }
 
   .drawer-content {
@@ -548,9 +646,5 @@
 
   .comment-composer {
     padding: 14px 20px;
-  }
-
-  .drawer-header h2 {
-    font-size: 19px;
   }
 }

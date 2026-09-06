@@ -1,17 +1,82 @@
-import type { Task } from "../types/task";
+import type {
+  Project,
+  Task,
+  Unit,
+} from "../types/task";
+
+/*
+  Şimdilik fixture/mock veri.
+
+  Backend bağlandığında:
+  GET /api/v1/units/
+  GET /api/v1/projects/
+  GET /api/v1/tasks/
+
+  üzerinden gerçek veriler gelecek.
+*/
+
+export const mockUnits: Unit[] = [
+  {
+    id: 1,
+    name: "Web & Yazılım",
+    code: "WEB",
+  },
+  {
+    id: 2,
+    name: "Elektronik",
+    code: "ELEKTRONIK",
+  },
+  {
+    id: 3,
+    name: "Sponsorluk",
+    code: "SPONSORLUK",
+  },
+  {
+    id: 4,
+    name: "Finans",
+    code: "FINANS",
+  },
+];
+
+export const mockProjects: Project[] = [
+  {
+    id: 1,
+    name: "Pitwall App",
+  },
+  {
+    id: 2,
+    name: "Sponsorluk",
+  },
+  {
+    id: 3,
+    name: "Araç Geliştirme",
+  },
+];
 
 export const mockTasks: Task[] = [
   {
     id: 1,
-    title: "Telemetri dashboard arayüzü",
+
+    title:
+      "Telemetri dashboard arayüzü",
+
     description:
       "Telemetri ekranının ana dashboard arayüzü hazırlanacak ve responsive görünüm kontrol edilecek.",
-    project: "Pitwall App",
-    department: "Web & Yazılım",
+
+    project: mockProjects[0],
+
+    unit: mockUnits[0],
+
     status: "todo",
+
     priority: "high",
-    startDate: "2026-08-18",
-    dueDate: "2026-08-20",
+
+    start_date: "2026-08-18",
+
+    due_date: "2026-08-20",
+
+    order: 1,
+
     assignees: [
       {
         id: 1,
@@ -28,14 +93,27 @@ export const mockTasks: Task[] = [
 
   {
     id: 2,
-    title: "Sponsor dosyalarının düzenlenmesi",
+
+    title:
+      "Sponsor dosyalarının düzenlenmesi",
+
     description:
       "Sponsor sunumunda kullanılacak dokümanlar güncellenecek.",
-    project: "Sponsorluk",
-    department: "Sponsorluk",
+
+    project: mockProjects[1],
+
+    unit: mockUnits[2],
+
     status: "todo",
+
     priority: "medium",
-    dueDate: "2026-08-22",
+
+    start_date: null,
+
+    due_date: "2026-08-22",
+
+    order: 2,
+
     assignees: [
       {
         id: 3,
@@ -47,14 +125,27 @@ export const mockTasks: Task[] = [
 
   {
     id: 3,
-    title: "Araç veri API bağlantısı",
+
+    title:
+      "Araç veri API bağlantısı",
+
     description:
       "Telemetri verilerinin frontend tarafına aktarılması için API bağlantıları hazırlanacak.",
-    project: "Pitwall App",
-    department: "Web & Yazılım",
-    status: "progress",
+
+    project: mockProjects[0],
+
+    unit: mockUnits[0],
+
+    status: "in_progress",
+
     priority: "high",
-    dueDate: "2026-08-18",
+
+    start_date: null,
+
+    due_date: "2026-08-18",
+
+    order: 1,
+
     assignees: [
       {
         id: 4,
@@ -71,14 +162,27 @@ export const mockTasks: Task[] = [
 
   {
     id: 4,
-    title: "Elektrik sistemi dokümantasyonu",
+
+    title:
+      "Elektrik sistemi dokümantasyonu",
+
     description:
       "Elektrik sistemine ait teknik dökümanlar hazırlanacak.",
-    project: "Araç Geliştirme",
-    department: "Elektronik",
-    status: "progress",
+
+    project: mockProjects[2],
+
+    unit: mockUnits[1],
+
+    status: "in_progress",
+
     priority: "medium",
-    dueDate: "2026-08-24",
+
+    start_date: null,
+
+    due_date: "2026-08-24",
+
+    order: 2,
+
     assignees: [
       {
         id: 5,
@@ -90,14 +194,27 @@ export const mockTasks: Task[] = [
 
   {
     id: 5,
-    title: "Görev takip ekranı tasarımı",
+
+    title:
+      "Görev takip ekranı tasarımı",
+
     description:
       "Görev panosunun temel kullanıcı arayüzü ve task kartları tamamlanacak.",
-    project: "Pitwall App",
-    department: "Web & Yazılım",
+
+    project: mockProjects[0],
+
+    unit: mockUnits[0],
+
     status: "review",
+
     priority: "medium",
-    dueDate: "2026-08-19",
+
+    start_date: null,
+
+    due_date: "2026-08-19",
+
+    order: 1,
+
     assignees: [
       {
         id: 1,
@@ -109,14 +226,27 @@ export const mockTasks: Task[] = [
 
   {
     id: 6,
-    title: "Parça maliyet tablosu",
+
+    title:
+      "Parça maliyet tablosu",
+
     description:
       "Araç parçalarının mevcut maliyetleri kontrol edilecek.",
-    project: "Araç Geliştirme",
-    department: "Finans",
+
+    project: mockProjects[2],
+
+    unit: mockUnits[3],
+
     status: "done",
+
     priority: "low",
-    dueDate: "2026-08-17",
+
+    start_date: null,
+
+    due_date: "2026-08-17",
+
+    order: 1,
+
     assignees: [
       {
         id: 6,

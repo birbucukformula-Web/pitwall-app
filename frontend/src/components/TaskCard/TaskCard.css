@@ -1,7 +1,6 @@
 .task-card {
-  padding: 18px;
-
   min-height: 150px;
+  padding: 18px;
 
   background: var(--surface);
   color: var(--text);
@@ -9,40 +8,84 @@
   border: 1px solid var(--border);
   border-radius: 8px;
 
+  cursor: move;
+
+  user-select: none;
+  touch-action: none;
+
+  will-change: transform;
+
   transition:
-    transform 0.15s,
-    box-shadow 0.15s,
-    background 0.2s ease;
+  transform 190ms cubic-bezier(0.22, 1, 0.36, 1),
+  border-color 0.14s ease,
+  box-shadow 0.14s ease,
+  opacity 0.12s ease;
 }
 
 .task-card:hover {
-  transform: translateY(-2px);
+  box-shadow:
+    0 5px 16px
+    rgba(0, 0, 0, 0.07);
+}
+
+/* =========================
+   DRAG
+========================= */
+
+.task-card-dragging {
+  opacity: 0;
+
+  border-color: transparent;
+
+  box-shadow: none;
+
+  pointer-events: none;
+}
+
+.task-card-overlay {
+  width: 100%;
+
+  opacity: 1;
+
+  background: var(--surface);
+
+  border: 1px solid var(--border);
+  border-radius: 8px;
+
+  transform: scale(1.002);
 
   box-shadow:
-    0 8px 22px
-    rgba(0, 0, 0, 0.15);
+    0 4px 14px
+    rgba(0, 0, 0, 0.06);
+
+  pointer-events: none;
+
+  transition: none;
 }
+
+/* =========================
+   TOP
+========================= */
+
 .task-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: var(--text-muted);
-}
 
-.task-top button {
-  display: flex;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: #999;
-  cursor: pointer;
+  gap: 10px;
+
+  color: var(--text-muted);
 }
 
 .department {
-  padding: 5px 8px;
-  background: var(--surface-soft);
+  display: inline-flex;
+  align-items: center;
 
+  padding: 5px 8px;
+
+  background: var(--surface-soft);
   color: var(--text-muted);
+
   border-radius: 4px;
 
   font-size: 10px;
@@ -52,21 +95,60 @@
   letter-spacing: 0.4px;
 }
 
+.task-more-button {
+  width: 28px;
+  height: 28px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  padding: 0;
+
+  background: transparent;
+  color: var(--text-muted);
+
+  border: 0;
+  border-radius: 5px;
+
+  cursor: pointer;
+
+  transition:
+    background 0.12s ease,
+    color 0.12s ease;
+}
+
+.task-more-button:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+/* =========================
+   TITLE
+========================= */
+
 .task-card h4 {
-  margin: 14px 0 14px;
+  margin: 14px 0;
+
+  color: var(--text);
 
   font-size: 16px;
   font-weight: 600;
-  line-height: 1.45;
 
-  color:var(--text);
+  line-height: 1.45;
 }
+
+/* =========================
+   PRIORITY
+========================= */
 
 .priority {
   display: inline-block;
 
-  padding: 5px 8px;
   margin-bottom: 14px;
+  padding: 5px 8px;
 
   border-radius: 4px;
 
@@ -84,18 +166,30 @@
   color: #bb7b12;
 }
 
+.priority-low {
+  background: var(--surface-soft);
+  color: var(--text-muted);
+}
+
+/* =========================
+   FOOTER
+========================= */
+
 .task-footer {
-   display: flex;
+  display: flex;
   align-items: center;
   justify-content: space-between;
 
+  gap: 12px;
+
   padding-top: 14px;
 
-  border-top: 1px solid var(--border-soft);
+  border-top:
+    1px solid var(--border-soft);
 }
 
 .task-date {
-   display: flex;
+  display: flex;
   align-items: center;
 
   gap: 6px;
@@ -105,8 +199,14 @@
   font-size: 11px;
 }
 
+/* =========================
+   AVATARS
+========================= */
+
 .avatars {
   display: flex;
+  align-items: center;
+
   padding-left: 8px;
 }
 
@@ -120,16 +220,26 @@
 
   margin-left: -7px;
 
-  background: #222;
-  color: white;
+  background: #222222;
+  color: #ffffff;
 
-  border: 2px solid white;
+  border:
+    1px solid var(--surface);
+
   border-radius: 50%;
 
   font-size: 9px;
   font-weight: 700;
 }
 
+.avatars span:first-child {
+  margin-left: 0;
+}
+
 .avatars span:nth-child(2) {
-  background: #e21d2c;
+  background: var(--accent);
+}
+
+.avatars span:nth-child(3) {
+  background: #555558;
 }
