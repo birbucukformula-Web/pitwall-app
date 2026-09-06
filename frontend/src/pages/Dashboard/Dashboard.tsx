@@ -1,6 +1,7 @@
 import {
   useRef,
   useState,
+  useEffect,
 } from "react";
 
 import {
@@ -29,12 +30,14 @@ import TaskModal from "../../components/TaskModal/TaskModal";
 import DeleteTaskModal from "../../components/DeleteTaskModal/DeleteTaskModal";
 import TaskCard from "../../components/TaskCard/TaskCard";
 
-import { mockTasks } from "../../data/mockTasks";
-
 import type {
   Task,
   TaskStatus,
 } from "../../types/task";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { tasksApi } from "../../api/tasks";
+import type { TaskListParams } from "../../api/tasks";
+import { statsApi } from "../../api/stats";
 
 import "./Dashboard.css";
 
@@ -89,7 +92,7 @@ export default function Dashboard() {
     useState<Task | null>(null);
 
   const [tasks, setTasks] =
-    useState<Task[]>(mockTasks);
+    useState<Task[]>([]);
 
   const dragSnapshot =
     useRef<Task[] | null>(null);
@@ -134,6 +137,57 @@ export default function Dashboard() {
     }),
   );
 
+  // TanStack Query
+  const filters: TaskListParams = {
+    project: projectFilter !== "all" ? Number(projectFilter) : undefined,
+    assignee: assigneeFilter !== "all" ? Number(assigneeFilter) : undefined,
+  };
+  // priorityFilter is local for now, backend could support it too but we have local filter
+
+  const { data: fetchedTasks, isLoading: isTasksLoading, isError: isTasksError } = useQuery({
+    queryKey: ["tasks", filters],
+    queryFn: () => tasksApi.getTasks(filters),
+  });
+
+  const queryClient = useQueryClient();
+
+  const { data: stats } = useQuery({
+    queryKey: ["stats"],
+    queryFn: () => statsApi.getSummary(),
+  });
+
+  const updateTaskMutation = useMutation({
+    mutationFn: ({ id, updates }: { id: number; updates: Partial<Task> }) =>
+      tasksApi.updateTask(id, updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["stats"] });
+    },
+  });
+
+  const createTaskMutation = useMutation({
+    mutationFn: (newTask: Partial<Task>) => tasksApi.createTask(newTask),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["stats"] });
+    },
+  });
+
+  const deleteTaskMutation = useMutation({
+    mutationFn: (taskId: number) => tasksApi.deleteTask(taskId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["stats"] });
+    },
+  });
+
+  // Senkronize et: API'den gelen veriyi local state'e yaz (DND için)
+  useEffect(() => {
+    if (fetchedTasks) {
+      setTasks(fetchedTasks);
+    }
+  }, [fetchedTasks]);
+
   /* =========================
      TASK CRUD
   ========================= */
@@ -141,23 +195,21 @@ export default function Dashboard() {
   function handleCreateTask(
     newTask: Task,
   ) {
-    const tasksInColumn =
-      tasks.filter(
-        (task) =>
-          task.status ===
-          newTask.status,
-      );
-
-    const taskWithOrder: Task = {
-      ...newTask,
-      order:
-        tasksInColumn.length + 1,
-    };
-
-    setTasks((previousTasks) => [
-      ...previousTasks,
-      taskWithOrder,
-    ]);
+    // API Call
+    createTaskMutation.mutate({
+      title: newTask.title,
+      description: newTask.description,
+      status: newTask.status,
+      priority: newTask.priority,
+      project: newTask.project?.id,
+      unit: newTask.unit?.id,
+      assignees: newTask.assignees?.map(a => a.id),
+      due_date: newTask.due_date,
+    });
+    
+    // Optimistic UI update can be skipped because invalidateQueries will refetch.
+    // Or we can just close the modal.
+    setShowTaskModal(false);
   }
 
   function openTaskModal(
@@ -178,34 +230,28 @@ export default function Dashboard() {
   function handleUpdateTask(
     updatedTask: Task,
   ) {
-    setTasks((previousTasks) =>
-      previousTasks.map((task) =>
-        task.id === updatedTask.id
-          ? updatedTask
-          : task,
-      ),
-    );
+    updateTaskMutation.mutate({
+      id: updatedTask.id,
+      updates: {
+        title: updatedTask.title,
+        description: updatedTask.description,
+        status: updatedTask.status,
+        priority: updatedTask.priority,
+        project: updatedTask.project?.id,
+        unit: updatedTask.unit?.id,
+        assignees: updatedTask.assignees?.map(a => a.id),
+        due_date: updatedTask.due_date,
+      }
+    });
 
-    setSelectedTask(updatedTask);
     setEditingTask(null);
+    setShowTaskModal(false);
   }
 
   function handleDeleteTask(
     taskToDelete: Task,
   ) {
-    setTasks((previousTasks) => {
-      const remainingTasks =
-        previousTasks.filter(
-          (task) =>
-            task.id !==
-            taskToDelete.id,
-        );
-
-      return normalizeColumnOrders(
-        remainingTasks,
-        taskToDelete.status,
-      );
-    });
+    deleteTaskMutation.mutate(taskToDelete.id);
 
     setSelectedTask(null);
     setDeletingTask(null);
@@ -615,18 +661,23 @@ export default function Dashboard() {
     değerlerini temizliyoruz.
   */
   setTasks((previousTasks) => {
-    let result =
-      previousTasks;
+    let result = previousTasks;
 
-    VALID_STATUSES.forEach(
-      (status) => {
-        result =
-          normalizeColumnOrders(
-            result,
-            status,
-          );
-      },
-    );
+    VALID_STATUSES.forEach((status) => {
+      result = normalizeColumnOrders(result, status);
+    });
+    
+    // Find the task that was moved
+    const movedTask = result.find(t => t.id === Number(event.active.id));
+    if (movedTask) {
+      updateTaskMutation.mutate({
+        id: movedTask.id,
+        updates: {
+          status: movedTask.status,
+          order: movedTask.order,
+        }
+      });
+    }
 
     return result;
   });
@@ -754,50 +805,38 @@ export default function Dashboard() {
         <section className="stats-grid">
           <StatCard
             title="Toplam Görev"
-            value={tasks.length}
+            value={stats?.total || 0}
             description="Bu sprintte"
             color="black"
           />
 
           <StatCard
             title="Devam Ediyor"
-            value={
-              tasks.filter(
-                (task) =>
-                  task.status ===
-                  "in_progress",
-              ).length
-            }
+            value={stats?.in_progress || 0}
             description="Aktif görev"
             color="red"
           />
 
           <StatCard
             title="İncelemede"
-            value={
-              tasks.filter(
-                (task) =>
-                  task.status ===
-                  "review",
-              ).length
-            }
+            value={stats?.review || 0}
             description="Onay bekliyor"
             color="orange"
           />
 
           <StatCard
             title="Tamamlanan"
-            value={
-              tasks.filter(
-                (task) =>
-                  task.status ===
-                  "done",
-              ).length
-            }
+            value={stats?.done || 0}
             description="Tamamlanan görev"
             color="green"
           />
         </section>
+
+        {isTasksLoading ? (
+          <div style={{ padding: '40px', textAlign: 'center', color: '#666' }}>Görevler yükleniyor...</div>
+        ) : isTasksError ? (
+          <div style={{ padding: '40px', textAlign: 'center', color: '#ff4d4f' }}>Görevler yüklenirken bir hata oluştu.</div>
+        ) : (
 
         <section className="board-section">
           <div className="board-toolbar">
@@ -1083,6 +1122,7 @@ export default function Dashboard() {
             </DragOverlay>
           </DndContext>
         </section>
+        )}
       </section>
 
       <TaskDrawer

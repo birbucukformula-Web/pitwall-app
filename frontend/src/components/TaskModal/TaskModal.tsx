@@ -10,10 +10,9 @@ import type {
   Task,
 } from "../../types/task";
 
-import {
-  mockProjects,
-  mockUnits,
-} from "../../data/mockTasks";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { metadataApi } from "../../api/metadata";
+import { tasksApi } from "../../api/tasks";
 
 import "./TaskModal.css";
 
@@ -21,33 +20,8 @@ type TaskModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onCreate: (task: Task) => void;
-  onUpdate?: (task: Task) => void;
-  defaultStatus?: Task["status"];
   editingTask?: Task | null;
 };
-
-const teamMembers: Assignee[] = [
-  {
-    id: 1,
-    name: "Lidya Su",
-    initials: "LS",
-  },
-  {
-    id: 2,
-    name: "Furkan",
-    initials: "FK",
-  },
-  {
-    id: 3,
-    name: "Busenur",
-    initials: "BC",
-  },
-  {
-    id: 4,
-    name: "Mert",
-    initials: "MK",
-  },
-];
 
 export default function TaskModal({
   isOpen,
@@ -57,21 +31,51 @@ export default function TaskModal({
   defaultStatus = "todo",
   editingTask = null,
 }: TaskModalProps) {
-  const [title, setTitle] =
-    useState("");
 
-  const [description, setDescription] =
-    useState("");
+  const { data: projects = [] } = useQuery({
+    queryKey: ["projects"],
+    queryFn: () => metadataApi.getProjects(),
+  });
 
-  const [projectId, setProjectId] =
-    useState(
-      mockProjects[0]?.id.toString() ?? "",
-    );
+  const { data: units = [] } = useQuery({
+    queryKey: ["units"],
+    queryFn: () => metadataApi.getUnits(),
+  });
 
-  const [unitId, setUnitId] =
-    useState(
-      mockUnits[0]?.id.toString() ?? "",
-    );
+  const { data: members = [] } = useQuery({
+    queryKey: ["members"],
+    queryFn: () => metadataApi.getMembers(),
+  });
+
+  const { data: activities = [] } = useQuery({
+    queryKey: ["activities", editingTask?.id],
+    queryFn: () => editingTask ? tasksApi.getActivities(editingTask.id) : [],
+    enabled: !!editingTask,
+  });
+
+  const queryClient = useQueryClient();
+  const createActivityMutation = useMutation({
+    mutationFn: (content: string) => tasksApi.createActivity(editingTask!.id, content),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["activities", editingTask?.id] });
+      setNewActivity("");
+    }
+  });
+
+  // Convert Members to Assignees for the UI
+  const teamMembers: Assignee[] = members.map(m => ({
+    id: m.id,
+    name: m.first_name ? `${m.first_name} ${m.last_name}` : m.username,
+    initials: m.first_name ? `${m.first_name[0]}${m.last_name[0]}`.toUpperCase() : m.username[0].toUpperCase(),
+  }));
+
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [newActivity, setNewActivity] = useState("");
+  
+  // We use string here, but will handle empty state.
+  const [projectId, setProjectId] = useState("");
+  const [unitId, setUnitId] = useState("");
 
   const [priority, setPriority] =
     useState<Task["priority"]>("medium");
@@ -97,11 +101,11 @@ export default function TaskModal({
     setDescription("");
 
     setProjectId(
-      mockProjects[0]?.id.toString() ?? "",
+      projects.length > 0 ? projects[0].id.toString() : "",
     );
 
     setUnitId(
-      mockUnits[0]?.id.toString() ?? "",
+      units.length > 0 ? units[0].id.toString() : "",
     );
 
     setPriority("medium");
@@ -221,17 +225,17 @@ export default function TaskModal({
     }
 
     const selectedProject =
-      mockProjects.find(
-        (project) =>
-          project.id ===
-          Number(projectId),
-      ) ?? null;
+      projects.find(
+        (p: any) =>
+          p.id.toString() ===
+          projectId,
+      );
 
     const selectedUnit =
-      mockUnits.find(
-        (unit) =>
-          unit.id ===
-          Number(unitId),
+      units.find(
+        (u: any) =>
+          u.id.toString() ===
+          unitId,
       ) ?? null;
 
     if (
@@ -414,9 +418,9 @@ export default function TaskModal({
                   )
                 }
               >
-                {mockProjects.map(
+                {projects.map(
                   (
-                    project,
+                    project: any,
                   ) => (
                     <option
                       key={
@@ -452,9 +456,9 @@ export default function TaskModal({
                   )
                 }
               >
-                {mockUnits.map(
+                {units.map(
                   (
-                    unit,
+                    unit: any,
                   ) => (
                     <option
                       key={
@@ -523,6 +527,14 @@ export default function TaskModal({
                       .value,
                   )
                 }
+                onKeyDown={(
+                  event,
+                ) => {
+                  if (event.key.toLowerCase() === 'b') {
+                    event.preventDefault();
+                    setDueDate(new Date().toISOString().split('T')[0]);
+                  }
+                }}
               />
             </label>
           </div>
@@ -725,6 +737,56 @@ export default function TaskModal({
               </div>
             )}
           </div>
+
+          {editingTask && (
+            <div className="task-activities-section" style={{ marginTop: "24px", borderTop: "1px solid var(--border-color)", paddingTop: "16px" }}>
+              <h4 style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-color)", marginBottom: "12px" }}>Aktiviteler ve Yorumlar</h4>
+              <div className="task-activities-list" style={{ maxHeight: "200px", overflowY: "auto", marginBottom: "16px", display: "flex", flexDirection: "column", gap: "12px" }}>
+                {activities.map((act: any) => (
+                  <div key={act.id} style={{ fontSize: "13px", display: "flex", gap: "8px" }}>
+                    <div className="assignee-avatar" style={{ width: "24px", height: "24px", fontSize: "10px", flexShrink: 0 }}>
+                      {act.user_info?.initials}
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 500, color: "var(--text-color)" }}>
+                        {act.user_info?.name} <span style={{ color: "var(--text-secondary)", fontWeight: 400, fontSize: "11px", marginLeft: "4px" }}>{new Date(act.created_at).toLocaleString('tr-TR')}</span>
+                      </div>
+                      <div style={{ color: act.activity_type === 'status_change' ? "var(--text-secondary)" : "var(--text-color)", fontStyle: act.activity_type === 'status_change' ? "italic" : "normal", marginTop: "2px" }}>
+                        {act.content}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {activities.length === 0 && <div style={{ color: "var(--text-secondary)", fontSize: "13px" }}>Henüz bir hareket bulunmuyor.</div>}
+              </div>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <input 
+                  type="text" 
+                  className="form-input" 
+                  style={{ flex: 1 }}
+                  placeholder="Yorum yaz..." 
+                  value={newActivity} 
+                  onChange={(e) => setNewActivity(e.target.value)} 
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && newActivity.trim()) {
+                      e.preventDefault();
+                      createActivityMutation.mutate(newActivity);
+                    }
+                  }}
+                />
+                <button 
+                  type="button" 
+                  style={{ padding: "0 12px", background: "var(--primary-color)", color: "white", borderRadius: "6px", fontSize: "13px", fontWeight: 500, border: "none", cursor: "pointer" }}
+                  disabled={!newActivity.trim()}
+                  onClick={() => {
+                    if (newActivity.trim()) createActivityMutation.mutate(newActivity);
+                  }}
+                >
+                  Gönder
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="task-modal-footer">
             <button

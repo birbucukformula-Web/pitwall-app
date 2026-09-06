@@ -61,3 +61,22 @@ class Task(models.Model):
 
     def __str__(self):
         return self.title
+
+class TaskActivity(models.Model):
+    class ActivityType(models.TextChoices):
+        COMMENT = 'comment', 'Comment'
+        STATUS_CHANGE = 'status_change', 'Status Change'
+        ASSIGNMENT = 'assignment', 'Assignment'
+        OTHER = 'other', 'Other'
+
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='activities')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='activities')
+    activity_type = models.CharField(max_length=20, choices=ActivityType.choices, default=ActivityType.COMMENT)
+    content = models.TextField() # Yorum metni veya otomatik oluşturulan log metni
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.get_full_name()} - {self.get_activity_type_display()} on {self.task.title}"

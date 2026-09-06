@@ -13,6 +13,7 @@ export interface UserResponse {
   organization: {
     id: number;
     name: string;
+    race_date: string;
   };
 }
 

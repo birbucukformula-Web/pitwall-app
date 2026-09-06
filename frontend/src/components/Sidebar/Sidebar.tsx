@@ -39,6 +39,21 @@ export default function Sidebar({
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
+  // roleName için: EĞER birim bilgisi geliyorsa onu yaz
+  const roleName = user?.organization?.name || "Takım Üyesi";
+  const fullName = user ? `${user.first_name} ${user.last_name}` : "Bilinmeyen Kullanıcı";
+  const initials = user ? `${user.first_name.charAt(0)}${user.last_name.charAt(0)}` : "?";
+
+  // Yarışa kalan günü hesapla
+  let daysLeft = 0;
+  if (user?.organization?.race_date) {
+    const today = new Date();
+    const raceDate = new Date(user.organization.race_date);
+    const timeDiff = raceDate.getTime() - today.getTime();
+    daysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
+  }
+  const daysText = daysLeft > 0 ? `${daysLeft} GÜN` : (daysLeft === 0 ? "BUGÜN!" : "BİTTİ");
+
   function handleNavigation() {
     setShowProfileMenu(false);
     onClose();
@@ -58,10 +73,6 @@ export default function Sidebar({
     logout();
     navigate("/login");
   }
-
-  const initials = user ? `${user.first_name.charAt(0)}${user.last_name.charAt(0)}` : "LS";
-  const fullName = user ? `${user.first_name} ${user.last_name}` : "Lidya Su";
-  const roleName = user?.organization?.name || "Web & Yazılım";
 
   return (
     <aside
@@ -186,7 +197,7 @@ export default function Sidebar({
           </span>
 
           <strong>
-            46 GÜN
+            {daysText}
           </strong>
 
           <p>

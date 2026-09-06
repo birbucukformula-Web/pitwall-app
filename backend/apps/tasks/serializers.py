@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Task
+from .models import Task, TaskActivity
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -61,4 +61,28 @@ class TaskSerializer(serializers.ModelSerializer):
         else:
             representation['project'] = None
             
+        return representation
+
+class TaskActivitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TaskActivity
+        fields = ['id', 'task', 'user', 'activity_type', 'content', 'created_at']
+        read_only_fields = ['task', 'user', 'activity_type', 'created_at']
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        # Add basic user info
+        user = instance.user
+        if user.first_name:
+            name = f"{user.first_name} {user.last_name}" if user.last_name else user.first_name
+            initials = f"{user.first_name[0]}{user.last_name[0]}" if user.last_name else user.first_name[0]
+        else:
+            name = user.username
+            initials = user.username[0].upper()
+            
+        representation['user_info'] = {
+            'id': user.id,
+            'name': name.strip(),
+            'initials': initials.upper()
+        }
         return representation

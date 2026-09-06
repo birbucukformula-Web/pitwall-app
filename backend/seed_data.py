@@ -18,7 +18,7 @@ def seed():
         name="1.5 Adana Racing",
         slug="1-5-adana",
         season="2026",
-        race_date="2026-08-15"
+        race_date="2026-09-22"
     )
     print(f"Organizasyon: {org.name}")
 
