@@ -1,7 +1,6 @@
 from django.db import models
 from django.conf import settings
-from apps.organizations.models import Organization, Project
-
+from apps.organizations.models import Organization, Project, Unit
 
 class Task(models.Model):
     class Status(models.TextChoices):
@@ -10,9 +9,21 @@ class Task(models.Model):
         REVIEW = 'review', 'Review'
         DONE = 'done', 'Done'
 
+    class Priority(models.TextChoices):
+        LOW = 'low', 'Low'
+        MEDIUM = 'medium', 'Medium'
+        HIGH = 'high', 'High'
+
     organization = models.ForeignKey(
         Organization,
         on_delete=models.CASCADE,
+        related_name='tasks'
+    )
+    unit = models.ForeignKey(
+        Unit,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
         related_name='tasks'
     )
     project = models.ForeignKey(
@@ -28,6 +39,11 @@ class Task(models.Model):
         max_length=20,
         choices=Status.choices,
         default=Status.TODO
+    )
+    priority = models.CharField(
+        max_length=20,
+        choices=Priority.choices,
+        default=Priority.MEDIUM
     )
     assigned_to = models.ManyToManyField(
         settings.AUTH_USER_MODEL,

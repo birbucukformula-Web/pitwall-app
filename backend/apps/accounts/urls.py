@@ -1,7 +1,8 @@
 from django.urls import path
-from .views import CustomTokenObtainPairView, UserMeView
+from .views import CustomTokenObtainPairView, UserMeView, MemberListView
 
 urlpatterns = [
-    path('auth/login/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('auth/me/', UserMeView.as_view(), name='user_me'),
+    path('login/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('me/', UserMeView.as_view(), name='user_me'),
+    path('members/', MemberListView.as_view(), name='members'),
 ]
