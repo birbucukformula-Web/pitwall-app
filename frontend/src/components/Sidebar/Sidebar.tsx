@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import {
   CalendarDays,
@@ -9,12 +9,20 @@ import {
   MoreHorizontal,
   Settings,
   UserRound,
+  Users,
   X,
+  Search,
+  Plus,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 
 import {
   NavLink,
   useNavigate,
+  useLocation
 } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../../contexts/AuthContext";
@@ -50,24 +58,54 @@ export default function Sidebar({
     setShowProfileMenu,
   ] = useState(false);
 
+  const [isInnerOpen, setIsInnerOpen] = useState(true);
+
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useAuth();
+
+  useEffect(() => {
+    if (!isInnerOpen) {
+      document.body.classList.add('inner-sidebar-closed');
+    } else {
+      document.body.classList.remove('inner-sidebar-closed');
+    }
+    return () => document.body.classList.remove('inner-sidebar-closed');
+  }, [isInnerOpen]);
+
+  // Auto close/open based on route
+  useEffect(() => {
+    const closedRoutes = ['/calendar', '/profile', '/announcements'];
+    if (closedRoutes.includes(location.pathname)) {
+      setIsInnerOpen(false);
+    } else {
+      setIsInnerOpen(true);
+    }
+  }, [location.pathname]);
+
+  function handleOuterNavClick(e: React.MouseEvent, path: string) {
+    if (location.pathname === path) {
+      e.preventDefault();
+      setIsInnerOpen(prev => !prev);
+    } else {
+      setShowProfileMenu(false);
+      // Navigation will be handled by NavLink naturally, but we can close mobile sidebar
+      // onClose(); // if we want to close mobile sidebar on navigation
+    }
+  }
 
   const { data: units = [] } = useQuery({
     queryKey: ["units"],
     queryFn: () => metadataApi.getUnits(),
   });
 
-  // roleName için: EĞER birim bilgisi geliyorsa onu yaz
   const roleName = user?.organization?.name || "Takım Üyesi";
   const fullName = user ? `${user.first_name} ${user.last_name}` : "Bilinmeyen Kullanıcı";
   const initials = user ? `${user.first_name.charAt(0)}${user.last_name.charAt(0)}` : "?";
 
-  // Seçili avatar localStorage'dan oku
   const selectedAvatarId = localStorage.getItem("pitwall_avatar") ?? "";
   const avatarSrc = AVATARS[selectedAvatarId] ?? null;
 
-  // Yarışa kalan günü hesapla
   let daysLeft = 0;
   if (user?.organization?.race_date) {
     const today = new Date();
@@ -98,281 +136,195 @@ export default function Sidebar({
   }
 
   return (
-    <aside
-      className={`sidebar ${
-        isOpen
-          ? "sidebar-open"
-          : ""
-      }`}
-    >
-      <div className="sidebar-brand-row">
-        <NavLink
-          to="/dashboard"
-          className="brand"
-          aria-label="Görev Panosu'na dön"
-          onClick={handleNavigation}
-        >
-          <img
-            src={formulaLogo}
-            alt="1.5 Adana Formula Student"
-            className="brand-logo"
-          />
+    <div className={`sidebar-container ${isOpen ? "sidebar-open" : ""}`}>
+      {/* OUTER SIDEBAR */}
+      <aside className="outer-sidebar">
+        <div className="outer-top">
+          <NavLink
+            to="/dashboard"
+            className="outer-brand"
+            aria-label="Ana Sayfa"
+            onClick={handleNavigation}
+          >
+            <img src={formulaLogo} alt="Logo" />
+          </NavLink>
 
-          <div className="brand-text">
-            <strong>
-              1.5 ADANA
-            </strong>
+          <nav className="outer-nav">
+            <NavLink
+              to="/dashboard"
+              onClick={(e) => { handleOuterNavClick(e, '/dashboard'); handleNavigation(); }}
+              className={({ isActive }) => `outer-nav-item ${isActive ? "active" : ""}`}
+              title="Görev Panosu"
+            >
+              <LayoutDashboard size={22} />
+              <span>Pano</span>
+            </NavLink>
 
-            <span>
-              FORMULA STUDENT
-            </span>
-          </div>
-        </NavLink>
+            <NavLink
+              to="/calendar"
+              onClick={(e) => { handleOuterNavClick(e, '/calendar'); handleNavigation(); }}
+              className={({ isActive }) => `outer-nav-item ${isActive ? "active" : ""}`}
+              title="Takvim"
+            >
+              <CalendarDays size={22} />
+              <span>Takvim</span>
+            </NavLink>
 
-        <button
-          type="button"
-          className="sidebar-close-button"
-          onClick={onClose}
-          aria-label="Menüyü kapat"
-        >
-          <X size={20} />
-        </button>
-      </div>
+            <NavLink
+              to="/projects"
+              onClick={(e) => { handleOuterNavClick(e, '/projects'); handleNavigation(); }}
+              className={({ isActive }) => `outer-nav-item ${isActive ? "active" : ""}`}
+              title="Projeler"
+            >
+              <FolderKanban size={22} />
+              <span>Projeler</span>
+            </NavLink>
 
-      <nav className="navigation">
-        <NavLink
-          to="/dashboard"
-          onClick={handleNavigation}
-          className={({ isActive }) =>
-            `nav-item ${
-              isActive
-                ? "active"
-                : ""
-            }`
-          }
-        >
-          <LayoutDashboard size={20} />
+            <NavLink
+              to="/announcements"
+              onClick={(e) => { handleOuterNavClick(e, '/announcements'); handleNavigation(); }}
+              className={({ isActive }) => `outer-nav-item ${isActive ? "active" : ""}`}
+              title="Duyurular"
+            >
+              <Megaphone size={22} />
+              <span>Duyuru</span>
+            </NavLink>
 
-          <span>
-            Görev Panosu
-          </span>
-        </NavLink>
-
-        <NavLink
-          to="/calendar"
-          onClick={handleNavigation}
-          className={({ isActive }) =>
-            `nav-item ${
-              isActive
-                ? "active"
-                : ""
-            }`
-          }
-        >
-          <CalendarDays size={20} />
-
-          <span>
-            Takvim
-          </span>
-        </NavLink>
-
-        <NavLink
-          to="/projects"
-          onClick={handleNavigation}
-          className={({ isActive }) =>
-            `nav-item ${
-              isActive
-                ? "active"
-                : ""
-            }`
-          }
-        >
-          <FolderKanban size={20} />
-
-          <span>
-            Projeler
-          </span>
-        </NavLink>
-
-        <NavLink
-          to="/announcements"
-          onClick={handleNavigation}
-          className={({ isActive }) =>
-            `nav-item ${
-              isActive
-                ? "active"
-                : ""
-            }`
-          }
-        >
-          <Megaphone size={20} />
-
-          <span>
-            Duyurular
-          </span>
-        </NavLink>
-
-        <NavLink
-          to="/profile"
-          onClick={handleNavigation}
-          className={({ isActive }) =>
-            `nav-item ${
-              isActive
-                ? "active"
-                : ""
-            }`
-          }
-        >
-          <UserRound size={20} />
-
-          <span>
-            Profil
-          </span>
-        </NavLink>
-
-        {units.length > 0 && (
-          <div className="sidebar-section">
-            <div className="sidebar-section-header">
-              <span>Projeler & Takımlar</span>
-            </div>
-            {units.map((unit) => (
-              <NavLink
-                key={unit.id}
-                to={`/dashboard?unit=${unit.id}`}
-                onClick={handleNavigation}
-                className={({ isActive }) =>
-                  `nav-item project-nav-item ${
-                    isActive
-                      ? "active"
-                      : ""
-                  }`
-                }
-              >
-                <div className="project-color-dot" style={{ backgroundColor: unit.color || 'var(--accent)' }} />
-                <span>{unit.name}</span>
-              </NavLink>
-            ))}
-          </div>
-        )}
-      </nav>
-
-      <div className="sidebar-bottom">
-        <div className="race-card">
-          <span>
-            FORMULA STUDENT
-          </span>
-
-          <strong>
-            {daysText}
-          </strong>
-
-          <p>
-            Yarışa kalan süre
-          </p>
-
-          <div className="race-progress">
-            <div className="race-progress-value" />
-          </div>
+            <NavLink
+              to="/profile"
+              onClick={(e) => { handleOuterNavClick(e, '/profile'); handleNavigation(); }}
+              className={({ isActive }) => `outer-nav-item ${isActive ? "active" : ""}`}
+              title="Profil"
+            >
+              <UserRound size={22} />
+              <span>Profil</span>
+            </NavLink>
+          </nav>
         </div>
 
-        <div className="profile-wrapper">
-          {showProfileMenu && (
-            <div className="profile-menu">
-              <div className="profile-menu-user">
-                <div className="profile-menu-avatar">
-                  {avatarSrc
-                    ? <img src={avatarSrc} alt="avatar" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
-                    : initials}
+        <div className="outer-bottom">
+          <div className="profile-wrapper">
+            {showProfileMenu && (
+              <div className="profile-menu profile-menu-outer">
+                <div className="profile-menu-user">
+                  <div className="profile-menu-avatar">
+                    {avatarSrc
+                      ? <img src={avatarSrc} alt="avatar" />
+                      : initials}
+                  </div>
+                  <div className="profile-menu-user-info">
+                    <strong>{fullName}</strong>
+                    <span>{roleName}</span>
+                  </div>
                 </div>
 
-                <div className="profile-menu-user-info">
-                  <strong>
-                    {fullName}
-                  </strong>
+                <div className="profile-menu-divider" />
 
-                  <span>
-                    {roleName}
-                  </span>
-                </div>
+                <button
+                  type="button"
+                  className="profile-menu-item"
+                  onClick={() => handleProfileNavigation("/profile")}
+                >
+                  <UserRound size={16} /> Profilim
+                </button>
+                <button
+                  type="button"
+                  className="profile-menu-item"
+                  onClick={() => handleProfileNavigation("/settings")}
+                >
+                  <Settings size={16} /> Ayarlar
+                </button>
+
+                <div className="profile-menu-divider" />
+
+                <button
+                  type="button"
+                  className="profile-menu-item logout"
+                  onClick={handleLogout}
+                >
+                  <LogOut size={16} /> Çıkış Yap
+                </button>
               </div>
+            )}
 
-              <div className="profile-menu-divider" />
+            <button
+              type="button"
+              className="outer-profile-btn"
+              onClick={() => setShowProfileMenu((prev) => !prev)}
+            >
+              <div className="outer-avatar">
+                {avatarSrc ? <img src={avatarSrc} alt="avatar" /> : initials}
+              </div>
+            </button>
+          </div>
+        </div>
+      </aside>
 
-              <button
-                type="button"
-                className="profile-menu-item"
-                onClick={() =>
-                  handleProfileNavigation(
-                    "/profile",
-                  )
-                }
-              >
-                <UserRound size={16} />
-
-                Profilim
-              </button>
-
-              <button
-                type="button"
-                className="profile-menu-item"
-                onClick={() =>
-                  handleProfileNavigation(
-                    "/settings",
-                  )
-                }
-              >
-                <Settings size={16} />
-
-                Ayarlar
-              </button>
-
-              <div className="profile-menu-divider" />
-
-              <button
-                type="button"
-                className="profile-menu-item logout"
-                onClick={handleLogout}
-              >
-                <LogOut size={16} />
-
-                Çıkış Yap
-              </button>
-            </div>
-          )}
-
+      {/* INNER SIDEBAR */}
+      <aside className={`inner-sidebar ${!isInnerOpen ? 'closed' : ''}`}>
+        <div className="inner-header">
+          <div className="inner-search">
+            <Search size={16} />
+            <input type="text" placeholder="Proje ara..." />
+          </div>
           <button
             type="button"
-            className="profile-button"
-            onClick={() =>
-              setShowProfileMenu(
-                (previous) =>
-                  !previous,
-              )
-            }
+            className="sidebar-close-button"
+            onClick={onClose}
+            aria-label="Menüyü kapat"
           >
-            <div className="profile-avatar">
-              {avatarSrc
-                ? <img src={avatarSrc} alt="avatar" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
-                : initials}
-            </div>
-
-            <div className="profile-info">
-              <strong>
-                {fullName}
-              </strong>
-
-              <span>
-                {roleName}
-              </span>
-            </div>
-
-            <MoreHorizontal
-              className="profile-more"
-              size={18}
-            />
+            <X size={20} />
           </button>
         </div>
-      </div>
-    </aside>
+
+        <div className="inner-content">
+          <div className="inner-section">
+            <div className="inner-section-header">
+              <span>Projeler & Takımlar</span>
+              <button className="inner-settings-btn" title="Yönet">
+                <Settings size={14} />
+              </button>
+            </div>
+            
+            <nav className="inner-nav">
+              {units.map((unit: any) => (
+                <NavLink
+                  key={unit.id}
+                  to={`/dashboard?unit=${unit.id}`}
+                  onClick={handleNavigation}
+                  className={({ isActive }) => `inner-nav-item ${isActive ? "active" : ""}`}
+                >
+                  <Users size={16} className="project-icon" />
+                  <span>{unit.name}</span>
+                </NavLink>
+              ))}
+            </nav>
+          </div>
+        </div>
+
+        <div className="inner-footer">
+          <div className="race-card">
+            <span>FORMULA STUDENT</span>
+            <strong>{daysText}</strong>
+            <p>Yarışa kalan süre</p>
+            <div className="race-progress">
+              <div className="race-progress-value" />
+            </div>
+          </div>
+          
+          <button className="new-project-btn" onClick={() => navigate('/projects')}>
+            Yeni Proje Ekle <Plus size={16} />
+          </button>
+        </div>
+      </aside>
+
+      <button 
+        className={`sidebar-toggle-btn ${!isInnerOpen ? 'closed' : ''}`}
+        onClick={() => setIsInnerOpen(!isInnerOpen)}
+        title={isInnerOpen ? "Paneli Daralt" : "Paneli Genişlet"}
+      >
+        {isInnerOpen ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+      </button>
+    </div>
   );
 }

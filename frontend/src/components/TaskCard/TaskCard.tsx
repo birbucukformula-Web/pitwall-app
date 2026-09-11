@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   CalendarDays,
   MoreHorizontal,
@@ -18,14 +19,17 @@ import "./TaskCard.css";
 type TaskCardProps = {
   task: Task;
   onClick?: () => void;
+  onDelete?: () => void;
   isOverlay?: boolean;
 };
 
 export default function TaskCard({
   task,
   onClick,
+  onDelete,
   isOverlay = false,
 }: TaskCardProps) {
+  const [showMenu, setShowMenu] = useState(false);
   const {
     attributes,
     listeners,
@@ -108,21 +112,40 @@ export default function TaskCard({
             "Birim yok"}
         </span>
 
-        <button
-          type="button"
-          className="task-more-button"
-          onPointerDown={(event) =>
-            event.stopPropagation()
-          }
-          onClick={(event) =>
-            event.stopPropagation()
-          }
-          aria-label="Görev seçenekleri"
-        >
-          <MoreHorizontal
-            size={18}
-          />
-        </button>
+        <div className="task-more-wrapper">
+          <button
+            type="button"
+            className="task-more-button"
+            onPointerDown={(event) =>
+              event.stopPropagation()
+            }
+            onClick={(event) => {
+              event.stopPropagation();
+              setShowMenu(!showMenu);
+            }}
+            aria-label="Görev seçenekleri"
+          >
+            <MoreHorizontal
+              size={18}
+            />
+          </button>
+          
+          {showMenu && !isOverlay && (
+            <div className="task-dropdown-menu">
+              <button 
+                type="button" 
+                className="task-dropdown-item delete-item" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowMenu(false);
+                  if (onDelete) onDelete();
+                }}
+              >
+                Sil
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       <h4>

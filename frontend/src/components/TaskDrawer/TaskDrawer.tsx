@@ -20,37 +20,9 @@ type TaskDrawerProps = {
     onDelete?: (task: Task) => void;
 };
 
-type Comment = {
-    id: number;
-    user: string;
-    initials: string;
-    message: string;
-    time: string;
-};
-
-const initialComments: Comment[] = [
-    {
-        id: 1,
-        user: "Lidya Su",
-        initials: "LS",
-        message: "Sidebar tasarımını tamamladım.",
-        time: "18 Ağustos, 14:32",
-    },
-    {
-        id: 2,
-        user: "Furkan",
-        initials: "FK",
-        message:
-            "API bağlantısı için endpoint yapısını hazırlıyorum.",
-        time: "18 Ağustos, 15:10",
-    },
-];
-
-/*
-  Şimdilik mock isim eşleştirmesi.
-  Backend geldiğinde assignee nesnesinden doğrudan
-  name bilgisi gelecek ve buna ihtiyaç kalmayacak.
-*/
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { tasksApi } from "../../api/tasks";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function TaskDrawer({
     task,
@@ -58,11 +30,25 @@ export default function TaskDrawer({
     onEdit,
     onDelete,
 }: TaskDrawerProps) {
-    const [comments, setComments] =
-        useState<Comment[]>(initialComments);
+    const { user } = useAuth();
+    const currentUserInitials = user ? (user.first_name ? `${user.first_name[0]}${user.last_name[0]}`.toUpperCase() : user.email[0].toUpperCase()) : "?";
 
-    const [newComment, setNewComment] =
-        useState("");
+    const [newComment, setNewComment] = useState("");
+
+    const { data: activities = [] } = useQuery({
+        queryKey: ["activities", task?.id],
+        queryFn: () => task ? tasksApi.getActivities(task.id) : [],
+        enabled: !!task,
+    });
+
+    const queryClient = useQueryClient();
+    const createActivityMutation = useMutation({
+        mutationFn: (content: string) => tasksApi.createActivity(task!.id, content),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["activities", task?.id] });
+            setNewComment("");
+        }
+    });
 
     useEffect(() => {
         setNewComment("");
@@ -71,33 +57,9 @@ export default function TaskDrawer({
     if (!task) return null;
 
     function handleAddComment() {
-        const trimmedComment =
-            newComment.trim();
-
+        const trimmedComment = newComment.trim();
         if (!trimmedComment) return;
-
-        const comment: Comment = {
-            id: Date.now(),
-            user: "Lidya Su",
-            initials: "LS",
-            message: trimmedComment,
-            time: new Intl.DateTimeFormat(
-                "tr-TR",
-                {
-                    day: "numeric",
-                    month: "long",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                },
-            ).format(new Date()),
-        };
-
-        setComments((previousComments) => [
-            ...previousComments,
-            comment,
-        ]);
-
-        setNewComment("");
+        createActivityMutation.mutate(trimmedComment);
     }
 
     function handleKeyDown(
@@ -288,42 +250,34 @@ export default function TaskDrawer({
                                     size={15}
                                 />
 
-                                {comments.length}
+                                {activities.length}
                             </span>
                         </div>
 
                         <div className="comment-list">
-                            {comments.map(
-                                (comment) => (
+                            {activities.map(
+                                (activity: any) => (
                                     <article
                                         className="comment"
-                                        key={comment.id}
+                                        key={activity.id}
                                     >
                                         <div className="comment-avatar">
-                                            {
-                                                comment.initials
-                                            }
+                                            {activity.user_info?.initials}
                                         </div>
 
                                         <div className="comment-body">
                                             <div className="comment-meta">
                                                 <strong>
-                                                    {
-                                                        comment.user
-                                                    }
+                                                    {activity.user_info?.name}
                                                 </strong>
 
                                                 <span>
-                                                    {
-                                                        comment.time
-                                                    }
+                                                    {new Date(activity.created_at).toLocaleString('tr-TR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
                                                 </span>
                                             </div>
 
-                                            <p>
-                                                {
-                                                    comment.message
-                                                }
+                                            <p style={{ fontStyle: activity.activity_type === 'status_change' ? 'italic' : 'normal', color: activity.activity_type === 'status_change' ? 'var(--text-muted)' : 'inherit' }}>
+                                                {activity.content}
                                             </p>
                                         </div>
                                     </article>
@@ -337,7 +291,7 @@ export default function TaskDrawer({
 
                 <div className="comment-composer">
                     <div className="composer-avatar">
-                        LS
+                        {currentUserInitials}
                     </div>
 
                     <div className="composer-input">

@@ -28,6 +28,7 @@ type KanbanColumnProps = {
   ) => void;
 
   onAddTask: () => void;
+  onDeleteTask?: (task: Task) => void;
 };
 
 export default function KanbanColumn({
@@ -36,6 +37,7 @@ export default function KanbanColumn({
   tasks,
   onTaskClick,
   onAddTask,
+  onDeleteTask,
 }: KanbanColumnProps) {
   const {
     setNodeRef,
@@ -116,6 +118,9 @@ export default function KanbanColumn({
                 onClick={() =>
                   onTaskClick(task)
                 }
+                onDelete={() => {
+                  if (onDeleteTask) onDeleteTask(task);
+                }}
               />
             ),
           )}

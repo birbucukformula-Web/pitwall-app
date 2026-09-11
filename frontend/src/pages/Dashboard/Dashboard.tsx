@@ -23,6 +23,8 @@ import {
   type DragStartEvent,
 } from "@dnd-kit/core";
 
+import { useSearchParams } from "react-router-dom";
+
 import StatCard from "../../components/StatCard/StatCard";
 import KanbanColumn from "../../components/KanbanColumn/KanbanColumn";
 import TaskDrawer from "../../components/TaskDrawer/TaskDrawer";
@@ -138,9 +140,13 @@ export default function Dashboard() {
   );
 
   // TanStack Query
+  const [searchParams] = useSearchParams();
+  const unitParam = searchParams.get("unit");
+
   const filters: TaskListParams = {
     project: projectFilter !== "all" ? Number(projectFilter) : undefined,
     assignee: assigneeFilter !== "all" ? Number(assigneeFilter) : undefined,
+    unit: unitParam ? Number(unitParam) : undefined,
   };
   // priorityFilter is local for now, backend could support it too but we have local filter
 
@@ -1067,6 +1073,7 @@ export default function Dashboard() {
                 onAddTask={() =>
                   openTaskModal("todo")
                 }
+                onDeleteTask={setDeletingTask}
               />
 
               <KanbanColumn
@@ -1081,6 +1088,7 @@ export default function Dashboard() {
                     "in_progress",
                   )
                 }
+                onDeleteTask={setDeletingTask}
               />
 
               <KanbanColumn
@@ -1093,6 +1101,7 @@ export default function Dashboard() {
                 onAddTask={() =>
                   openTaskModal("review")
                 }
+                onDeleteTask={setDeletingTask}
               />
 
               <KanbanColumn
@@ -1105,6 +1114,7 @@ export default function Dashboard() {
                 onAddTask={() =>
                   openTaskModal("done")
                 }
+                onDeleteTask={setDeletingTask}
               />
             </div>
 
