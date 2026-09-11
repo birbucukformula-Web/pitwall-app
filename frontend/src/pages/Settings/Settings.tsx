@@ -7,7 +7,10 @@ import {
   Moon,
   Sun,
   UserRound,
+  Users,
 } from "lucide-react";
+
+import { metadataApi } from "../../api/metadata";
 
 import "./Settings.css";
 
@@ -17,6 +20,16 @@ export default function Settings() {
   const { data: currentUser } = useQuery({
     queryKey: ["me"],
     queryFn: () => authApi.getMe(),
+  });
+
+  const { data: members = [] } = useQuery({
+    queryKey: ["members"],
+    queryFn: () => metadataApi.getMembers(),
+  });
+
+  const { data: units = [] } = useQuery({
+    queryKey: ["units"],
+    queryFn: () => metadataApi.getUnits(),
   });
 
   const [theme, setTheme] =
@@ -268,6 +281,84 @@ export default function Settings() {
               <strong>
                 {currentUser?.email ?? "—"}
               </strong>
+            </div>
+          </div>
+        </div>
+
+        <div className="settings-card team-settings-card">
+          <div className="settings-card-heading">
+            <div className="settings-heading-icon">
+              <Users size={20} />
+            </div>
+
+            <div>
+              <h3>{currentUser?.organization?.name || "Takım"} Üyeleri</h3>
+              <p>Organizasyonundaki yöneticiler, üyeler ve alt birimler.</p>
+            </div>
+          </div>
+
+          <div className="team-section">
+            <div className="team-section-title">
+              Yöneticiler ({members.filter(m => m.role === 'captain' || m.role === 'lead').length})
+            </div>
+            <div className="team-members-grid">
+              {members.filter(m => m.role === 'captain' || m.role === 'lead').map(m => (
+                <div key={m.id} className="team-member-card">
+                  <div className="team-member-avatar">
+                    {m.first_name ? `${m.first_name[0]}${m.last_name[0]}`.toUpperCase() : m.email[0].toUpperCase()}
+                  </div>
+                  <div className="team-member-info">
+                    <span className="team-member-name">{m.first_name ? `${m.first_name} ${m.last_name}` : m.email}</span>
+                    <span className="team-member-role">{m.role === 'captain' ? 'Kaptan' : 'Yönetici'}</span>
+                  </div>
+                </div>
+              ))}
+              {members.filter(m => m.role === 'captain' || m.role === 'lead').length === 0 && (
+                <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>Yönetici bulunmuyor.</div>
+              )}
+            </div>
+          </div>
+
+          <div className="team-section">
+            <div className="team-section-title">
+              Üyeler ({members.filter(m => m.role === 'member').length})
+            </div>
+            <div className="team-members-grid">
+              {members.filter(m => m.role === 'member').map(m => (
+                <div key={m.id} className="team-member-card">
+                  <div className="team-member-avatar">
+                    {m.first_name ? `${m.first_name[0]}${m.last_name[0]}`.toUpperCase() : m.email[0].toUpperCase()}
+                  </div>
+                  <div className="team-member-info">
+                    <span className="team-member-name">{m.first_name ? `${m.first_name} ${m.last_name}` : m.email}</span>
+                    <span className="team-member-role">Üye</span>
+                  </div>
+                </div>
+              ))}
+              {members.filter(m => m.role === 'member').length === 0 && (
+                <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>Üye bulunmuyor.</div>
+              )}
+            </div>
+          </div>
+
+          <div className="team-section">
+            <div className="team-section-title">
+              Takımlar ve Projeler ({units.length})
+            </div>
+            <div className="team-projects-list">
+              {units.map(unit => (
+                <div key={unit.id} className="team-project-row">
+                  <div className="team-project-name">
+                    <span className="team-project-badge">Birim</span>
+                    {unit.name}
+                  </div>
+                </div>
+              ))}
+              {units.length === 0 && (
+                <div className="team-project-row" style={{ color: "var(--text-muted)", fontSize: "13px" }}>
+                  Henüz bir alt birim bulunmuyor.
+                </div>
+              )}
             </div>
           </div>
         </div>

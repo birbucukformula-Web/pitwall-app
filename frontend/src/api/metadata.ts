@@ -7,6 +7,7 @@ export interface Member {
   first_name: string;
   last_name: string;
   email: string;
+  role: string;
 }
 
 export const metadataApi = {
