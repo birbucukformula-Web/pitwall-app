@@ -67,8 +67,8 @@ export default function TaskModal({
   // Convert Members to Assignees for the UI
   const teamMembers: Assignee[] = members.map(m => ({
     id: m.id,
-    name: m.first_name ? `${m.first_name} ${m.last_name}` : m.username,
-    initials: m.first_name ? `${m.first_name[0]}${m.last_name[0]}`.toUpperCase() : m.username[0].toUpperCase(),
+    name: m.first_name ? `${m.first_name} ${m.last_name}` : m.email,
+    initials: m.first_name ? `${m.first_name[0]}${m.last_name[0]}`.toUpperCase() : m.email[0].toUpperCase(),
   }));
 
   const [title, setTitle] = useState("");
