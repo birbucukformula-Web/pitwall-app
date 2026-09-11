@@ -16,7 +16,9 @@ import {
   NavLink,
   useNavigate,
 } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../../contexts/AuthContext";
+import { metadataApi } from "../../api/metadata";
 
 import formulaLogo from "../../assets/formula-logo.png";
 
@@ -50,6 +52,11 @@ export default function Sidebar({
 
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+
+  const { data: units = [] } = useQuery({
+    queryKey: ["units"],
+    queryFn: () => metadataApi.getUnits(),
+  });
 
   // roleName için: EĞER birim bilgisi geliyorsa onu yaz
   const roleName = user?.organization?.name || "Takım Üyesi";
@@ -222,6 +229,31 @@ export default function Sidebar({
             Profil
           </span>
         </NavLink>
+
+        {units.length > 0 && (
+          <div className="sidebar-section">
+            <div className="sidebar-section-header">
+              <span>Projeler & Takımlar</span>
+            </div>
+            {units.map((unit) => (
+              <NavLink
+                key={unit.id}
+                to={`/dashboard?unit=${unit.id}`}
+                onClick={handleNavigation}
+                className={({ isActive }) =>
+                  `nav-item project-nav-item ${
+                    isActive
+                      ? "active"
+                      : ""
+                  }`
+                }
+              >
+                <div className="project-color-dot" style={{ backgroundColor: unit.color || 'var(--accent)' }} />
+                <span>{unit.name}</span>
+              </NavLink>
+            ))}
+          </div>
+        )}
       </nav>
 
       <div className="sidebar-bottom">
