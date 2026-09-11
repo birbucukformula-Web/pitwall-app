@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { authApi } from "../../api/auth";
 
 import {
   Bell,
@@ -12,6 +14,11 @@ import "./Settings.css";
 type Theme = "light" | "dark";
 
 export default function Settings() {
+  const { data: currentUser } = useQuery({
+    queryKey: ["me"],
+    queryFn: () => authApi.getMe(),
+  });
+
   const [theme, setTheme] =
     useState<Theme>(() => {
       const savedTheme =
@@ -242,20 +249,24 @@ export default function Settings() {
           <div className="settings-account-info">
             <div>
               <span>Ad Soyad</span>
-              <strong>Lidya Su</strong>
+              <strong>
+                {currentUser
+                  ? `${currentUser.first_name} ${currentUser.last_name}`.trim() || currentUser.email
+                  : "—"}
+              </strong>
             </div>
 
             <div>
               <span>Departman</span>
               <strong>
-                Web &amp; Yazılım
+                {currentUser?.organization?.name ?? "Belirtilmemiş"}
               </strong>
             </div>
 
             <div>
               <span>E-posta</span>
               <strong>
-                lidya@1bucukadana.com
+                {currentUser?.email ?? "—"}
               </strong>
             </div>
           </div>
