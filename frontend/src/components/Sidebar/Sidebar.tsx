@@ -188,6 +188,24 @@ export default function Sidebar({
             Duyurular
           </span>
         </NavLink>
+
+        <NavLink
+          to="/profile"
+          onClick={handleNavigation}
+          className={({ isActive }) =>
+            `nav-item ${
+              isActive
+                ? "active"
+                : ""
+            }`
+          }
+        >
+          <UserRound size={20} />
+
+          <span>
+            Profil
+          </span>
+        </NavLink>
       </nav>
 
       <div className="sidebar-bottom">
