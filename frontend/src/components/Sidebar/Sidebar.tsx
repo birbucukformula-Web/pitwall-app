@@ -22,6 +22,18 @@ import formulaLogo from "../../assets/formula-logo.png";
 
 import "./Sidebar.css";
 
+const AVATARS: Record<string, string> = {
+  red:    "/avatars/avatar_red.png",
+  blue:   "/avatars/avatar_blue.png",
+  black:  "/avatars/avatar_black.png",
+  frog:   "/avatars/avatar_frog.png",
+  pink:   "/avatars/avatar_pink.png",
+  purple: "/avatars/avatar_purple.png",
+  yellow: "/avatars/avatar_yellow.png",
+  orange: "/avatars/avatar_orange.png",
+  white:  "/avatars/avatar_white.png",
+};
+
 type SidebarProps = {
   isOpen: boolean;
   onClose: () => void;
@@ -43,6 +55,10 @@ export default function Sidebar({
   const roleName = user?.organization?.name || "Takım Üyesi";
   const fullName = user ? `${user.first_name} ${user.last_name}` : "Bilinmeyen Kullanıcı";
   const initials = user ? `${user.first_name.charAt(0)}${user.last_name.charAt(0)}` : "?";
+
+  // Seçili avatar localStorage'dan oku
+  const selectedAvatarId = localStorage.getItem("pitwall_avatar") ?? "";
+  const avatarSrc = AVATARS[selectedAvatarId] ?? null;
 
   // Yarışa kalan günü hesapla
   let daysLeft = 0;
@@ -232,7 +248,9 @@ export default function Sidebar({
             <div className="profile-menu">
               <div className="profile-menu-user">
                 <div className="profile-menu-avatar">
-                  {initials}
+                  {avatarSrc
+                    ? <img src={avatarSrc} alt="avatar" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+                    : initials}
                 </div>
 
                 <div className="profile-menu-user-info">
@@ -301,7 +319,9 @@ export default function Sidebar({
             }
           >
             <div className="profile-avatar">
-              {initials}
+              {avatarSrc
+                ? <img src={avatarSrc} alt="avatar" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+                : initials}
             </div>
 
             <div className="profile-info">
