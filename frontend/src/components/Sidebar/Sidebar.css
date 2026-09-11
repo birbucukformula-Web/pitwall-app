@@ -395,6 +395,13 @@
   border-radius: 50%;
   font-size: 9px;
   font-weight: 800;
+  overflow: hidden;
+}
+
+.profile-menu-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .profile-menu-user-info {
