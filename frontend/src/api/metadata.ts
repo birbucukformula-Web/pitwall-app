@@ -1,18 +1,5 @@
 import { fetchApi } from "./apiClient";
-
-export interface Project {
-  id: number;
-  name: string;
-  description?: string;
-  color?: string;
-}
-
-export interface Unit {
-  id: number;
-  name: string;
-  code?: string;
-  color?: string;
-}
+import type { Project, Unit } from "../types/task";
 
 export interface Member {
   id: number;

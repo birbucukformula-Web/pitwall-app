@@ -18,13 +18,14 @@ export type Assignee = {
 export type Unit = {
   id: number;
   name: string;
-  code: string;
+  code?: string;
   color?: string;
 };
 
 export type Project = {
   id: number;
   name: string;
+  description?: string;
   color?: string;
 };
 

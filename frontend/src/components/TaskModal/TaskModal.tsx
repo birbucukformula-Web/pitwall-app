@@ -20,6 +20,8 @@ type TaskModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onCreate: (task: Task) => void;
+  onUpdate?: (task: Task) => void;
+  defaultStatus?: Task["status"];
   editingTask?: Task | null;
 };
 
@@ -229,7 +231,7 @@ export default function TaskModal({
         (p: any) =>
           p.id.toString() ===
           projectId,
-      );
+      ) ?? null;
 
     const selectedUnit =
       units.find(

@@ -1,5 +1,5 @@
 import { fetchApi } from "./apiClient";
-import type { Task } from "../types/task";
+import type { Task, TaskStatus, TaskPriority } from "../types/task";
 
 export interface TaskListParams {
   status?: string;
@@ -7,6 +7,19 @@ export interface TaskListParams {
   project?: number;
   assignee?: number;
   overdue?: boolean;
+}
+
+/** API'ye gönderilecek payload tipi: project/unit/assignees ID olarak gönderilir */
+export interface TaskPayload {
+  title?: string;
+  description?: string;
+  status?: TaskStatus;
+  priority?: TaskPriority;
+  project?: number | null;
+  unit?: number | null;
+  assignees?: number[];
+  due_date?: string;
+  order?: number;
 }
 
 export const tasksApi = {
@@ -26,15 +39,14 @@ export const tasksApi = {
     return fetchApi(endpoint);
   },
   
-  // İleride kullanılacak (Adım 12 ve 13)
-  createTask: async (taskData: Partial<Task>): Promise<Task> => {
+  createTask: async (taskData: TaskPayload): Promise<Task> => {
     return fetchApi("/tasks/", {
       method: "POST",
       body: JSON.stringify(taskData),
     });
   },
   
-  updateTask: async (taskId: number, updates: Partial<Task>): Promise<Task> => {
+  updateTask: async (taskId: number, updates: TaskPayload): Promise<Task> => {
     return fetchApi(`/tasks/${taskId}/`, {
       method: "PATCH",
       body: JSON.stringify(updates),

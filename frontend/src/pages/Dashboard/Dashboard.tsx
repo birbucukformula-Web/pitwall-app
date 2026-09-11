@@ -36,7 +36,7 @@ import type {
 } from "../../types/task";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { tasksApi } from "../../api/tasks";
-import type { TaskListParams } from "../../api/tasks";
+import type { TaskListParams, TaskPayload } from "../../api/tasks";
 import { statsApi } from "../../api/stats";
 
 import "./Dashboard.css";
@@ -157,7 +157,7 @@ export default function Dashboard() {
   });
 
   const updateTaskMutation = useMutation({
-    mutationFn: ({ id, updates }: { id: number; updates: Partial<Task> }) =>
+    mutationFn: ({ id, updates }: { id: number; updates: TaskPayload }) =>
       tasksApi.updateTask(id, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
@@ -166,7 +166,7 @@ export default function Dashboard() {
   });
 
   const createTaskMutation = useMutation({
-    mutationFn: (newTask: Partial<Task>) => tasksApi.createTask(newTask),
+    mutationFn: (newTask: TaskPayload) => tasksApi.createTask(newTask),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["stats"] });
