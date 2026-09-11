@@ -6,7 +6,6 @@ import {
   LayoutDashboard,
   LogOut,
   Megaphone,
-  MoreHorizontal,
   Settings,
   UserRound,
   Users,
@@ -14,9 +13,7 @@ import {
   Search,
   Plus,
   ChevronLeft,
-  ChevronRight,
-  ChevronDown,
-  ChevronUp
+  ChevronRight
 } from "lucide-react";
 
 import {
