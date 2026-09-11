@@ -4,16 +4,27 @@ import {
   UserRound,
   BriefcaseBusiness,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { authApi } from "../../api/auth";
 
 import "./Profile.css";
 
 export default function Profile() {
+  const { data: currentUser, isLoading } = useQuery({
+    queryKey: ["me"],
+    queryFn: () => authApi.getMe(),
+  });
+
+  if (isLoading || !currentUser) {
+    return <div style={{ padding: "40px", color: "var(--text-secondary)" }}>Yükleniyor...</div>;
+  }
+
   const user = {
-    name: "Lidya Su",
-    initials: "LS",
-    department: "Web & Yazılım",
-    teamRole: "Üye",
-    email: "lidya@1bucukadana.com",
+    name: `${currentUser.first_name} ${currentUser.last_name}`.trim() || currentUser.email,
+    initials: `${currentUser.first_name?.[0] ?? ""}${currentUser.last_name?.[0] ?? ""}`.toUpperCase() || currentUser.email[0].toUpperCase(),
+    department: currentUser.organization?.name ?? "Belirtilmemiş",
+    teamRole: currentUser.role === "captain" ? "Kaptan" : currentUser.role === "lead" ? "Lider" : "Üye",
+    email: currentUser.email,
   };
 
   return (

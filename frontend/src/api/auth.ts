@@ -10,11 +10,14 @@ export interface UserResponse {
   email: string;
   first_name: string;
   last_name: string;
+  role: string;
   organization: {
     id: number;
     name: string;
+    slug: string;
+    season: string;
     race_date: string;
-  };
+  } | null;
 }
 
 export const authApi = {
