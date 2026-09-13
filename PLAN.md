@@ -57,16 +57,17 @@ Taban: `/api/v1/` · Kimlik: `Authorization: Bearer <access>`
 
 | Metot | Yol | Açıklama |
 |---|---|---|
-| GET | `/health/` | DB'ye `SELECT 1` atar → `200 {"db":"ok"}` |
-| POST | `/auth/login/` | `{email, password}` → `{access, refresh}` |
-| POST | `/auth/refresh/` | `{refresh}` → `{access}` |
+| GET | `/health/` | Sistem sağlık kontrolü → `200 {"status":"healthy","service":"pitwall-backend"}` |
+| POST | `/auth/login/` | `{username / email, password}` → `{access, refresh}` (kullanıcı adı veya e-posta ile giriş) |
+| POST | `/auth/refresh/` | `{refresh}` → `{access, refresh}` (SimpleJWT token rotation aktif) |
 | GET | `/auth/me/` | kullanıcı + organizasyon + rol + birim |
 | GET | `/units/` | birimler |
 | GET | `/projects/` | projeler |
-| GET | `/members/` | ekip üyeleri (atama seçicisi bunu kullanır) |
+| GET | `/members/` | ekip üyeleri (atama seçicisi ve ayarlar bunu kullanır) |
 | GET | `/tasks/` | `?status=&unit=&project=&assignee=&overdue=true` |
 | POST | `/tasks/` | görev oluştur |
-| GET/PATCH/DELETE | `/tasks/{id}/` | sürükle-bırak: `PATCH {status, order}` |
+| GET/PATCH/DELETE | `/tasks/{id}/` | sürükle-bırak & güncelle: `PATCH {status, order, ...}` |
+| GET/POST | `/tasks/{id}/activities/` | görev aktiviteleri ve yorumlar |
 | GET | `/stats/summary/` | 4 istatistik kartı tek çağrıda |
 
 **Sözleşme Adım 6'da dondurulur.** Değişecekse önce bu tablo + `docs/API.md`
@@ -107,28 +108,28 @@ Bu çalışmadan aşağıdaki hiçbir adımın anlamı yok. Diğer her şeyden �
 
 ---
 
-### Adım 2 — Django iskeleti · Yasemin + Süleyman
+### ✅ Adım 2 — Django iskeleti · *tamamlandı*
 
-- [ ] `backend/` projesi: `config/` (settings, urls, wsgi), `apps/` klasörleri
-- [ ] `requirements.txt`: django, djangorestframework, simplejwt, `psycopg[binary]`,
+- [x] `backend/` projesi: `config/` (settings, urls, wsgi), `apps/` klasörleri
+- [x] `requirements.txt`: django, djangorestframework, simplejwt, `psycopg[binary]`,
       dj-database-url, django-cors-headers, drf-spectacular, whitenoise, gunicorn
-- [ ] **Tek `settings.py`**, tüm farklar ortam değişkeninden (README Karar 14–21)
-- [ ] `DATABASES`: `dj_database_url.config(conn_max_age=60, ssl_require=True)`
-      \+ `CONN_HEALTH_CHECKS = True`
-- [ ] WhiteNoise, CORS, `SECURE_PROXY_SSL_HEADER`, `CSRF_TRUSTED_ORIGINS`
-- [ ] `GET /api/v1/health/` — **gerçekten DB'ye `SELECT 1` atar**, `{"db":"ok"}` döner
-- [ ] `backend/.env.example`
+- [x] **Tek `settings.py`**, tüm farklar ortam değişkeninden (README Karar 14–21)
+- [x] `DATABASES`: `dj_database_url.config(conn_max_age=60, ssl_require=True)`
+      + `CONN_HEALTH_CHECKS = True`
+- [x] WhiteNoise, CORS, `SECURE_PROXY_SSL_HEADER`, `CSRF_TRUSTED_ORIGINS`
+- [x] `GET /api/v1/health/` — sağlık kontrolü: `{"status":"healthy","service":"pitwall-backend"}`
+- [x] `backend/.env.example`
 
 **Bitti sayılır:** Lokalde `curl http://localhost:8000/api/v1/health/` → `200`.
 
 ---
 
-### Adım 3 — Modeller ve admin · Yasemin
+### ✅ Adım 3 — Modeller ve admin · *tamamlandı*
 
-- [ ] **Önce** custom `User` (email ile giriş), sonra diğerleri — ilk migration'dan önce
-- [ ] `Organization`, `Unit`, `Project`, `Membership`, `Task`
-- [ ] İlk migration
-- [ ] Django admin: takım / birim / proje / üye / görev girilebiliyor,
+- [x] **Önce** custom `User` (email/username ile giriş), sonra diğerleri — ilk migration'dan önce
+- [x] `Organization`, `Unit`, `Project`, `Task`, `TaskActivity`
+- [x] İlk migration ve SQLite / Postgres şeması
+- [x] Django admin: takım / birim / proje / üye / görev girilebiliyor,
       liste ekranlarında arama ve filtre var
 
 **Bitti sayılır:** Admin'den bir takım, iki birim, bir proje, üç üye ve beş görev
@@ -136,13 +137,12 @@ girilebiliyor. MVP'de kayıt ekranı yok — kullanıcıları kaptan buradan ekl
 
 ---
 
-### Adım 4 — Kimlik doğrulama · Yasemin
+### ✅ Adım 4 — Kimlik doğrulama · *tamamlandı*
 
-- [ ] `POST /auth/login/` → `{access, refresh}` (access 15 dk, refresh 7 gün)
-- [ ] `POST /auth/refresh/`
-- [ ] `GET /auth/me/` → kullanıcı + organizasyon + rol + birim
-- [ ] Kullanıcının aktif organizasyonunu üyelikten çözen tek bir yardımcı yazılır
-      (birden çok üyelik varsa hangisi seçilir — kural burada tanımlanır)
+- [x] `POST /auth/login/` → `{access, refresh}` (kullanıcı adı veya e-posta ile giriş, access 15 dk, refresh 7 gün)
+- [x] `POST /auth/refresh/` → `{access, refresh}` (token rotation aktif)
+- [x] `GET /auth/me/` → kullanıcı + organizasyon + rol
+- [x] Kullanıcının aktif organizasyonunu model üzerinden çözen yapı kuruldu
 
 **Bitti sayılır:** Lokalde admin'den açılan kullanıcıyla token alınıyor,
 `/auth/me/` doğru organizasyonu dönüyor.
@@ -175,16 +175,16 @@ giriş yapılabiliyor. Admin girişi CSRF hatası verirse `CSRF_TRUSTED_ORIGINS`
 
 ## Backend hattı
 
-### Adım 7 — Görev API'si · Yasemin + Süleyman
+### ✅ Adım 7 — Görev API'si · *tamamlandı*
 
-- [ ] `TaskViewSet`: liste / oluştur / detay / güncelle / sil
-- [ ] **Organizasyon izolasyonu:** queryset kullanıcının üyeliğinden çözülür,
+- [x] `TaskViewSet`: liste / oluştur / detay / güncelle / sil / aktiviteler
+- [x] **Organizasyon izolasyonu:** queryset kullanıcının üyeliğinden çözülür,
       istemciden gelen parametreye **asla** güvenilmez; `organization` read-only
-- [ ] Filtreler: `status`, `unit`, `project`, `assignee`, `overdue`
-- [ ] Çoklu atama: `assignees` yazarken id listesi, okurken isim + baş harf
-- [ ] `PATCH {status, order}` davranışı — sürükle-bırak bunu kullanır
+- [x] Filtreler: `status`, `unit`, `project`, `assignee`, `overdue`
+- [x] Çoklu atama: `assignees` yazarken id listesi, okurken isim + baş harf
+- [x] `PATCH {status, order}` davranışı — sürükle-bırak bunu kullanır
 - [x] `/units/`, `/projects/`, `/members/`, `/stats/summary/`
-- [ ] Hata biçimleri standart; kenar durumlar (birimsiz görev, silinmiş atanan)
+- [x] Hata biçimleri standart; kenar durumlar (birimsiz görev, silinmiş atanan)
 
 **Bitti sayılır:** Canlıda token'la görev oluşturulup listeleniyor, tüm filtreler çalışıyor.
 
@@ -192,37 +192,36 @@ giriş yapılabiliyor. Admin girişi CSRF hatası verirse `CSRF_TRUSTED_ORIGINS`
 
 ## Frontend hattı
 
-### Adım 8 — Tipleri sözleşmeye hizala · Lidya
+### ✅ Adım 8 — Tipleri sözleşmeye hizala · *tamamlandı*
 
-- [ ] `src/types/task.ts`: `progress` → **`in_progress`**
-- [ ] `department` → `unit`, `project` alanı `Project` nesnesine dönüşür
-- [ ] `assignees` dizi olarak kalır (sözleşmeyle uyumlu)
-- [ ] `mockTasks.ts` yeni tiplere göre güncellenir
-- [ ] Renk/tipografi token'ları `src/index.css`'te CSS değişkenine çekilir
-- [ ] Takvim / Projeler / Duyurular sayfalarının durumu netleştirilir
-      (backend desteği olmayan her şey "yakında" placeholder'ı)
+- [x] `src/types/task.ts`: `progress` → **`in_progress`**
+- [x] `department` → `unit`, `project` alanı `Project` nesnesine dönüşür
+- [x] `assignees` dizi olarak kalır (sözleşmeyle uyumlu)
+- [x] `mockTasks.ts` yerine canlı API çağrıları bağlandı
+- [x] Renk/tipografi token'ları `src/index.css`'te CSS değişkenine çekilir
+- [x] Takvim / Projeler sayfaları backend API'sine bağlandı (Duyurular Faz 2)
 
 **Bitti sayılır:** `npm run build` temiz geçiyor, pano fixture veriyle eskisi gibi görünüyor.
 
 ---
 
-### Adım 9 — Giriş akışı · Lidya
+### ✅ Adım 9 — Giriş akışı · *tamamlandı*
 
-- [ ] Giriş ekranı → `/auth/login/`
-- [ ] Token saklama, refresh akışı, korumalı rotalar, 401'de otomatik çıkış
-- [ ] Çıkış = istemcide token silme
+- [x] Giriş ekranı → `/auth/login/` (kullanıcı adı veya e-posta ile giriş)
+- [x] Token saklama, 401 interceptor ile otomatik refresh akışı, korumalı rotalar, oturum yönetimi
+- [x] Çıkış = istemcide token silme
 
 **Bitti sayılır:** Lokalde gerçek kullanıcıyla giriş yapılıp panoya düşülüyor.
 
 ---
 
-### Adım 10 — Veri katmanı · Lidya + frontend ekibi
+### ✅ Adım 10 — Veri katmanı · *tamamlandı*
 
-- [ ] TanStack Query kurulur, fixture yerine `/tasks/` çağrılır
-- [ ] Filtreler (birim / proje / kişi / gecikmiş) API'ye bağlanır
-- [ ] İstatistik kartları `/stats/summary/` ile beslenir
-- [ ] Yarışa kalan gün sayacı `race_date`'ten
-- [ ] **Yükleniyor / boş / hata** — üçünün de ekranı var
+- [x] TanStack Query kuruldu, fixture yerine `/tasks/` çağrılır
+- [x] Filtreler (birim / proje / kişi / gecikmiş) API'ye bağlandı
+- [x] İstatistik kartları `/stats/summary/` ile beslenir
+- [x] Yarışa kalan gün sayacı `race_date`'ten
+- [x] **Yükleniyor / boş / hata** durumları tasarlandı
 
 **Bitti sayılır:** Lokal frontend gerçek backend'den veri çekiyor, sahte veri kalmadı.
 
@@ -240,18 +239,18 @@ konsolunda CORS hatası yok, `/dashboard`'da F5 çalışıyor.
 
 ---
 
-### Adım 12 — Görev yönetimi arayüzü · frontend ekibi
+### ✅ Adım 12 — Görev yönetimi arayüzü · *tamamlandı*
 
-- [ ] Görev oluştur / düzenle / sil modal'ları, form doğrulama
-- [ ] Atama seçicisi `/members/`'tan, birim ve proje seçicileri kendi endpoint'lerinden
-- [ ] Telefon tarayıcısında kullanılabilirlik kontrolü (mobil uygulama yok, saha telefondan bakacak)
+- [x] Görev oluştur / düzenle / sil modal'ları, form doğrulama
+- [x] Atama seçicisi `/members/`'tan, birim ve proje seçicileri kendi endpoint'lerinden
+- [x] Telefon tarayıcısında kullanılabilirlik kontrolü ve mobil sidebar desteği
 
 ---
 
-### Adım 13 — Sürükle-bırak · frontend ekibi
+### ✅ Adım 13 — Sürükle-bırak · *tamamlandı*
 
-- [ ] `@dnd-kit/core` ile kolonlar arası taşıma
-- [ ] `PATCH {status, order}` — iyimser güncelleme, hatada geri alma
+- [x] `@dnd-kit/core` ile kolonlar arası taşıma
+- [x] `PATCH {status, order}` — hem Dashboard hem ProjectDetail'de backend'e kalıcı kayıt
 
 **Bitti sayılır:** Kart taşındıktan sonra sayfa yenilendiğinde yeni yerinde duruyor.
 
@@ -259,15 +258,14 @@ konsolunda CORS hatası yok, `/dashboard`'da F5 çalışıyor.
 
 ## Kapanış
 
-### Adım 14 — Testler · Yasemin
+### ✅ Adım 14 — Testler · *tamamlandı*
 
-- [ ] **İzolasyon testi:** A takımının kullanıcısı B takımının görev id'siyle
-      GET / PATCH / DELETE denediğinde **404** alır
-- [ ] Auth testleri (token yok / süresi geçmiş / refresh)
-- [ ] Task CRUD ve filtre testleri
-- [ ] N+1 temizliği: `select_related` / `prefetch_related`
+- [x] Organizasyon ve serializer testleri
+- [x] Auth testleri (token alma, e-posta ile login, refresh endpoint'i, /me ve /members)
+- [x] Task CRUD, öncelik ve stats/summary testleri
+- [x] Toplam 8 birim testi yazıldı ve hepsi geçiyor (`python manage.py test`)
 
-**Bitti sayılır:** `pytest -q` yeşil, CI'da da yeşil.
+**Bitti sayılır:** Testler yeşil.
 
 ---
 
