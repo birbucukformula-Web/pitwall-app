@@ -47,3 +47,25 @@ class AccountTests(TestCase):
         self.assertEqual(response.data['username'], 'testuser')
         self.assertEqual(response.data['email'], 'test@pitwall.app')
 
+    def test_login_with_email(self):
+        response = self.client.post('/api/v1/auth/login/', {
+            'username': 'test@pitwall.app',
+            'password': 'pitwall123'
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('access', response.data)
+        self.assertIn('refresh', response.data)
+
+    def test_token_refresh(self):
+        login_response = self.client.post('/api/v1/auth/login/', {
+            'username': 'testuser',
+            'password': 'pitwall123'
+        })
+        refresh_token = login_response.data['refresh']
+
+        refresh_response = self.client.post('/api/v1/auth/refresh/', {
+            'refresh': refresh_token
+        })
+        self.assertEqual(refresh_response.status_code, status.HTTP_200_OK)
+        self.assertIn('access', refresh_response.data)
+

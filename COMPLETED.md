@@ -41,6 +41,13 @@ Arayüzde daha önce sahte/sabit verilerle (mock data) çalışan sayfalar, tasa
 - **Bileşen & Stil Bütünlüğü:**
   - Takım arkadaşlarının yazdığı hiçbir CSS dosyasına (`Calendar.css`, `Projects.css`, `ProjectDetail.css`, `Header.css`) veya görsel DOM hiyerarşisine dokunulmadan, yalnızca veri ve mutasyon katmanı bağlandı.
 
+## 5. Token Refresh (Oturum Koruma) ve E-posta ile Giriş Desteği
+15 dakikalık access token süresi dolduğunda oturumun düşmesini önleyen refresh altyapısı ve esnek giriş desteği tamamlandı:
+- **Token Refresh Rotası Eklendi:** `apps/accounts/urls.py` içerisine `path('refresh/', TokenRefreshView.as_view(), name='token_refresh')` tanımlandı; böylece SimpleJWT refresh token ile yeni access token üretimi açıldı.
+- **Kullanıcı Adı veya E-posta ile Giriş:** `CustomTokenObtainPairSerializer` geliştirildi. Giriş kutusuna kullanıcı adı (`ahmet`) yerine e-posta adresi (`ahmet@pitwall.app`) yazıldığında da kullanıcı bulunup başarıyla JWT token üretilmesi sağlandı.
+- **Frontend 401 Interceptor & Sessiz Yenileme:** `apiClient.ts` içinde 401 hatası yakalandığında arka planda `localStorage`'daki refresh token ile `/auth/refresh/` çağrılarak yeni access token alınması ve kullanıcının hissetmeyeceği şekilde orijinal isteğin tekrarlanması sağlandı. Eşzamanlı istekler için tekil promise kilidi kullanıldı.
+- **Otomatik Testler:** `apps.accounts.tests` içerisine `test_login_with_email` ve `test_token_refresh` testleri eklenerek tüm auth akışları doğrulandı (8 testin 8'i de başarılı).
+
 ---
 
 **Not:** Yukarıdaki tüm kod ve altyapı geliştirmeleri yerel ortamda başarıyla tamamlanmış ve çalışır hale getirilmiştir. Canlı ortamdaki (Render) test kullanıcılarının deneyebilmesi için kodların GitHub'a gönderilmesi (push) gerekmektedir.

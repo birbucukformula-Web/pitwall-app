@@ -35,4 +35,12 @@ export const authApi = {
       requireAuth: true,
     }) as Promise<UserResponse>;
   },
+
+  refreshToken: (refresh: string) => {
+    return fetchApi("/auth/refresh/", {
+      method: "POST",
+      body: JSON.stringify({ refresh }),
+      requireAuth: false,
+    }) as Promise<{ access: string; refresh?: string }>;
+  },
 };
