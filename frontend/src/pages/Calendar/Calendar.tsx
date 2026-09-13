@@ -158,10 +158,9 @@ function isSameDate(
     return false;
   }
 
-  const taskDate =
-    new Date(
-      `${dateString}T00:00:00`,
-    );
+  const datePart = dateString.split('T')[0];
+  const [year, month, day] = datePart.split('-');
+  const taskDate = new Date(Number(year), Number(month) - 1, Number(day));
 
   return (
     date.getFullYear() ===
@@ -368,18 +367,20 @@ export default function Calendar() {
             </p>
           </div>
 
-          <button
-            className="calendar-new-task"
-            onClick={() =>
-              setShowTaskModal(
-                true,
-              )
-            }
-          >
-            <Plus size={18} />
+          <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+            <button
+              className="calendar-new-task"
+              onClick={() =>
+                setShowTaskModal(
+                  true,
+                )
+              }
+            >
+              <Plus size={18} />
 
-            Yeni Görev
-          </button>
+              Yeni Görev
+            </button>
+          </div>
         </div>
 
         <div className="calendar-container">

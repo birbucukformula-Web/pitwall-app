@@ -296,7 +296,7 @@ export default function Sidebar({
           <div className="inner-section">
             <div className="inner-section-header">
               <span>Projeler & Takımlar</span>
-              <button className="inner-settings-btn" title="Yönet">
+              <button className="inner-settings-btn" title="Yönet" onClick={() => navigate('/settings')}>
                 <Settings size={14} />
               </button>
             </div>
