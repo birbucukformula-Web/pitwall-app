@@ -22,6 +22,26 @@ Frontend ve backend arasındaki sözleşme uyuşmazlıkları ve kritik API hatal
 - **Proje ve Birim Serializer İyileştirmesi:** `ProjectSerializer` ve `UnitSerializer` modellerinde `organization` alanı `read_only_fields` yapılarak frontend'den proje/birim oluşturulurken gereksiz zorunluluk (400 Bad Request) hatası alması engellendi.
 - **Otomatik Test Kapsamı:** `apps.accounts` ve `apps.tasks` için JWT login, members endpoint'i, kullanıcı bilgileri, görev oluşturma, öncelik ve özet istatistik testleri yazılarak tüm akış doğrulandı (6 testin tamamı başarılı).
 
+## 4. Takvim, Projeler ve Proje Detay Sayfalarının Backend API Entegrasyonu
+Arayüzde daha önce sahte/sabit verilerle (mock data) çalışan sayfalar, tasarım ve stillerine sadık kalınarak backend API'sine bağlandı:
+- **Takvim Sayfası (Calendar):**
+  - `mockTasks` kullanımı kaldırıldı; `@tanstack/react-query` kullanılarak `tasksApi.getTasks()` üzerinden backend verisi bağlandı.
+  - Görev oluşturma (`createTaskMutation`), güncelleme (`updateTaskMutation`) ve silme (`deleteTaskMutation`) mutasyonları entegre edildi.
+  - Takvimden eklenen yeni görevler doğrudan `POST /api/v1/tasks/` ile veritabanına kaydedilir hale getirildi. Kayıt sonrası `tasks` ve `stats` query cache'i otomatik güncellenerek tüm sayfalarda (Pano, Takvim vb.) anında yansıması sağlandı.
+- **Projeler Sayfası (Projects):**
+  - Sabit kodlanmış proje listesi yerine `metadataApi.getProjects()` ve `tasksApi.getTasks()` bağlandı.
+  - Projelerin toplam görev sayısı, tamamlanan görev sayısı ve ilerleme yüzdesi backend'deki gerçek görevlere göre dinamik olarak hesaplandı.
+- **Proje Detay Sayfası (ProjectDetail):**
+  - Statik `projectMap` sözlüğü kaldırılarak backend'deki dinamik projeler ve `tasksApi.getTasks({ project: projectId })` filtresi bağlandı.
+  - Kanban panosundaki sürükle-bırak (Drag & Drop) hareketi tamamlandığında (`handleDragEnd`), görevin yeni durumu (`status`) ve sırası (`order`) backend'e `PATCH` edilerek kalıcı hale getirildi.
+  - Görev ekleme, düzenleme ve silme modalları backend API mutasyonlarıyla senkronize edildi.
+  - Proje üyeleri ve avatar baş harfleri göreve atanan gerçek kullanıcılardan dinamik olarak türetildi.
+- **Üst Menü Arama (Header):**
+  - Header arama çubuğu `tasksApi.getTasks()` üzerinden gerçek görev verisiyle beslendi. Kullanıcı başlık, proje veya birim aradığında gerçek veritabanı kayıtları listeleniyor.
+- **Bileşen & Stil Bütünlüğü:**
+  - Takım arkadaşlarının yazdığı hiçbir CSS dosyasına (`Calendar.css`, `Projects.css`, `ProjectDetail.css`, `Header.css`) veya görsel DOM hiyerarşisine dokunulmadan, yalnızca veri ve mutasyon katmanı bağlandı.
+
 ---
 
 **Not:** Yukarıdaki tüm kod ve altyapı geliştirmeleri yerel ortamda başarıyla tamamlanmış ve çalışır hale getirilmiştir. Canlı ortamdaki (Render) test kullanıcılarının deneyebilmesi için kodların GitHub'a gönderilmesi (push) gerekmektedir.
+

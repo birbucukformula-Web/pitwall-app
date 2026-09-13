@@ -1,4 +1,5 @@
 import {
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -34,7 +35,9 @@ import TaskModal from "../../components/TaskModal/TaskModal";
 import DeleteTaskModal from "../../components/DeleteTaskModal/DeleteTaskModal";
 import TaskCard from "../../components/TaskCard/TaskCard";
 
-import { mockTasks } from "../../data/mockTasks";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { tasksApi, type TaskPayload } from "../../api/tasks";
+import { metadataApi } from "../../api/metadata";
 
 import type {
   Task,
@@ -80,90 +83,97 @@ const kanbanCollisionDetection:
     return closestCenter(args);
   };
 
-const projectMap: Record<
-  string,
-  {
-    name: string;
-    description: string;
-    members: string[];
-  }
-> = {
-  "1": {
-    name: "Pitwall App",
-    description:
-      "Takım içi görev, proje ve çalışma takibi için geliştirilen uygulama.",
-    members: [
-      "LS",
-      "FK",
-      "BC",
-      "MK",
-    ],
-  },
-
-  "2": {
-    name:
-      "Formula Student Web Sitesi",
-    description:
-      "1.5 Adana Formula Student takımının resmi web sitesi.",
-    members: [
-      "LS",
-      "BC",
-      "EA",
-    ],
-  },
-
-  "3": {
-    name:
-      "Araç Telemetri Sistemi",
-    description:
-      "Araç verilerinin takip ve analiz edildiği telemetri sistemi.",
-    members: [
-      "FK",
-      "TA",
-      "MK",
-    ],
-  },
-};
-
 export default function ProjectDetail() {
   const navigate = useNavigate();
 
-  const { projectId } =
-    useParams();
+  const { projectId } = useParams<{ projectId: string }>();
 
-  const [selectedTask, setSelectedTask] =
-    useState<Task | null>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [deletingTask, setDeletingTask] = useState<Task | null>(null);
+  const [tasks, setTasks] = useState<Task[]>([]);
 
-  const [activeTask, setActiveTask] =
-    useState<Task | null>(null);
+  const lastOverId = useRef<string | null>(null);
+  const dragSnapshot = useRef<Task[] | null>(null);
+  const [showMembers, setShowMembers] = useState(false);
+  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [taskModalStatus, setTaskModalStatus] = useState<TaskStatus>("todo");
 
-  const [editingTask, setEditingTask] =
-    useState<Task | null>(null);
+  const queryClient = useQueryClient();
 
-  const [deletingTask, setDeletingTask] =
-    useState<Task | null>(null);
+  const { data: apiProjects = [], isLoading: isProjectsLoading } = useQuery({
+    queryKey: ["projects"],
+    queryFn: () => metadataApi.getProjects(),
+  });
 
-  const [tasks, setTasks] =
-    useState<Task[]>(mockTasks);
+  const { data: fetchedTasks } = useQuery({
+    queryKey: ["tasks", { project: Number(projectId) }],
+    queryFn: () => tasksApi.getTasks({ project: Number(projectId) }),
+    enabled: !!projectId,
+  });
 
-  const lastOverId =
-    useRef<string | null>(null);
+  useEffect(() => {
+    if (fetchedTasks) {
+      setTasks(fetchedTasks);
+    }
+  }, [fetchedTasks]);
 
-  const dragSnapshot =
-    useRef<Task[] | null>(null);
+  const rawProject = apiProjects.find((p) => p.id === Number(projectId));
 
-  const [showMembers, setShowMembers] =
-    useState(false);
+  const projectTasks = useMemo(() => {
+    return [...tasks].sort((a, b) => a.order - b.order);
+  }, [tasks]);
 
-  const [
-    showTaskModal,
-    setShowTaskModal,
-  ] = useState(false);
+  const projectMembers = useMemo(() => {
+    const map = new Map<number, { id: number; name: string; initials: string }>();
+    projectTasks.forEach((t) => {
+      t.assignees?.forEach((a) => {
+        if (!map.has(a.id)) {
+          map.set(a.id, a);
+        }
+      });
+    });
+    return Array.from(map.values());
+  }, [projectTasks]);
 
-  const [
-    taskModalStatus,
-    setTaskModalStatus,
-  ] = useState<TaskStatus>("todo");
+  const project = rawProject
+    ? {
+        id: rawProject.id,
+        name: rawProject.name,
+        description: rawProject.description || "Açıklama belirtilmemiş.",
+        members: projectMembers,
+      }
+    : null;
+
+  const createTaskMutation = useMutation({
+    mutationFn: (newTask: TaskPayload) => tasksApi.createTask(newTask),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["stats"] });
+      setShowTaskModal(false);
+      setEditingTask(null);
+    },
+  });
+
+  const updateTaskMutation = useMutation({
+    mutationFn: ({ id, updates }: { id: number; updates: TaskPayload }) =>
+      tasksApi.updateTask(id, updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["stats"] });
+    },
+  });
+
+  const deleteTaskMutation = useMutation({
+    mutationFn: (id: number) => tasksApi.deleteTask(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["stats"] });
+      setSelectedTask(null);
+      setDeletingTask(null);
+    },
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -172,46 +182,6 @@ export default function ProjectDetail() {
       },
     }),
   );
-
-  const project =
-    projectMap[
-    projectId ?? ""
-    ];
-
-  const projectTasks =
-    useMemo(() => {
-      if (!project) {
-        return [];
-      }
-
-      return tasks
-        .filter(
-          (task) =>
-            task.project?.name ===
-            project.name,
-        )
-        .sort((a, b) => {
-          if (
-            a.status === b.status
-          ) {
-            return (
-              a.order - b.order
-            );
-          }
-
-          return 0;
-        });
-    }, [project, tasks]);
-
-  if (!project) {
-    return (
-      <section className="project-detail-page">
-        <h2>
-          Proje bulunamadı.
-        </h2>
-      </section>
-    );
-  }
 
   /* =========================
      TASK CRUD
@@ -235,71 +205,72 @@ export default function ProjectDetail() {
   function handleCreateTask(
     newTask: Task,
   ) {
-    const tasksInColumn =
-      tasks.filter(
-        (task) =>
-          task.project?.name ===
-          project.name &&
-          task.status ===
-          taskModalStatus,
-      );
-
-    const taskForProject: Task = {
-      ...newTask,
-
-      project: {
-        id: Number(projectId),
-        name: project.name,
-      },
-
-      status:
-        taskModalStatus,
-
-      order:
-        tasksInColumn.length +
-        1,
-    };
-
-    setTasks((previousTasks) => [
-      ...previousTasks,
-      taskForProject,
-    ]);
+    createTaskMutation.mutate({
+      title: newTask.title,
+      description: newTask.description,
+      status: taskModalStatus,
+      priority: newTask.priority,
+      project: Number(projectId),
+      unit: newTask.unit?.id,
+      assignees: newTask.assignees?.map((a) => a.id),
+      due_date: newTask.due_date,
+    });
   }
 
   function handleUpdateTask(
     updatedTask: Task,
   ) {
-    setTasks((previousTasks) =>
-      previousTasks.map((task) =>
-        task.id === updatedTask.id
-          ? updatedTask
-          : task,
-      ),
-    );
-
+    updateTaskMutation.mutate({
+      id: updatedTask.id,
+      updates: {
+        title: updatedTask.title,
+        description: updatedTask.description,
+        status: updatedTask.status,
+        priority: updatedTask.priority,
+        project: updatedTask.project?.id || Number(projectId),
+        unit: updatedTask.unit?.id,
+        assignees: updatedTask.assignees?.map((a) => a.id),
+        due_date: updatedTask.due_date,
+      },
+    });
     setSelectedTask(updatedTask);
     setEditingTask(null);
+    setShowTaskModal(false);
   }
 
   function handleDeleteTask(
     taskToDelete: Task,
   ) {
-    setTasks((previousTasks) => {
-      const remainingTasks =
-        previousTasks.filter(
-          (task) =>
-            task.id !==
-            taskToDelete.id,
-        );
+    deleteTaskMutation.mutate(taskToDelete.id);
+  }
 
-      return normalizeColumnOrders(
-        remainingTasks,
-        taskToDelete.status,
-      );
-    });
+  if (isProjectsLoading) {
+    return (
+      <section className="project-detail-page">
+        <div style={{ padding: "40px", color: "var(--text-secondary)" }}>
+          Proje yükleniyor...
+        </div>
+      </section>
+    );
+  }
 
-    setSelectedTask(null);
-    setDeletingTask(null);
+  if (!project) {
+    return (
+      <section className="project-detail-page">
+        <h2>
+          Proje bulunamadı.
+        </h2>
+        <p style={{ marginTop: "12px" }}>
+          <button
+            type="button"
+            className="project-back-button"
+            onClick={() => navigate("/projects")}
+          >
+            <ArrowLeft size={16} /> Projelere Dön
+          </button>
+        </p>
+      </section>
+    );
   }
 
   /* =========================
@@ -310,12 +281,16 @@ export default function ProjectDetail() {
     taskList: Task[],
     status: TaskStatus,
   ) {
+    if (!project) {
+      return taskList;
+    }
+    const currentProject = project;
+
     const columnTasks =
       taskList
         .filter(
           (task) =>
-            task.project?.name ===
-            project.name &&
+            (task.project?.id === currentProject.id || task.project?.name === currentProject.name) &&
             task.status ===
             status,
         )
@@ -339,8 +314,7 @@ export default function ProjectDetail() {
     return taskList.map(
       (task) => {
         if (
-          task.project?.name !==
-          project.name ||
+          (task.project?.id !== currentProject.id && task.project?.name !== currentProject.name) ||
           task.status !== status
         ) {
           return task;
@@ -364,6 +338,11 @@ export default function ProjectDetail() {
     targetStatus: TaskStatus,
     targetIndex: number,
   ) {
+    if (!project) {
+      return taskList;
+    }
+    const currentProject = project;
+
     const movingTask =
       taskList.find(
         (task) =>
@@ -387,8 +366,7 @@ export default function ProjectDetail() {
       withoutMovingTask
         .filter(
           (task) =>
-            task.project?.name ===
-            project.name &&
+            (task.project?.id === currentProject.id || task.project?.name === currentProject.name) &&
             task.status ===
             targetStatus,
         )
@@ -433,8 +411,7 @@ export default function ProjectDetail() {
       withoutMovingTask.map(
         (task) => {
           if (
-            task.project?.name !==
-            project.name ||
+            (task.project?.id !== currentProject.id && task.project?.name !== currentProject.name) ||
             task.status !==
             targetStatus
           ) {
@@ -506,6 +483,11 @@ export default function ProjectDetail() {
   function handleDragOver(
     event: DragOverEvent,
   ) {
+    if (!project) {
+      return;
+    }
+    const currentProject = project;
+
     const {
       active,
       over,
@@ -530,8 +512,8 @@ export default function ProjectDetail() {
 
       if (
         !movingTask ||
-        movingTask.project?.name !==
-        project.name
+        (movingTask.project?.id !== currentProject.id &&
+          movingTask.project?.name !== currentProject.name)
       ) {
         return previousTasks;
       }
@@ -559,8 +541,8 @@ export default function ProjectDetail() {
           );
 
         if (
-          overTask?.project?.name !==
-          project.name
+          overTask?.project?.id !== currentProject.id &&
+          overTask?.project?.name !== currentProject.name
         ) {
           return previousTasks;
         }
@@ -589,8 +571,8 @@ export default function ProjectDetail() {
         previousTasks
           .filter(
             (task) =>
-              task.project?.name ===
-              project.name &&
+              (task.project?.id === currentProject.id ||
+                task.project?.name === currentProject.name) &&
               task.status ===
               targetStatus &&
               task.id !==
@@ -651,7 +633,11 @@ export default function ProjectDetail() {
   function handleDragEnd(
     event: DragEndEvent,
   ) {
-    const { over } =
+    if (!project) {
+      return;
+    }
+
+    const { over, active } =
       event;
 
     setActiveTask(null);
@@ -674,6 +660,8 @@ export default function ProjectDetail() {
       return;
     }
 
+    const activeId = Number(active.id);
+
     setTasks((previousTasks) => {
       let result =
         previousTasks;
@@ -687,6 +675,25 @@ export default function ProjectDetail() {
             );
         },
       );
+
+      const movedTask = result.find((task) => task.id === activeId);
+      const originalTask = dragSnapshot.current?.find((task) => task.id === activeId);
+
+      if (
+        movedTask &&
+        (!originalTask ||
+          originalTask.status !== movedTask.status ||
+          originalTask.order !== movedTask.order)
+      ) {
+        updateTaskMutation.mutate({
+          id: movedTask.id,
+          updates: {
+            status: movedTask.status,
+            order: movedTask.order,
+            project: movedTask.project?.id || Number(projectId),
+          },
+        });
+      }
 
       return result;
     });
@@ -779,9 +786,10 @@ export default function ProjectDetail() {
                 {project.members.map(
                   (member) => (
                     <span
-                      key={member}
+                      key={member.id}
+                      title={member.name}
                     >
-                      {member}
+                      {member.initials}
                     </span>
                   ),
                 )}
@@ -795,38 +803,33 @@ export default function ProjectDetail() {
                 </div>
 
                 <div className="members-list">
-                  {project.members.map(
-                    (member) => (
-                      <div
-                        className="member-item"
-                        key={member}
-                      >
-                        <span className="member-avatar">
-                          {member}
-                        </span>
-
-                        <div>
-                          <strong>
-                            {member === "LS" &&
-                              "Lidya Su"}
-                            {member === "FK" &&
-                              "Furkan"}
-                            {member === "BC" &&
-                              "Busenur"}
-                            {member === "MK" &&
-                              "Mert"}
-                            {member === "EA" &&
-                              "E.A."}
-                            {member === "TA" &&
-                              "T.A."}
-                          </strong>
-
-                          <span>
-                            Proje üyesi
+                  {project.members.length > 0 ? (
+                    project.members.map(
+                      (member) => (
+                        <div
+                          className="member-item"
+                          key={member.id}
+                        >
+                          <span className="member-avatar">
+                            {member.initials}
                           </span>
+
+                          <div>
+                            <strong>
+                              {member.name}
+                            </strong>
+
+                            <span>
+                              Proje üyesi
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    ),
+                      ),
+                    )
+                  ) : (
+                    <div style={{ padding: "12px", color: "var(--text-secondary)", fontSize: "13px" }}>
+                      Bu projeye atanmış üye bulunmuyor.
+                    </div>
                   )}
                 </div>
               </div>

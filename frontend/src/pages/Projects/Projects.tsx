@@ -7,48 +7,44 @@ import {
 import "./Projects.css";
 
 import { useNavigate } from "react-router-dom";
-
-type Project = {
-  id: number;
-  name: string;
-  description: string;
-  totalTasks: number;
-  completedTasks: number;
-  members: string[];
-};
-
-const projects: Project[] = [
-  {
-    id: 1,
-    name: "Pitwall App",
-    description:
-      "Takım içi görev, proje ve çalışma takibi için geliştirilen uygulama.",
-    totalTasks: 12,
-    completedTasks: 7,
-    members: ["LS", "FK", "BC", "MK"],
-  },
-  {
-    id: 2,
-    name: "Formula Student Web Sitesi",
-    description:
-      "1.5 Adana Formula Student takımının resmi web sitesi.",
-    totalTasks: 8,
-    completedTasks: 6,
-    members: ["LS", "BC", "EA"],
-  },
-  {
-    id: 3,
-    name: "Araç Telemetri Sistemi",
-    description:
-      "Araç verilerinin takip ve analiz edildiği telemetri sistemi.",
-    totalTasks: 15,
-    completedTasks: 5,
-    members: ["FK", "TA", "MK"],
-  },
-];
+import { useQuery } from "@tanstack/react-query";
+import { metadataApi } from "../../api/metadata";
+import { tasksApi } from "../../api/tasks";
 
 export default function Projects() {
   const navigate = useNavigate();
+
+  const { data: apiProjects = [], isLoading: isProjectsLoading } = useQuery({
+    queryKey: ["projects"],
+    queryFn: () => metadataApi.getProjects(),
+  });
+
+  const { data: tasks = [] } = useQuery({
+    queryKey: ["tasks"],
+    queryFn: () => tasksApi.getTasks(),
+  });
+
+  const projects = apiProjects.map((p) => {
+    const projectTasks = tasks.filter((t) => t.project?.id === p.id);
+    const totalTasks = projectTasks.length;
+    const completedTasks = projectTasks.filter((t) => t.status === "done").length;
+
+    const memberInitials = Array.from(
+      new Set(
+        projectTasks.flatMap((t) => t.assignees?.map((a) => a.initials) || [])
+      )
+    ).slice(0, 4);
+
+    return {
+      id: p.id,
+      name: p.name,
+      description: p.description || "Açıklama belirtilmemiş.",
+      totalTasks,
+      completedTasks,
+      members: memberInitials,
+    };
+  });
+
   return (
     <section className="projects-page">
       <div className="projects-header">
@@ -63,12 +59,15 @@ export default function Projects() {
       </div>
 
       <div className="projects-grid">
+        {projects.length === 0 && !isProjectsLoading && (
+          <div style={{ gridColumn: "1 / -1", padding: "40px", color: "var(--text-secondary)", textAlign: "center" }}>
+            Henüz kayıtlı bir proje bulunmuyor.
+          </div>
+        )}
         {projects.map((project) => {
-          const progress = Math.round(
-            (project.completedTasks /
-              project.totalTasks) *
-            100,
-          );
+          const progress = project.totalTasks > 0
+            ? Math.round((project.completedTasks / project.totalTasks) * 100)
+            : 0;
 
           return (
             <article

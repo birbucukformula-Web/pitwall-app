@@ -9,7 +9,8 @@ import {
 import TaskDrawer from "../../components/TaskDrawer/TaskDrawer";
 import TaskModal from "../../components/TaskModal/TaskModal";
 
-import { mockTasks } from "../../data/mockTasks";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { tasksApi, type TaskPayload } from "../../api/tasks";
 
 import type { Task } from "../../types/task";
 
@@ -207,12 +208,44 @@ export default function Calendar() {
     null,
   );
 
-  const [
-    tasks,
-    setTasks,
-  ] = useState<Task[]>(
-    mockTasks,
-  );
+  const queryClient = useQueryClient();
+
+  const { data: tasks = [] } = useQuery({
+    queryKey: ["tasks"],
+    queryFn: () => tasksApi.getTasks(),
+  });
+
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+
+  const createTaskMutation = useMutation({
+    mutationFn: (newTask: TaskPayload) => tasksApi.createTask(newTask),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["stats"] });
+      setShowTaskModal(false);
+      setEditingTask(null);
+    },
+  });
+
+  const updateTaskMutation = useMutation({
+    mutationFn: ({ id, updates }: { id: number; updates: TaskPayload }) =>
+      tasksApi.updateTask(id, updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["stats"] });
+      setShowTaskModal(false);
+      setEditingTask(null);
+    },
+  });
+
+  const deleteTaskMutation = useMutation({
+    mutationFn: (id: number) => tasksApi.deleteTask(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["stats"] });
+      setSelectedTask(null);
+    },
+  });
 
   const [
     showTaskModal,
@@ -289,12 +322,34 @@ export default function Calendar() {
   function handleCreateTask(
     newTask: Task,
   ) {
-    setTasks(
-      (previousTasks) => [
-        ...previousTasks,
-        newTask,
-      ],
-    );
+    createTaskMutation.mutate({
+      title: newTask.title,
+      description: newTask.description,
+      status: newTask.status,
+      priority: newTask.priority,
+      project: newTask.project?.id,
+      unit: newTask.unit?.id,
+      assignees: newTask.assignees?.map((a) => a.id),
+      due_date: newTask.due_date,
+    });
+  }
+
+  function handleUpdateTask(
+    updatedTask: Task,
+  ) {
+    updateTaskMutation.mutate({
+      id: updatedTask.id,
+      updates: {
+        title: updatedTask.title,
+        description: updatedTask.description,
+        status: updatedTask.status,
+        priority: updatedTask.priority,
+        project: updatedTask.project?.id,
+        unit: updatedTask.unit?.id,
+        assignees: updatedTask.assignees?.map((a) => a.id),
+        due_date: updatedTask.due_date,
+      },
+    });
   }
 
   return (
@@ -591,23 +646,26 @@ export default function Calendar() {
 
       <TaskDrawer
         task={selectedTask}
-        onClose={() =>
-          setSelectedTask(
-            null,
-          )
-        }
+        onClose={() => setSelectedTask(null)}
+        onEdit={(task) => {
+          setSelectedTask(null);
+          setEditingTask(task);
+          setShowTaskModal(true);
+        }}
+        onDelete={(task) => {
+          deleteTaskMutation.mutate(task.id);
+        }}
       />
 
       <TaskModal
         isOpen={showTaskModal}
-        onClose={() =>
-          setShowTaskModal(
-            false,
-          )
-        }
-        onCreate={
-          handleCreateTask
-        }
+        onClose={() => {
+          setShowTaskModal(false);
+          setEditingTask(null);
+        }}
+        onCreate={handleCreateTask}
+        onUpdate={handleUpdateTask}
+        editingTask={editingTask}
         defaultStatus="todo"
       />
     </>

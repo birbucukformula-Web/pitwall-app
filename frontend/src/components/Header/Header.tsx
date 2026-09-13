@@ -12,7 +12,8 @@ import {
 import TaskDrawer from "../TaskDrawer/TaskDrawer";
 import ThemeToggle from "../ThemeToggle/ThemeToggle";
 
-import { mockTasks } from "../../data/mockTasks";
+import { useQuery } from "@tanstack/react-query";
+import { tasksApi } from "../../api/tasks";
 
 import type { Task } from "../../types/task";
 
@@ -182,9 +183,14 @@ export default function Header({
     setShowMobileSearch,
   ] = useState(false);
 
+  const { data: tasks = [] } = useQuery({
+    queryKey: ["tasks"],
+    queryFn: () => tasksApi.getTasks(),
+  });
+
   const searchResults =
     searchTerm.trim().length > 0
-      ? mockTasks.filter((task) => {
+      ? tasks.filter((task) => {
         const search =
           searchTerm.toLowerCase();
 
@@ -234,7 +240,7 @@ export default function Header({
     }
 
     if (notification.taskId) {
-      const task = mockTasks.find(
+      const task = tasks.find(
         (item) =>
           item.id ===
           notification.taskId,
