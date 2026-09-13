@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 import {
   CalendarDays,
@@ -60,6 +60,21 @@ export default function Sidebar({
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
+  
+  const sidebarRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      // Eğer menü açıksa ve tıklanan yer menünün DIŞINDAYSA menüyü kapat
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
+        setIsInnerOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     if (!isInnerOpen) {
@@ -72,22 +87,25 @@ export default function Sidebar({
 
   // Auto close/open based on route
   useEffect(() => {
-    const closedRoutes = ['/calendar', '/profile', '/announcements'];
-    if (closedRoutes.includes(location.pathname)) {
-      setIsInnerOpen(false);
-    } else {
+    // Eğer bulunduğumuz sayfa "/projects" veya alt sayfası ise iç menüyü AÇ, diğer tüm sayfalarda KAPAT.
+    if (location.pathname.startsWith('/projects')) {
       setIsInnerOpen(true);
+    } else {
+      setIsInnerOpen(false);
     }
   }, [location.pathname]);
 
   function handleOuterNavClick(e: React.MouseEvent, path: string) {
     if (location.pathname === path) {
       e.preventDefault();
-      setIsInnerOpen(prev => !prev);
+      // Eğer bulunduğumuz butona tekrar tıklarsak ve bu projelerse açık kalsın
+      if (path.startsWith('/projects')) {
+        setIsInnerOpen(true);
+      } else {
+        setIsInnerOpen(prev => !prev);
+      }
     } else {
       setShowProfileMenu(false);
-      // Navigation will be handled by NavLink naturally, but we can close mobile sidebar
-      // onClose(); // if we want to close mobile sidebar on navigation
     }
   }
 
@@ -133,7 +151,7 @@ export default function Sidebar({
   }
 
   return (
-    <div className={`sidebar-container ${isOpen ? "sidebar-open" : ""}`}>
+    <div ref={sidebarRef} className={`sidebar-container ${isOpen ? "sidebar-open" : ""}`}>
       {/* OUTER SIDEBAR */}
       <aside className="outer-sidebar">
         <div className="outer-top">
@@ -169,7 +187,7 @@ export default function Sidebar({
 
             <NavLink
               to="/projects"
-              onClick={(e) => { handleOuterNavClick(e, '/projects'); handleNavigation(); }}
+              onClick={(e) => { handleOuterNavClick(e, '/projects'); }}
               className={({ isActive }) => `outer-nav-item ${isActive ? "active" : ""}`}
               title="Projeler"
             >

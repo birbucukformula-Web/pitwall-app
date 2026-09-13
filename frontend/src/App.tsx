@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "./contexts/AuthContext";
 
 import {
@@ -24,6 +24,17 @@ import "./App.css";
 function AppLayout() {
   const [isSidebarOpen, setIsSidebarOpen] =
     useState(false);
+
+  useEffect(() => {
+    if (isSidebarOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isSidebarOpen]);
 
   function openSidebar() {
     setIsSidebarOpen(true);
