@@ -58,7 +58,7 @@ def seed():
             title="Dashboard UI Tasarımı",
             description="Pitwall ekranı için yeni göstergelerin tasarlanması.",
             status=Task.Status.IN_PROGRESS,
-            priority="HIGH"
+            priority=Task.Priority.HIGH
         )
         task1.assigned_to.add(user)
         
@@ -69,7 +69,7 @@ def seed():
             title="Karbon Fiber Analizi",
             description="Şasi ağırlık dayanımı testleri.",
             status=Task.Status.TODO,
-            priority="MEDIUM"
+            priority=Task.Priority.MEDIUM
         )
         task2.assigned_to.add(user)
         print("Örnek görevler oluşturuldu.")

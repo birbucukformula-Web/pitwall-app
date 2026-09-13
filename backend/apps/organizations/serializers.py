@@ -6,12 +6,14 @@ class UnitSerializer(serializers.ModelSerializer):
     class Meta:
         model = Unit
         fields = '__all__'
+        read_only_fields = ['organization']
 
 
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = '__all__'
+        read_only_fields = ['organization']
 
 
 class OrganizationSerializer(serializers.ModelSerializer):

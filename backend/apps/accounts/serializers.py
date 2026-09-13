@@ -13,7 +13,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     organization = OrganizationSerializer(read_only=True)
-    
     class Meta:
         model = User
-        fields = ('id', 'email', 'first_name', 'last_name', 'role', 'organization')
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'role', 'organization')

@@ -183,7 +183,7 @@ giriş yapılabiliyor. Admin girişi CSRF hatası verirse `CSRF_TRUSTED_ORIGINS`
 - [ ] Filtreler: `status`, `unit`, `project`, `assignee`, `overdue`
 - [ ] Çoklu atama: `assignees` yazarken id listesi, okurken isim + baş harf
 - [ ] `PATCH {status, order}` davranışı — sürükle-bırak bunu kullanır
-- [ ] `/units/`, `/projects/`, `/members/`, `/stats/summary/`
+- [x] `/units/`, `/projects/`, `/members/`, `/stats/summary/`
 - [ ] Hata biçimleri standart; kenar durumlar (birimsiz görev, silinmiş atanan)
 
 **Bitti sayılır:** Canlıda token'la görev oluşturulup listeleniyor, tüm filtreler çalışıyor.
