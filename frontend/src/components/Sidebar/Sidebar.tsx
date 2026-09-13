@@ -25,7 +25,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../../contexts/AuthContext";
 import { metadataApi } from "../../api/metadata";
 
-import formulaLogo from "../../assets/formula-logo.png";
+import formulaLogo from "../../assets/logo-yazisiz.jpg";
 
 import "./Sidebar.css";
 
