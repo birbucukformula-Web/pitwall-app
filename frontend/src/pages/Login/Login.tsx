@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 
 import {
@@ -18,6 +18,7 @@ import "./Login.css";
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] =
@@ -47,7 +48,9 @@ export default function Login() {
 
     try {
       await login({ username: email, password });
-      navigate("/dashboard");
+      
+      const from = location.state?.from?.pathname || "/dashboard";
+      navigate(from, { replace: true });
     } catch (err: any) {
       setError(err.message || "Giriş yapılamadı. Lütfen bilgilerinizi kontrol edin.");
     } finally {
