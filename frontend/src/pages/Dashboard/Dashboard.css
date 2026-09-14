@@ -509,12 +509,30 @@
 
 .pd-complete-toggle.completed {
   color: #52c41a;
+}
 
+.pd-complete-toggle.completed.locked {
   cursor: default;
+
+  opacity: 0.72;
+}
+
+.pd-complete-toggle.completed.locked:hover {
+  background: transparent;
+
+  color: #52c41a;
+
+  transform: none;
+}
+
+.pd-complete-toggle.completed.locked:active {
+  transform: none;
 }
 
 .pd-complete-toggle.completed.undoable {
   cursor: pointer;
+
+  opacity: 1;
 }
 
 .pd-complete-toggle.completed.undoable:hover {

@@ -41,18 +41,11 @@ export default function Dashboard() {
   /*
    * Bu oturum sırasında tamamlanan görevlerin
    * önceki durumunu saklıyoruz.
-   *
-   * Böylece:
-   * todo -> done -> todo
-   * in_progress -> done -> in_progress
-   * review -> done -> review
    */
   const [
     previousStatuses,
     setPreviousStatuses,
-  ] = useState<
-    Record<number, TaskStatus>
-  >({});
+  ] = useState<Record<number, TaskStatus>>({});
 
   const activeSectionRef =
     useRef<HTMLDivElement | null>(null);
@@ -71,80 +64,71 @@ export default function Dashboard() {
     queryFn: () => tasksApi.getTasks(),
   });
 
-  const toggleStatusMutation =
-    useMutation({
-      mutationFn: ({
-        task,
-        nextStatus,
-      }: {
-        task: Task;
-        nextStatus: TaskStatus;
-      }) =>
-        tasksApi.updateTask(task.id, {
-          status: nextStatus,
-        }),
+  const toggleStatusMutation = useMutation({
+    mutationFn: ({
+      task,
+      nextStatus,
+    }: {
+      task: Task;
+      nextStatus: TaskStatus;
+    }) =>
+      tasksApi.updateTask(task.id, {
+        status: nextStatus,
+      }),
 
-      onSuccess: (
-        updatedTask,
-        variables,
-      ) => {
-        /*
-         * React Query cache'ini anında güncelliyoruz.
-         * Böylece görev beklemeden diğer listeye geçiyor.
-         */
-        queryClient.setQueryData<Task[]>(
-          ["tasks"],
-          (currentTasks = []) =>
-            currentTasks.map((task) =>
-              task.id === updatedTask.id
-                ? updatedTask
-                : task,
-            ),
+    onSuccess: (
+      updatedTask,
+      variables,
+    ) => {
+      queryClient.setQueryData<Task[]>(
+        ["tasks"],
+        (currentTasks = []) =>
+          currentTasks.map((task) =>
+            task.id === updatedTask.id
+              ? updatedTask
+              : task,
+          ),
+      );
+
+      setSelectedTask((current) =>
+        current?.id === updatedTask.id
+          ? updatedTask
+          : current,
+      );
+
+      if (
+        variables.nextStatus === "done"
+      ) {
+        setPreviousStatuses(
+          (current) => ({
+            ...current,
+            [variables.task.id]:
+              variables.task.status,
+          }),
         );
-
-        /*
-         * Drawer açıksa onun gösterdiği görevi de
-         * güncel tutuyoruz.
-         */
-        setSelectedTask((current) =>
-          current?.id === updatedTask.id
-            ? updatedTask
-            : current,
-        );
-
-        if (
-          variables.nextStatus === "done"
-        ) {
-          setPreviousStatuses(
-            (current) => ({
+      } else {
+        setPreviousStatuses(
+          (current) => {
+            const next = {
               ...current,
-              [variables.task.id]:
-                variables.task.status,
-            }),
-          );
-        } else {
-          setPreviousStatuses(
-            (current) => {
-              const next = {
-                ...current,
-              };
+            };
 
-              delete next[
-                variables.task.id
-              ];
+            delete next[
+              variables.task.id
+            ];
 
-              return next;
-            },
-          );
-        }
-      },
+            return next;
+          },
+        );
+      }
+    },
 
-      onSettled: () => {
-        queryClient.invalidateQueries({
-          queryKey: ["tasks"],
-        });
-      },
-    });
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["tasks"],
+      });
+    },
+  });
 
   const myTasks = useMemo(() => {
     if (!user) {
@@ -227,13 +211,13 @@ export default function Dashboard() {
   const daysLeft =
     raceDate !== null
       ? Math.ceil(
-          (raceDate.getTime() -
-            today.getTime()) /
-            (1000 *
-              60 *
-              60 *
-              24),
-        )
+        (raceDate.getTime() -
+          today.getTime()) /
+        (1000 *
+          60 *
+          60 *
+          24),
+      )
       : null;
 
   const raceText =
@@ -248,22 +232,22 @@ export default function Dashboard() {
   const raceDateText =
     raceDate !== null
       ? raceDate.toLocaleDateString(
-          "tr-TR",
-          {
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-          },
-        )
+        "tr-TR",
+        {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        },
+      )
       : "Tarih belirtilmemiş";
 
   const completionRate =
     myTasks.length > 0
       ? Math.round(
-          (completedTasks.length /
-            myTasks.length) *
-            100,
-        )
+        (completedTasks.length /
+          myTasks.length) *
+        100,
+      )
       : 0;
 
   function scrollTo(
@@ -333,14 +317,12 @@ export default function Dashboard() {
     /*
      * Tamamlanmış görev -> eski durum
      *
-     * Eski durum bilinmiyorsa tahmin yapmıyoruz.
+     * Bu oturumda tamamlandıysa gerçek eski duruma,
+     * önceden tamamlanmışsa yapılacak durumuna döner.
      */
     const previousStatus =
-      previousStatuses[task.id];
-
-    if (!previousStatus) {
-      return;
-    }
+      previousStatuses[task.id] ??
+      "todo";
 
     toggleStatusMutation.mutate({
       task,
@@ -349,12 +331,10 @@ export default function Dashboard() {
   }
 
   function canUndoCompletion(
-    task: Task,
-  ) {
-    return Boolean(
-      previousStatuses[task.id],
-    );
-  }
+  task: Task,
+) {
+  return task.status === "done";
+}
 
   if (isLoading) {
     return (
@@ -590,11 +570,10 @@ export default function Dashboard() {
                       <button
                         type="button"
                         key={task.id}
-                        className={`pd-task-row ${
-                          isOverdue
+                        className={`pd-task-row ${isOverdue
                             ? "overdue"
                             : ""
-                        }`}
+                          }`}
                         onClick={() =>
                           setSelectedTask(
                             task,
@@ -622,9 +601,9 @@ export default function Dashboard() {
                           ) => {
                             if (
                               event.key ===
-                                "Enter" ||
+                              "Enter" ||
                               event.key ===
-                                " "
+                              " "
                             ) {
                               event.preventDefault();
                               event.stopPropagation();
@@ -711,59 +690,59 @@ export default function Dashboard() {
             {overdueTasks.length >
               0 && (
 
-              <div className="pd-panel">
+                <div className="pd-panel">
 
-                <div className="pd-panel-header">
-                  <h3 className="pd-danger">
-                    Dikkat Gerektirenler
-                  </h3>
-                </div>
+                  <div className="pd-panel-header">
+                    <h3 className="pd-danger">
+                      Dikkat Gerektirenler
+                    </h3>
+                  </div>
 
-                <div className="pd-overdue-list">
+                  <div className="pd-overdue-list">
 
-                  {overdueTasks.map(
-                    (task) => (
+                    {overdueTasks.map(
+                      (task) => (
 
-                      <button
-                        type="button"
-                        key={task.id}
-                        className="pd-overdue-row"
-                        onClick={() =>
-                          setSelectedTask(
-                            task,
-                          )
-                        }
-                      >
-                        <AlertCircle
-                          size={15}
-                        />
+                        <button
+                          type="button"
+                          key={task.id}
+                          className="pd-overdue-row"
+                          onClick={() =>
+                            setSelectedTask(
+                              task,
+                            )
+                          }
+                        >
+                          <AlertCircle
+                            size={15}
+                          />
 
-                        <div>
-                          <strong>
-                            {task.title}
-                          </strong>
+                          <div>
+                            <strong>
+                              {task.title}
+                            </strong>
 
-                          <span>
-                            Son Tarih:{" "}
-                            {task.due_date
-                              ? new Date(
+                            <span>
+                              Son Tarih:{" "}
+                              {task.due_date
+                                ? new Date(
                                   task.due_date,
                                 ).toLocaleDateString(
                                   "tr-TR",
                                 )
-                              : "-"}
-                          </span>
-                        </div>
-                      </button>
+                                : "-"}
+                            </span>
+                          </div>
+                        </button>
 
-                    ),
-                  )}
+                      ),
+                    )}
+
+                  </div>
 
                 </div>
 
-              </div>
-
-            )}
+              )}
 
             <div
               className="pd-panel"
@@ -776,8 +755,7 @@ export default function Dashboard() {
                 </h3>
               </div>
 
-              {completedTasks.length ===
-              0 ? (
+              {completedTasks.length === 0 ? (
 
                 <div className="pd-completed-empty">
 
@@ -826,15 +804,19 @@ export default function Dashboard() {
                               ? 0
                               : -1
                           }
-                          className={`pd-complete-toggle completed ${
-                            canUndo
+                          className={`pd-complete-toggle completed ${canUndo
                               ? "undoable"
-                              : ""
-                          }`}
+                              : "locked"
+                            }`}
                           title={
                             canUndo
                               ? "Tamamlanmayı geri al"
                               : "Tamamlandı"
+                          }
+                          aria-label={
+                            canUndo
+                              ? `${task.title} görevinin tamamlanmasını geri al`
+                              : `${task.title} tamamlandı`
                           }
                           onClick={(
                             event,
@@ -862,9 +844,9 @@ export default function Dashboard() {
 
                             if (
                               event.key ===
-                                "Enter" ||
+                              "Enter" ||
                               event.key ===
-                                " "
+                              " "
                             ) {
                               event.preventDefault();
                               event.stopPropagation();
@@ -910,14 +892,14 @@ export default function Dashboard() {
           onClose={() =>
             setSelectedTask(null)
           }
-          onEdit={() => {}}
-          onDelete={() => {}}
+          onEdit={() => { }}
+          onDelete={() => { }}
           onToggleComplete={
             handleToggleComplete
           }
           canUndoCompletion={
             selectedTask.status ===
-              "done" &&
+            "done" &&
             canUndoCompletion(
               selectedTask,
             )
