@@ -1,68 +1,196 @@
+import { useState } from "react";
 import {
-    CalendarDays,
-    MoreHorizontal,
+  CalendarDays,
+  MoreHorizontal,
 } from "lucide-react";
+
+import {
+  useSortable,
+} from "@dnd-kit/sortable";
+
+import {
+  CSS,
+} from "@dnd-kit/utilities";
 
 import type { Task } from "../../types/task";
 
 import "./TaskCard.css";
 
 type TaskCardProps = {
-    task: Task;
-    onClick: () => void;
+  task: Task;
+  onClick?: () => void;
+  onDelete?: () => void;
+  isOverlay?: boolean;
 };
 
 export default function TaskCard({
-    task,
-    onClick,
+  task,
+  onClick,
+  onDelete,
+  isOverlay = false,
 }: TaskCardProps) {
-    function formatDate(date: string) {
-        return new Intl.DateTimeFormat("tr-TR", {
-            day: "numeric",
-            month: "short",
-        }).format(new Date(date));
-    }
-    return (
-        <article className="task-card" onClick={onClick}>
-            <div className="task-top">
-                <span className="department">
-                    {task.department}
-                </span>
+  const [showMenu, setShowMenu] = useState(false);
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: task.id,
 
-                <button>
-                    <MoreHorizontal size={18} />
-                </button>
+    disabled: isOverlay,
+
+    data: {
+      type: "task",
+      task,
+    },
+
+    transition: {
+      duration: 190,
+      easing:
+        "cubic-bezier(0.22, 1, 0.36, 1)",
+    },
+  });
+
+  function formatDate(
+    date: string,
+  ) {
+    return new Intl.DateTimeFormat(
+      "tr-TR",
+      {
+        day: "numeric",
+        month: "short",
+      },
+    ).format(new Date(date));
+  }
+
+  const style:
+    React.CSSProperties | undefined =
+    isOverlay
+      ? undefined
+      : {
+        transform: isDragging
+          ? undefined
+          : CSS.Transform.toString(
+            transform,
+          ),
+
+        transition: isDragging
+          ? undefined
+          : transition ??
+          "transform 190ms cubic-bezier(0.22, 1, 0.36, 1)",
+      };
+
+  return (
+    <article
+      ref={
+        isOverlay
+          ? undefined
+          : setNodeRef
+      }
+      style={style}
+      className={`task-card ${isDragging
+          ? "task-card-dragging"
+          : ""
+        } ${isOverlay
+          ? "task-card-overlay"
+          : ""
+        }`}
+      onClick={onClick}
+      {...(!isOverlay
+        ? attributes
+        : {})}
+      {...(!isOverlay
+        ? listeners
+        : {})}
+    >
+      <div className="task-top">
+        <span className="department">
+          {task.unit?.name ??
+            "Birim yok"}
+        </span>
+
+        <div className="task-more-wrapper">
+          <button
+            type="button"
+            className="task-more-button"
+            onPointerDown={(event) =>
+              event.stopPropagation()
+            }
+            onClick={(event) => {
+              event.stopPropagation();
+              setShowMenu(!showMenu);
+            }}
+            aria-label="Görev seçenekleri"
+          >
+            <MoreHorizontal
+              size={18}
+            />
+          </button>
+          
+          {showMenu && !isOverlay && (
+            <div className="task-dropdown-menu">
+              <button 
+                type="button" 
+                className="task-dropdown-item delete-item" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowMenu(false);
+                  if (onDelete) onDelete();
+                }}
+              >
+                Sil
+              </button>
             </div>
+          )}
+        </div>
+      </div>
 
-            <h4>{task.title}</h4>
+      <h4>
+        {task.title}
+      </h4>
 
-            {task.priority && (
-                <span
-                    className={`priority priority-${task.priority}`}
-                >
-                    {task.priority === "high"
-                        ? "Yüksek Öncelik"
-                        : "Orta Öncelik"}
-                </span>
-            )}
+      <span
+        className={`priority priority-${task.priority}`}
+      >
+        {task.priority === "high"
+          ? "Yüksek Öncelik"
+          : task.priority ===
+            "medium"
+            ? "Orta Öncelik"
+            : "Düşük Öncelik"}
+      </span>
 
-            <div className="task-footer">
-                <span className="task-date">
-                    <CalendarDays size={15} />
-                    {formatDate(task.dueDate)}
-                </span>
+      <div className="task-footer">
+        <span className="task-date">
+          <CalendarDays
+            size={15}
+          />
 
-                <div className="avatars">
-                    {task.assignees.map((assignee) => (
-                        <span
-                            key={assignee.id}
-                            title={assignee.name}
-                        >
-                            {assignee.initials}
-                        </span>
-                    ))}
-                </div>
-            </div>
-        </article>
-    );
+          {formatDate(
+            task.due_date,
+          )}
+        </span>
+
+        <div className="avatars">
+          {task.assignees.map(
+            (assignee) => (
+              <span
+                key={assignee.id}
+                title={
+                  assignee.name
+                }
+              >
+                {
+                  assignee.initials
+                }
+              </span>
+            ),
+          )}
+        </div>
+      </div>
+    </article>
+  );
 }

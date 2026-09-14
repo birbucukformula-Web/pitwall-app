@@ -83,9 +83,17 @@
   color: #ffffff;
 
   border-radius: 50%;
+  overflow: hidden;
 
   font-size: 25px;
   font-weight: 800;
+}
+
+.profile-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 .profile-overview-card h3 {
@@ -306,6 +314,86 @@
   font-weight: 600;
 
   cursor: not-allowed;
+}
+
+.profile-theme-button--active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.profile-theme-button--active:hover {
+  opacity: 0.85;
+}
+
+/* AVATAR PICKER */
+
+.avatar-picker {
+  padding: 24px 28px 28px;
+  border-top: 1px solid var(--border);
+  background: var(--surface-soft);
+}
+
+.avatar-picker-title {
+  margin: 0 0 16px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.avatar-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 12px;
+}
+
+.avatar-picker-item {
+  position: relative;
+  aspect-ratio: 1;
+  padding: 0;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.avatar-picker-item:hover {
+  border-color: var(--accent);
+  transform: scale(1.08);
+}
+
+.avatar-picker-item.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.avatar-picker-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.avatar-picker-check {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 18px;
+  height: 18px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* RESPONSIVE */

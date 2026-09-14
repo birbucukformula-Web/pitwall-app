@@ -68,7 +68,7 @@ Bu bölüm projede alınmış tüm teknik kararların tek kaydıdır. Bir karar 
 | # | Karar | Gerekçe |
 |---|---|---|
 | 1 | Supabase **yalnızca yönetilen Postgres** olarak kullanılır | Supabase Auth, RLS ve Storage kullanılmıyor. Tek kimlik sistemi, çalışan Django admin, öğrenilecek tek yeni konu |
-| 2 | Kimlik doğrulama Django + `djangorestframework-simplejwt` | access 15 dk, refresh 7 gün |
+| 2 | Kimlik doğrulama Django + `djangorestframework-simplejwt` | access 15 dk, refresh 7 gün. Otomatik sessiz token yenileme (401 interceptor) ve e-posta/kullanıcı adı ile giriş desteklenir |
 | 3 | Bölge: **Frankfurt (eu-central)** — hem Supabase hem Render | Gecikme |
 | 4 | Bağlantı: **Supavisor session pooler**, port **5432** | Render ücretsiz servisleri IPv6 giden bağlantı desteklemiyor; Supabase'in `db.<ref>.supabase.co` direct adresi yalnızca IPv6. Doğrudan bağlantı **çalışmaz** |
 | 5 | Transaction pooler (`:6543`) kullanılmıyor | Prepared statement / server-side cursor sorunları çıkarır, `DISABLE_SERVER_SIDE_CURSORS` gibi ek ayar gerektirir. Eşzamanlılığımız düşük (2 worker), gerek yok. Bağlantı sayısı yetmezse buraya geçilir |
@@ -168,7 +168,9 @@ docker compose up -d
 cd backend && pip install -r requirements.txt && python manage.py migrate && python manage.py runserver
 ```
 
-Doğrulama: `curl http://localhost:8000/api/v1/health/` → `200 {"db":"ok"}`
+- Doğrulama: `curl http://localhost:8000/api/v1/health/` → `200 {"status":"healthy","service":"pitwall-backend"}`
+- Testler: `cd backend && python manage.py test`
+- Örnek Veri Yükleme: `cd backend && python manage.py seed_data`
 
 ---
 

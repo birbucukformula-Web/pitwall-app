@@ -12,7 +12,8 @@ import {
 import TaskDrawer from "../TaskDrawer/TaskDrawer";
 import ThemeToggle from "../ThemeToggle/ThemeToggle";
 
-import { mockTasks } from "../../data/mockTasks";
+import { useQuery } from "@tanstack/react-query";
+import { tasksApi } from "../../api/tasks";
 
 import type { Task } from "../../types/task";
 
@@ -30,11 +31,11 @@ type Notification = {
   unread: boolean;
 
   type:
-    | "task"
-    | "comment"
-    | "status"
-    | "announcement"
-    | "deadline";
+  | "task"
+  | "comment"
+  | "status"
+  | "announcement"
+  | "deadline";
 
   taskId?: number;
 };
@@ -182,24 +183,29 @@ export default function Header({
     setShowMobileSearch,
   ] = useState(false);
 
+  const { data: tasks = [] } = useQuery({
+    queryKey: ["tasks"],
+    queryFn: () => tasksApi.getTasks(),
+  });
+
   const searchResults =
     searchTerm.trim().length > 0
-      ? mockTasks.filter((task) => {
-          const search =
-            searchTerm.toLowerCase();
+      ? tasks.filter((task) => {
+        const search =
+          searchTerm.toLowerCase();
 
-          return (
-            task.title
-              .toLowerCase()
-              .includes(search) ||
-            task.project
-              .toLowerCase()
-              .includes(search) ||
-            task.department
-              .toLowerCase()
-              .includes(search)
-          );
-        })
+        return (
+          task.title
+            .toLowerCase()
+            .includes(search) ||
+          task.project?.name
+            .toLowerCase()
+            .includes(search) ||
+          task.unit?.name
+            .toLowerCase()
+            .includes(search)
+        );
+      })
       : [];
 
   const unreadCount =
@@ -215,9 +221,9 @@ export default function Header({
       previous.map((item) =>
         item.id === notification.id
           ? {
-              ...item,
-              unread: false,
-            }
+            ...item,
+            unread: false,
+          }
           : item,
       ),
     );
@@ -234,7 +240,7 @@ export default function Header({
     }
 
     if (notification.taskId) {
-      const task = mockTasks.find(
+      const task = tasks.find(
         (item) =>
           item.id ===
           notification.taskId,
@@ -353,11 +359,10 @@ export default function Header({
                     (notification) => (
                       <button
                         type="button"
-                        className={`notification-item ${
-                          notification.unread
+                        className={`notification-item ${notification.unread
                             ? "unread"
                             : ""
-                        }`}
+                          }`}
                         key={
                           notification.id
                         }
@@ -460,7 +465,7 @@ export default function Header({
               !showMobileSearch && (
                 <div className="search-results desktop-search-results">
                   {searchResults.length >
-                  0 ? (
+                    0 ? (
                     searchResults.map(
                       (task) => (
                         <button
@@ -482,14 +487,14 @@ export default function Header({
 
                             <span>
                               {
-                                task.project
+                                task.project?.name ?? "Proje yok"
                               }
                             </span>
                           </div>
 
                           <p>
                             {
-                              task.department
+                              task.unit?.name ?? "Birim yok"
                             }
                           </p>
                         </button>
@@ -559,13 +564,13 @@ export default function Header({
                         </strong>
 
                         <span>
-                          {task.project}
+                          {task.project?.name ?? "Proje yok"}
                         </span>
                       </div>
 
                       <p>
                         {
-                          task.department
+                          task.unit?.name ?? "Birim yok"
                         }
                       </p>
                     </button>

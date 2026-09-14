@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 
 import {
   Eye,
@@ -17,6 +18,7 @@ import "./Login.css";
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] =
@@ -28,7 +30,11 @@ export default function Login() {
   const [rememberMe, setRememberMe] =
     useState(false);
 
-  function handleSubmit(
+  const { login } = useAuth();
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  async function handleSubmit(
     event: React.FormEvent<HTMLFormElement>,
   ) {
     event.preventDefault();
@@ -37,14 +43,19 @@ export default function Login() {
       return;
     }
 
-    /*
-      ŞİMDİLİK MOCK LOGIN
+    setError("");
+    setIsLoading(true);
 
-      2. haftada burayı backend API'ye
-      bağlayacağız.
-    */
-
-    navigate("/dashboard");
+    try {
+      await login({ username: email, password });
+      
+      const from = location.state?.from?.pathname || "/dashboard";
+      navigate(from, { replace: true });
+    } catch (err: any) {
+      setError(err.message || "Giriş yapılamadı. Lütfen bilgilerinizi kontrol edin.");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -150,18 +161,18 @@ export default function Login() {
             {/* EMAIL */}
 
             <label className="login-field">
-              <span>E-posta</span>
+              <span>Kullanıcı Adı</span>
 
               <div className="login-input">
                 <Mail size={19} />
 
                 <input
-                  type="email"
+                  type="text"
                   value={email}
                   onChange={(event) =>
                     setEmail(event.target.value)
                   }
-                  placeholder="ornek@1bucukadana.com"
+                  placeholder="Kullanıcı adınızı girin (örn: testuser)"
                 />
               </div>
             </label>
@@ -233,6 +244,12 @@ export default function Login() {
               </button>
             </div>
 
+            {error && (
+              <div className="login-error" style={{ color: '#ff4d4f', fontSize: '14px', marginBottom: '16px', padding: '8px', backgroundColor: 'rgba(255,77,79,0.1)', borderRadius: '6px' }}>
+                {error}
+              </div>
+            )}
+
             {/* LOGIN */}
 
             <button
@@ -240,10 +257,11 @@ export default function Login() {
               className="login-submit"
               disabled={
                 !email.trim() ||
-                !password.trim()
+                !password.trim() ||
+                isLoading
               }
             >
-              GİRİŞ YAP
+              {isLoading ? "GİRİŞ YAPILIYOR..." : "GİRİŞ YAP"}
             </button>
           </form>
 
