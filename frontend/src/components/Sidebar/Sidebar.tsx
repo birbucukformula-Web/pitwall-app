@@ -185,15 +185,17 @@ export default function Sidebar({
               <span>Takvim</span>
             </NavLink>
 
-            <NavLink
-              to="/projects"
-              onClick={(e) => { handleOuterNavClick(e, '/projects'); }}
-              className={({ isActive }) => `outer-nav-item ${isActive ? "active" : ""}`}
+            <button
+              onClick={(e) => { 
+                e.preventDefault(); 
+                setIsInnerOpen(!isInnerOpen);
+              }}
+              className={`outer-nav-item ${isInnerOpen ? "active" : ""}`}
               title="Projeler"
             >
               <FolderKanban size={22} />
               <span>Projeler</span>
-            </NavLink>
+            </button>
 
             <NavLink
               to="/announcements"
@@ -305,7 +307,7 @@ export default function Sidebar({
               {units.map((unit: any) => (
                 <NavLink
                   key={unit.id}
-                  to={`/dashboard?unit=${unit.id}`}
+                  to={`/projects/${unit.id}`}
                   onClick={handleNavigation}
                   className={({ isActive }) => `inner-nav-item ${isActive ? "active" : ""}`}
                 >
@@ -327,7 +329,7 @@ export default function Sidebar({
             </div>
           </div>
           
-          <button className="new-project-btn" onClick={() => navigate('/projects')}>
+          <button className="new-project-btn" onClick={() => navigate('/')}>
             Yeni Proje Ekle <Plus size={16} />
           </button>
         </div>
