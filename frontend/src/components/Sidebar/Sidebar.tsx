@@ -85,33 +85,30 @@ export default function Sidebar({
 
   return (
     <div
-      className={`sidebar-container ${
-        isOpen ? "sidebar-open" : ""
-      }`}
+      className={`sidebar-container ${isOpen ? "sidebar-open" : ""
+        }`}
     >
       <aside className="outer-sidebar">
         <div className="outer-top">
-          <NavLink
-            to="/dashboard"
+          <div
             className="outer-brand"
-            aria-label="Ana Sayfa"
-            onClick={handleNavigation}
+            aria-label="Pitwall"
           >
             <img src={formulaLogo} alt="Pitwall" />
-          </NavLink>
+          </div>
 
           <nav className="outer-nav">
             <NavLink
               to="/dashboard"
               onClick={handleNavigation}
               className={({ isActive }) =>
-                `outer-nav-item ${
-                  isActive ? "active" : ""
+                `outer-nav-item ${isActive ? "active" : ""
                 }`
               }
-              title="Görev Panosu"
+              aria-label="Görev Panosu"
+              data-tooltip="Pano"
             >
-              <LayoutDashboard size={22} />
+              <LayoutDashboard size={21} />
               <span>Pano</span>
             </NavLink>
 
@@ -119,13 +116,13 @@ export default function Sidebar({
               to="/calendar"
               onClick={handleNavigation}
               className={({ isActive }) =>
-                `outer-nav-item ${
-                  isActive ? "active" : ""
+                `outer-nav-item ${isActive ? "active" : ""
                 }`
               }
-              title="Takvim"
+              aria-label="Takvim"
+              data-tooltip="Takvim"
             >
-              <CalendarDays size={22} />
+              <CalendarDays size={21} />
               <span>Takvim</span>
             </NavLink>
 
@@ -133,13 +130,13 @@ export default function Sidebar({
               to="/projects"
               onClick={handleNavigation}
               className={({ isActive }) =>
-                `outer-nav-item ${
-                  isActive ? "active" : ""
+                `outer-nav-item ${isActive ? "active" : ""
                 }`
               }
-              title="Projeler"
+              aria-label="Projeler"
+              data-tooltip="Projeler"
             >
-              <FolderKanban size={22} />
+              <FolderKanban size={21} />
               <span>Projeler</span>
             </NavLink>
 
@@ -147,13 +144,13 @@ export default function Sidebar({
               to="/announcements"
               onClick={handleNavigation}
               className={({ isActive }) =>
-                `outer-nav-item ${
-                  isActive ? "active" : ""
+                `outer-nav-item ${isActive ? "active" : ""
                 }`
               }
-              title="Duyurular"
+              aria-label="Duyurular"
+              data-tooltip="Duyurular"
             >
-              <Megaphone size={22} />
+              <Megaphone size={21} />
               <span>Duyuru</span>
             </NavLink>
 
@@ -161,13 +158,13 @@ export default function Sidebar({
               to="/profile"
               onClick={handleNavigation}
               className={({ isActive }) =>
-                `outer-nav-item ${
-                  isActive ? "active" : ""
+                `outer-nav-item ${isActive ? "active" : ""
                 }`
               }
-              title="Profil"
+              aria-label="Profil"
+              data-tooltip="Profil"
             >
-              <UserRound size={22} />
+              <UserRound size={21} />
               <span>Profil</span>
             </NavLink>
           </nav>
@@ -244,6 +241,7 @@ export default function Sidebar({
                   (prev) => !prev,
                 )
               }
+              aria-label="Profil menüsü"
             >
               <div className="outer-avatar">
                 {avatarSrc ? (
