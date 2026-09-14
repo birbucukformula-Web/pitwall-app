@@ -152,7 +152,7 @@
   color: #ffffff;
 
   background:
-    rgba(226, 29, 44, 0.22);
+    rgba(226, 29, 44, 0.15);
 }
 
 
@@ -165,7 +165,14 @@
 }
 
 .outer-nav-item.active svg {
-  color: #ff4a56;
+  color: #f04a54;
+}
+
+.outer-nav-item.active:hover {
+  background:
+    rgba(226, 29, 44, 0.18);
+
+  transform: none;
 }
 
 .outer-nav-item span {
