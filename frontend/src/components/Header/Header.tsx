@@ -214,7 +214,7 @@ export default function Header({
     if (
       path.startsWith("/projects/")
     ) {
-      return "Ekip Detayı";
+      return "Projeler";
     }
 
     if (

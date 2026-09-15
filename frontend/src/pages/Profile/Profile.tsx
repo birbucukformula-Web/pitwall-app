@@ -11,15 +11,15 @@ import { authApi } from "../../api/auth";
 import "./Profile.css";
 
 const AVATARS = [
-  { id: "red",    label: "#7 Kırmızı",     src: "/avatars/avatar_red.png" },
-  { id: "blue",   label: "#3 Mavi",        src: "/avatars/avatar_blue.png" },
-  { id: "black",  label: "#1 Siyah",       src: "/avatars/avatar_black.png" },
-  { id: "frog",   label: "Kurbağa",        src: "/avatars/avatar_frog.png" },
-  { id: "pink",   label: "Pembe Kalp",     src: "/avatars/avatar_pink.png" },
-  { id: "purple", label: "Mor Şimşek",     src: "/avatars/avatar_purple.png" },
-  { id: "yellow", label: "Sarı Damalı",    src: "/avatars/avatar_yellow.png" },
+  { id: "red", label: "#7 Kırmızı", src: "/avatars/avatar_red.png" },
+  { id: "blue", label: "#3 Mavi", src: "/avatars/avatar_blue.png" },
+  { id: "black", label: "#1 Siyah", src: "/avatars/avatar_black.png" },
+  { id: "frog", label: "Kurbağa", src: "/avatars/avatar_frog.png" },
+  { id: "pink", label: "Pembe Kalp", src: "/avatars/avatar_pink.png" },
+  { id: "purple", label: "Mor Şimşek", src: "/avatars/avatar_purple.png" },
+  { id: "yellow", label: "Sarı Damalı", src: "/avatars/avatar_yellow.png" },
   { id: "orange", label: "Turuncu Yıldız", src: "/avatars/avatar_orange.png" },
-  { id: "white",  label: "Beyaz",          src: "/avatars/avatar_white.png" },
+  { id: "white", label: "Beyaz", src: "/avatars/avatar_white.png" },
 ];
 
 const STORAGE_KEY = "pitwall_avatar";
@@ -58,14 +58,10 @@ export default function Profile() {
   return (
     <section className="profile-page">
       <div className="profile-page-header">
-        <div>
-          <span className="profile-page-label">HESAP</span>
-          <h2>Profilim</h2>
-          <p>
-            Hesap bilgilerini ve takım içindeki
-            profilini buradan görüntüleyebilirsin.
-          </p>
-        </div>
+        <p className="profile-page-description">
+          Hesap bilgilerini ve takım içindeki
+          profilini buradan görüntüleyebilirsin.
+        </p>
       </div>
 
       <div className="profile-layout">
