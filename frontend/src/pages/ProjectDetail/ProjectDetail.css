@@ -249,19 +249,6 @@
   margin: 0;
 }
 
-.progress-bar-bg {
-  height: 8px;
-  background: var(--surface-soft);
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.progress-bar-fill {
-  height: 100%;
-  background: var(--accent);
-  border-radius: 4px;
-}
-
 .dashboard-widgets {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -520,4 +507,405 @@
 .drag-overlay-wrapper {
   width: 320px;
   pointer-events: none;
+}
+
+/* =========================
+   PROJECT DASHBOARD
+========================= */
+
+.dashboard-progress-section {
+  margin-top: 20px;
+}
+
+/* =========================
+   PROJECT PROGRESS
+========================= */
+
+.dashboard-progress-section {
+  width: 100%;
+  margin-top: 20px;
+}
+
+.progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 10px;
+}
+
+.progress-header h3 {
+  margin: 0;
+
+  color: var(--text);
+
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.progress-percentage {
+  color: var(--text);
+
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.progress-bar-bg {
+  position: relative;
+
+  width: 100%;
+  height: 7px;
+
+  background: #ededed;
+
+  border: none;
+  border-radius: 999px;
+
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  position: absolute;
+
+  top: 0;
+  left: 0;
+
+  height: 100%;
+
+  background: var(--accent);
+
+  border-radius: 999px;
+
+  transition: width 0.3s ease;
+}
+
+[data-theme="dark"] .progress-bar-bg {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+
+/* =========================
+   DASHBOARD WIDGETS
+========================= */
+
+.dashboard-widgets {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1fr);
+
+  gap: 18px;
+
+  margin-top: 28px;
+
+  align-items: stretch;
+}
+
+.dashboard-widget {
+  min-width: 0;
+}
+
+.dashboard-widget h4 {
+  margin: 0 0 14px;
+
+  color: var(--text);
+
+  font-size: 15px;
+  font-weight: 650;
+}
+
+
+/* =========================
+   ACTIVITY PANEL
+========================= */
+
+.project-activity-list {
+  width: 100%;
+  height: 330px;
+
+  padding: 6px 20px;
+
+  background: var(--surface);
+
+  border: 1px solid var(--border);
+  border-radius: 10px;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.project-activity-list:hover {
+  scrollbar-color: var(--border) transparent;
+}
+
+.project-activity-list::-webkit-scrollbar {
+  width: 5px;
+}
+
+.project-activity-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.project-activity-list::-webkit-scrollbar-thumb {
+  background: transparent;
+
+  border-radius: 999px;
+}
+
+.project-activity-list:hover::-webkit-scrollbar-thumb {
+  background: var(--border);
+}
+
+
+/* =========================
+   ACTIVITY ROW
+========================= */
+
+.project-activity-item {
+  width: 100%;
+  min-height: 78px;
+
+  display: flex;
+  align-items: flex-start;
+
+  gap: 13px;
+
+  padding: 15px 0;
+
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.project-activity-item:last-child {
+  border-bottom: 0;
+}
+
+
+/* =========================
+   ACTIVITY AVATAR
+========================= */
+
+.project-activity-avatar {
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 36px;
+
+  margin-top: 1px;
+
+  background: var(--accent-soft);
+  color: var(--accent);
+
+  border: 1px solid rgba(226, 29, 44, 0.14);
+  border-radius: 50%;
+
+  font-size: 10px;
+  font-weight: 700;
+}
+
+
+/* =========================
+   ACTIVITY CONTENT
+========================= */
+
+.project-activity-content {
+  min-width: 0;
+
+  flex: 1;
+}
+
+.project-activity-heading {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: 5px;
+
+  line-height: 1.4;
+}
+
+.project-activity-heading strong {
+  color: var(--text);
+
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.project-activity-separator {
+  color: var(--text-muted);
+
+  font-size: 11px;
+}
+
+.project-activity-task-name {
+  min-width: 0;
+  max-width: 360px;
+
+  overflow: hidden;
+
+  color: var(--text-secondary);
+
+  font-size: 12px;
+  font-weight: 550;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.project-activity-description {
+  margin-top: 4px;
+
+  color: var(--text-secondary);
+
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.project-activity-date {
+  display: block;
+
+  margin-top: 5px;
+
+  color: var(--text-muted);
+
+  font-size: 10px;
+  font-weight: 450;
+}
+
+
+/* =========================
+   BUDGET PLACEHOLDER
+========================= */
+
+.dashboard-widget.placeholder-widget .empty-state {
+  height: 330px;
+  min-height: 330px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  padding: 28px;
+
+  background: var(--surface);
+
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+
+  text-align: center;
+}
+
+.dashboard-widget.placeholder-widget .empty-state svg {
+  color: var(--text-secondary);
+}
+
+.dashboard-widget.placeholder-widget .empty-state p {
+  margin: 12px 0 0;
+
+  color: var(--text-secondary);
+
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+
+/* =========================
+   TABLET
+========================= */
+
+@media (max-width: 1000px) {
+  .dashboard-widgets {
+    grid-template-columns: 1fr;
+
+    gap: 24px;
+  }
+
+  .project-activity-list,
+  .dashboard-widget.placeholder-widget .empty-state {
+    height: 300px;
+    min-height: 300px;
+  }
+}
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 760px) {
+  .dashboard-progress-section {
+    margin-top: 18px;
+  }
+
+  .progress-header h3 {
+    font-size: 14px;
+  }
+
+  .progress-percentage {
+    font-size: 13px;
+  }
+
+  .dashboard-widgets {
+    margin-top: 22px;
+
+    gap: 22px;
+  }
+
+  .dashboard-widget h4 {
+    margin-bottom: 12px;
+
+    font-size: 14px;
+  }
+
+  .project-activity-list {
+    height: 280px;
+
+    padding: 4px 14px;
+  }
+
+  .project-activity-item {
+    min-height: 74px;
+
+    gap: 11px;
+
+    padding: 13px 0;
+  }
+
+  .project-activity-avatar {
+    width: 32px;
+    height: 32px;
+
+    flex-basis: 32px;
+
+    font-size: 9px;
+  }
+
+  .project-activity-heading strong,
+  .project-activity-task-name {
+    font-size: 11px;
+  }
+
+  .project-activity-description {
+    font-size: 10px;
+  }
+
+  .project-activity-date {
+    font-size: 9px;
+  }
+
+  .dashboard-widget.placeholder-widget .empty-state {
+    height: 240px;
+    min-height: 240px;
+  }
 }
