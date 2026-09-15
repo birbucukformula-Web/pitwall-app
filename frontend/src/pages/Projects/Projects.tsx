@@ -83,29 +83,17 @@ export default function Projects() {
     <section className="projects-page">
       <div className="projects-inner">
 
-        <div className="projects-header">
-          <h2>
-            Projeler & Takımlar
-          </h2>
-
-          <p>
-            Dahil olduğun takımların
-            projelerini ve çalışma
-            alanlarını buradan
-            görüntüleyebilirsin.
-          </p>
-        </div>
-
         <div className="projects-section-header">
-
           <div>
-            <h3>
+            <h2>
               Takımlarım
-            </h3>
+            </h2>
 
             <p>
-              Dahil olduğun takım veya
-              takımları görüntüle.
+              Dahil olduğun takımların
+              projelerini ve çalışma
+              alanlarını buradan
+              görüntüleyebilirsin.
             </p>
           </div>
 
@@ -114,11 +102,9 @@ export default function Projects() {
               {myUnits.length} Takım
             </span>
           )}
-
         </div>
 
         {myUnits.length === 0 ? (
-
           <div className="projects-empty">
 
             <div className="projects-empty-icon">
@@ -137,9 +123,7 @@ export default function Projects() {
             </span>
 
           </div>
-
         ) : (
-
           <div className="teams-grid">
 
             {myUnits.map((unit) => {
@@ -202,7 +186,6 @@ export default function Projects() {
                     </div>
 
                     <div className="team-card-meta">
-
                       <span>
                         {projectCount} proje
                       </span>
@@ -212,7 +195,6 @@ export default function Projects() {
                       <span>
                         {activeTaskCount} aktif görev
                       </span>
-
                     </div>
 
                   </div>
@@ -228,7 +210,6 @@ export default function Projects() {
             })}
 
           </div>
-
         )}
 
       </div>

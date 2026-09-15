@@ -1,5 +1,9 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+
+import {
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 
 import {
   Bell,
@@ -31,11 +35,11 @@ type Notification = {
   unread: boolean;
 
   type:
-  | "task"
-  | "comment"
-  | "status"
-  | "announcement"
-  | "deadline";
+    | "task"
+    | "comment"
+    | "status"
+    | "announcement"
+    | "deadline";
 
   taskId?: number;
 };
@@ -155,6 +159,7 @@ export default function Header({
   onMenuClick,
 }: HeaderProps) {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [
     showNotifications,
@@ -188,24 +193,65 @@ export default function Header({
     queryFn: () => tasksApi.getTasks(),
   });
 
+  /*
+   * Sayfa başlığı route'a göre otomatik değişir.
+   */
+  const pageTitle = (() => {
+    const path = location.pathname;
+
+    if (path === "/dashboard") {
+      return "Görev Panosu";
+    }
+
+    if (path === "/calendar") {
+      return "Takvim";
+    }
+
+    if (path === "/projects") {
+      return "Projeler";
+    }
+
+    if (
+      path.startsWith("/projects/")
+    ) {
+      return "Ekip Detayı";
+    }
+
+    if (
+      path === "/announcements"
+    ) {
+      return "Duyurular";
+    }
+
+    if (path === "/profile") {
+      return "Profil";
+    }
+
+    if (path === "/settings") {
+      return "Ayarlar";
+    }
+
+    return "Pitwall";
+  })();
+
   const searchResults =
     searchTerm.trim().length > 0
       ? tasks.filter((task) => {
-        const search =
-          searchTerm.toLowerCase();
+          const search =
+            searchTerm.toLowerCase();
 
-        return (
-          task.title
-            .toLowerCase()
-            .includes(search) ||
-          task.project?.name
-            .toLowerCase()
-            .includes(search) ||
-          task.unit?.name
-            .toLowerCase()
-            .includes(search)
-        );
-      })
+          return (
+            task.title
+              .toLowerCase()
+              .includes(search) ||
+            task.project?.name
+              .toLowerCase()
+              .includes(search) ||
+            task.unit?.name
+              .toLowerCase()
+              .includes(search)
+          );
+        })
       : [];
 
   const unreadCount =
@@ -221,9 +267,9 @@ export default function Header({
       previous.map((item) =>
         item.id === notification.id
           ? {
-            ...item,
-            unread: false,
-          }
+              ...item,
+              unread: false,
+            }
           : item,
       ),
     );
@@ -235,7 +281,6 @@ export default function Header({
       "announcement"
     ) {
       navigate("/announcements");
-
       return;
     }
 
@@ -295,7 +340,7 @@ export default function Header({
             </p>
 
             <h1>
-              Görev Panosu
+              {pageTitle}
             </h1>
           </div>
         </div>
@@ -359,10 +404,11 @@ export default function Header({
                     (notification) => (
                       <button
                         type="button"
-                        className={`notification-item ${notification.unread
+                        className={`notification-item ${
+                          notification.unread
                             ? "unread"
                             : ""
-                          }`}
+                        }`}
                         key={
                           notification.id
                         }
@@ -465,7 +511,7 @@ export default function Header({
               !showMobileSearch && (
                 <div className="search-results desktop-search-results">
                   {searchResults.length >
-                    0 ? (
+                  0 ? (
                     searchResults.map(
                       (task) => (
                         <button
@@ -487,14 +533,16 @@ export default function Header({
 
                             <span>
                               {
-                                task.project?.name ?? "Proje yok"
+                                task.project?.name ??
+                                "Proje yok"
                               }
                             </span>
                           </div>
 
                           <p>
                             {
-                              task.unit?.name ?? "Birim yok"
+                              task.unit?.name ??
+                              "Birim yok"
                             }
                           </p>
                         </button>
@@ -564,14 +612,14 @@ export default function Header({
                         </strong>
 
                         <span>
-                          {task.project?.name ?? "Proje yok"}
+                          {task.project?.name ??
+                            "Proje yok"}
                         </span>
                       </div>
 
                       <p>
-                        {
-                          task.unit?.name ?? "Birim yok"
-                        }
+                        {task.unit?.name ??
+                          "Birim yok"}
                       </p>
                     </button>
                   ),
