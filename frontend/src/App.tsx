@@ -21,6 +21,7 @@ import Login from "./pages/Login/Login";
 
 const Dashboard = lazy(() => import("./pages/Dashboard/Dashboard"));
 const Calendar = lazy(() => import("./pages/Calendar/Calendar"));
+const Projects = lazy(() => import("./pages/Projects/Projects"));
 
 const ProjectDetail = lazy(() => import("./pages/ProjectDetail/ProjectDetail"));
 const Announcements = lazy(() => import("./pages/Announcements/Announcements"));
@@ -70,6 +71,7 @@ function AppLayout() {
             <Routes>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/calendar" element={<Calendar />} />
+              <Route path="/projects" element={<Projects />} />
 
               <Route path="/projects/:projectId" element={<ProjectDetail />} />
               <Route path="/announcements" element={<Announcements />} />

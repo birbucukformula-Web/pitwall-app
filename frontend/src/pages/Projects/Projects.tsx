@@ -1,169 +1,236 @@
 import {
   ArrowRight,
-  FolderKanban,
   Users,
 } from "lucide-react";
 
 import "./Projects.css";
 
+import { useMemo } from "react";
+
 import { useNavigate } from "react-router-dom";
+
 import { useQuery } from "@tanstack/react-query";
+
 import { metadataApi } from "../../api/metadata";
 import { tasksApi } from "../../api/tasks";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function Projects() {
   const navigate = useNavigate();
 
-  const { data: apiProjects = [], isLoading: isProjectsLoading } = useQuery({
-    queryKey: ["projects"],
-    queryFn: () => metadataApi.getProjects(),
+  const { user } = useAuth();
+
+  const {
+    data: units = [],
+    isLoading: isUnitsLoading,
+  } = useQuery({
+    queryKey: ["units"],
+    queryFn: () =>
+      metadataApi.getUnits(),
   });
 
-  const { data: tasks = [] } = useQuery({
+  const {
+    data: tasks = [],
+    isLoading: isTasksLoading,
+  } = useQuery({
     queryKey: ["tasks"],
-    queryFn: () => tasksApi.getTasks(),
+    queryFn: () =>
+      tasksApi.getTasks(),
   });
 
-  const projects = apiProjects.map((p) => {
-    const projectTasks = tasks.filter((t) => t.project?.id === p.id);
-    const totalTasks = projectTasks.length;
-    const completedTasks = projectTasks.filter((t) => t.status === "done").length;
+  const myUnitIds = useMemo(() => {
+    if (!user) {
+      return new Set<number>();
+    }
 
-    const memberInitials = Array.from(
-      new Set(
-        projectTasks.flatMap((t) => t.assignees?.map((a) => a.initials) || [])
+    const ids = tasks
+      .filter((task) =>
+        task.assignees?.some(
+          (assignee) =>
+            assignee.id === user.id,
+        ),
       )
-    ).slice(0, 4);
+      .map((task) => task.unit?.id)
+      .filter(
+        (id): id is number =>
+          typeof id === "number",
+      );
 
-    return {
-      id: p.id,
-      name: p.name,
-      description: p.description || "Açıklama belirtilmemiş.",
-      totalTasks,
-      completedTasks,
-      members: memberInitials,
-    };
-  });
+    return new Set(ids);
+  }, [tasks, user]);
+
+  const myUnits = useMemo(() => {
+    return units.filter((unit) =>
+      myUnitIds.has(unit.id),
+    );
+  }, [units, myUnitIds]);
+
+  const isLoading =
+    isUnitsLoading ||
+    isTasksLoading;
+
+  if (isLoading) {
+    return (
+      <section className="projects-page">
+        <div className="projects-loading">
+          Takımlar yükleniyor...
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="projects-page">
-      <div className="projects-header">
-        <div>
-          <h2>Projeler</h2>
+      <div className="projects-inner">
+
+        <div className="projects-header">
+          <h2>
+            Projeler & Takımlar
+          </h2>
 
           <p>
-            Dahil olduğun projeleri ve ilerleme durumlarını
-            buradan takip edebilirsin.
+            Dahil olduğun takımların
+            projelerini ve çalışma
+            alanlarını buradan
+            görüntüleyebilirsin.
           </p>
         </div>
-      </div>
 
-      <div className="projects-grid">
-        {projects.length === 0 && !isProjectsLoading && (
-          <div style={{ gridColumn: "1 / -1", padding: "40px", color: "var(--text-secondary)", textAlign: "center" }}>
-            Henüz kayıtlı bir proje bulunmuyor.
+        <div className="projects-section-header">
+
+          <div>
+            <h3>
+              Takımlarım
+            </h3>
+
+            <p>
+              Dahil olduğun takım veya
+              takımları görüntüle.
+            </p>
           </div>
-        )}
-        {projects.map((project) => {
-          const progress = project.totalTasks > 0
-            ? Math.round((project.completedTasks / project.totalTasks) * 100)
-            : 0;
 
-          return (
-            <article
-              className="project-card"
-              key={project.id}
-            >
-              <div className="project-card-top">
-                <div className="project-icon">
-                  <FolderKanban size={21} />
-                </div>
+          {myUnits.length > 0 && (
+            <span className="projects-team-count">
+              {myUnits.length} Takım
+            </span>
+          )}
 
-                <span className="project-status">
-                  Aktif
-                </span>
-              </div>
+        </div>
 
-              <div className="project-content">
-                <h3>{project.name}</h3>
+        {myUnits.length === 0 ? (
 
-                <p>{project.description}</p>
-              </div>
+          <div className="projects-empty">
 
-              <div className="project-progress-section">
-                <div className="project-progress-header">
-                  <span>İlerleme</span>
+            <div className="projects-empty-icon">
+              <Users size={23} />
+            </div>
 
-                  <strong>
-                    %{progress}
-                  </strong>
-                </div>
+            <strong>
+              Henüz bir takıma bağlı
+              görevin bulunmuyor.
+            </strong>
 
-                <div className="project-progress">
-                  <div
-                    className="project-progress-value"
-                    style={{
-                      width: `${progress}%`,
-                    }}
-                  />
-                </div>
-              </div>
+            <span>
+              Bir takıma görev
+              atandığında burada
+              görüntülenecek.
+            </span>
 
-              <div className="project-stats">
-                <div>
-                  <strong>
-                    {project.totalTasks}
-                  </strong>
+          </div>
 
-                  <span>Toplam görev</span>
-                </div>
+        ) : (
 
-                <div>
-                  <strong>
-                    {project.completedTasks}
-                  </strong>
+          <div className="teams-grid">
 
-                  <span>Tamamlandı</span>
-                </div>
+            {myUnits.map((unit) => {
 
-                <div>
-                  <strong>
-                    {project.totalTasks -
-                      project.completedTasks}
-                  </strong>
+              const unitTasks =
+                tasks.filter(
+                  (task) =>
+                    task.unit?.id ===
+                    unit.id,
+                );
 
-                  <span>Kalan</span>
-                </div>
-              </div>
+              const activeTaskCount =
+                unitTasks.filter(
+                  (task) =>
+                    task.status !==
+                    "done",
+                ).length;
 
-              <div className="project-footer">
-                <div className="project-members">
-                  <Users size={15} />
+              const projectIds =
+                new Set(
+                  unitTasks
+                    .map(
+                      (task) =>
+                        task.project?.id,
+                    )
+                    .filter(
+                      (
+                        id,
+                      ): id is number =>
+                        typeof id ===
+                        "number",
+                    ),
+                );
 
-                  <div className="project-avatars">
-                    {project.members.map(
-                      (member) => (
-                        <span key={member}>
-                          {member}
-                        </span>
-                      ),
-                    )}
-                  </div>
-                </div>
+              const projectCount =
+                projectIds.size;
 
+              return (
                 <button
-                  className="project-open-button"
+                  type="button"
+                  className="team-card"
+                  key={unit.id}
                   onClick={() =>
-                    navigate(`/projects/${project.id}`)
+                    navigate(
+                      `/projects/${unit.id}`,
+                    )
                   }
                 >
-                  Projeyi Aç
-                  <ArrowRight size={16} />
+
+                  <div className="team-card-icon">
+                    <Users size={22} />
+                  </div>
+
+                  <div className="team-card-content">
+
+                    <div className="team-card-title-row">
+                      <h3>
+                        {unit.name}
+                      </h3>
+                    </div>
+
+                    <div className="team-card-meta">
+
+                      <span>
+                        {projectCount} proje
+                      </span>
+
+                      <i />
+
+                      <span>
+                        {activeTaskCount} aktif görev
+                      </span>
+
+                    </div>
+
+                  </div>
+
+                  <div className="team-card-arrow">
+                    <ArrowRight
+                      size={18}
+                    />
+                  </div>
+
                 </button>
-              </div>
-            </article>
-          );
-        })}
+              );
+            })}
+
+          </div>
+
+        )}
+
       </div>
     </section>
   );
