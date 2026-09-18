@@ -135,6 +135,22 @@ Bu bölüm projede alınmış tüm teknik kararların tek kaydıdır. Bir karar 
 | 46 | **Backend kapsamı kilitli**, frontend kapsamı açık | Frontend ekibi arayüz tarafında istediği sayfayı/özelliği ekleyebilir. Ancak **backend desteği gerektiren her ek Faz 2'dir** ve MVP bitmeden başlanmaz |
 | 47 | Yedek: **haftalık `pg_dump`** | Supabase ücretsiz planda otomatik yedek garantisi yok. Yedek, geri yüklenene kadar yedek değildir — en az bir kez lokale geri yüklenerek denenir |
 
+### Faz 2 Kararları (Yetki ve Hiyerarşi)
+
+**Kapsam:** Faz 2 sadece Yazılım Departmanı'nı (Oyun, Web, Gömülü, Gömülü_teknofest, Gömülü_FSAE) kapsar. Diğer 3 departman (Elektrik, Mekanik, Bando) ve başka takımların kendi kurulumunu yapabilmesi bu fazın dışındadır (sırasıyla Faz 3 ve Faz 4).
+
+**Birim hiyerarşisi:** `Unit` modeline `parent` (self-FK, `null=True`) eklenir. Derinlik sınırsızdır. Yetki hesaplaması özyinelemeli yapılır: bir kişinin erişimi bağlı olduğu `Unit` + o `Unit`'in tüm alt ağacını kapsar.
+
+**Rol matrisi:**
+
+| Rol | Görünürlük | Görev oluştur/ata/sil | Durum değiştir | Yorum |
+|---|---|---|---|---|
+| `captain` | Tüm organizasyon, koşulsuz | ✓ | ✓ | ✓ |
+| `lead` | Kendi Unit'i + alt ağacı | ✓ (kendi ağacında) | ✓ (kendi ağacında) | ✓ |
+| `member` | Kendi Unit'i + alt ağacı | ✗ | ✗ | ✓ |
+
+`lead` rolü hiyerarşinin her seviyesinde aynı şekilde çalışır — departman kaptanı da alt birim kaptanı da teknik olarak `lead`'dir, tek fark bağlı oldukları `Unit`'in ağaç büyüklüğü.
+
 ---
 
 ## Faz 2 (yarış sonrası — menüde "yakında")
