@@ -69,3 +69,81 @@ class AccountTests(TestCase):
         self.assertEqual(refresh_response.status_code, status.HTTP_200_OK)
         self.assertIn('access', refresh_response.data)
 
+    def test_presence_ping_updates_last_seen_and_returns_count(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post('/api/v1/presence/ping/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(len(response.data['users']), 1)
+        self.assertEqual(response.data['users'][0]['username'], 'testuser')
+
+        self.user.refresh_from_db()
+        self.assertIsNotNone(self.user.last_seen_at)
+
+    def test_presence_organization_isolation(self):
+        from django.utils import timezone
+        from datetime import timedelta
+
+        # Aynı organizasyonda ikinci bir kullanıcı
+        user2 = User.objects.create_user(
+            username="teammate",
+            email="teammate@pitwall.app",
+            password="pitwall123",
+            organization=self.org,
+            last_seen_at=timezone.now()
+        )
+
+        # Farklı organizasyonda bir kullanıcı
+        other_org = Organization.objects.create(name="Other Team", slug="other-team")
+        user3 = User.objects.create_user(
+            username="rival",
+            email="rival@pitwall.app",
+            password="pitwall123",
+            organization=other_org,
+            last_seen_at=timezone.now()
+        )
+
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post('/api/v1/presence/ping/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Sadece self.user ve user2 görünmeli (2 kişi)
+        self.assertEqual(response.data['count'], 2)
+        usernames = [u['username'] for u in response.data['users']]
+        self.assertIn('testuser', usernames)
+        self.assertIn('teammate', usernames)
+        self.assertNotIn('rival', usernames)
+
+    def test_presence_offline_threshold(self):
+        from django.utils import timezone
+        from datetime import timedelta
+
+        # Süresi dolmuş (inaktif) kullanıcı
+        old_user = User.objects.create_user(
+            username="inactive_user",
+            email="inactive@pitwall.app",
+            password="pitwall123",
+            organization=self.org,
+            last_seen_at=timezone.now() - timedelta(minutes=10)
+        )
+
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post('/api/v1/presence/ping/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # inactive_user sayılmamalı
+        usernames = [u['username'] for u in response.data['users']]
+        self.assertNotIn('inactive_user', usernames)
+
+    def test_presence_leave_clears_last_seen(self):
+        from django.utils import timezone
+        self.user.last_seen_at = timezone.now()
+        self.user.save()
+
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post('/api/v1/presence/leave/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['status'], 'left')
+
+        self.user.refresh_from_db()
+        self.assertIsNone(self.user.last_seen_at)
+
+

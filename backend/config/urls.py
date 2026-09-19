@@ -7,6 +7,7 @@ from drf_spectacular.utils import extend_schema, inline_serializer
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework import serializers
 from apps.accounts.views import MemberListView
+from apps.accounts.presence_views import PresencePingView, PresenceLeaveView
 
 
 @extend_schema(
@@ -39,6 +40,8 @@ urlpatterns = [
     # API Endpoint'leri
     path('api/v1/auth/', include('apps.accounts.urls')),
     path('api/v1/members/', MemberListView.as_view(), name='members'),
+    path('api/v1/presence/ping/', PresencePingView.as_view(), name='presence-ping'),
+    path('api/v1/presence/leave/', PresenceLeaveView.as_view(), name='presence-leave'),
     path('api/v1/', include('apps.organizations.urls')),
     path('api/v1/', include('apps.tasks.urls')),
 
