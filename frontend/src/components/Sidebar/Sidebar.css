@@ -155,7 +155,6 @@
     rgba(226, 29, 44, 0.15);
 }
 
-
 .outer-nav-item.active::before {
   opacity: 1;
 
@@ -255,7 +254,7 @@
 }
 
 /* =====================================
-   PROFILE
+   PROFILE & PRESENCE
 ===================================== */
 
 .outer-bottom {
@@ -264,7 +263,9 @@
   width: 100%;
 
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
 
   padding-top: 14px;
 
@@ -282,6 +283,7 @@
 }
 
 .outer-profile-btn {
+  position: relative;
   padding: 0;
 
   background: transparent;
@@ -291,6 +293,19 @@
   border-radius: 50%;
 
   cursor: pointer;
+}
+
+.outer-avatar-status {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  background-color: #22c55e;
+  border: 2px solid #0a0a0a;
+  border-radius: 50%;
+  box-shadow: 0 0 5px rgba(34, 197, 94, 0.6);
+  z-index: 2;
 }
 
 .outer-avatar {

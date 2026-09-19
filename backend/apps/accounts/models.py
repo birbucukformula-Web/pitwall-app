@@ -20,6 +20,11 @@ class User(AbstractUser):
         choices=Role.choices,
         default=Role.MEMBER
     )
+    last_seen_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        db_index=True
+    )
 
     def __str__(self):
         return f"{self.username} ({self.get_role_display()})"
