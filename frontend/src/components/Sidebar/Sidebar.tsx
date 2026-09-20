@@ -16,6 +16,8 @@ import {
 } from "react-router-dom";
 
 import { useAuth } from "../../contexts/AuthContext";
+import { presenceApi } from "../../api/presence";
+import ActiveUsersWidget from "../ActiveUsersWidget/ActiveUsersWidget";
 
 import formulaLogo from "../../assets/logo-yazisiz.jpg";
 
@@ -76,9 +78,10 @@ export default function Sidebar({
     navigate(path);
   }
 
-  function handleLogout() {
+  async function handleLogout() {
     setShowProfileMenu(false);
     onClose();
+    await presenceApi.leave();
     logout();
     navigate("/login");
   }
@@ -171,6 +174,8 @@ export default function Sidebar({
         </div>
 
         <div className="outer-bottom">
+          <ActiveUsersWidget />
+
           <div className="profile-wrapper">
             {showProfileMenu && (
               <div className="profile-menu profile-menu-outer">
@@ -253,6 +258,7 @@ export default function Sidebar({
                   initials
                 )}
               </div>
+              <span className="outer-avatar-status" />
             </button>
           </div>
         </div>

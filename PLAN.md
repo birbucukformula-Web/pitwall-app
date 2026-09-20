@@ -89,16 +89,16 @@ güncellenir, sonra kod yazılır.
 
 ---
 
-### Adım 0 — Altyapı doğrulama · **engelleyici** · Süleyman + Rumeysa
+### ✅ Adım 0 — Altyapı doğrulama · *tamamlandı*
 
 Bu çalışmadan aşağıdaki hiçbir adımın anlamı yok. Diğer her şeyden önce yapılır.
 
-- [ ] Supabase projesi açılır — **Frankfurt (eu-central)**, DB şifresi kaydedilir
-- [ ] Panelde **Connect → Session pooler** sekmesinden bağlantı adresi alınır
+- [x] Supabase projesi açılır — **Frankfurt (eu-central)**, DB şifresi kaydedilir
+- [x] Panelde **Connect → Session pooler** sekmesinden bağlantı adresi alınır
       (`...pooler.supabase.com:5432` — `db.<ref>.supabase.co` **değil**)
-- [ ] Render Web Service açılır — **Frankfurt**, `DATABASE_URL` env'e girilir
-- [ ] UptimeRobot hesabı açılır (monitör Adım 5'te kurulacak)
-- [ ] `docker-compose.yml` yazılır (Postgres 16), herkeste lokal DB ayağa kalkar
+- [x] Render Web Service açılır — **Frankfurt**, `DATABASE_URL` env'e girilir
+- [x] UptimeRobot hesabı açılır (monitör Adım 5'te kurulacak)
+- [x] `docker-compose.yml` yazılır (Postgres 16), herkeste lokal DB ayağa kalkar
 
 **Bitti sayılır:** Boş bir Django uygulaması Render'dan Supabase'e bağlanıp
 `python manage.py migrate` çalıştırıyor. Deploy logunda görülüyor.
@@ -149,25 +149,25 @@ girilebiliyor. MVP'de kayıt ekranı yok — kullanıcıları kaptan buradan ekl
 
 ---
 
-### Adım 5 — Backend canlıda · Süleyman + Rumeysa
+### ✅ Adım 5 — Backend canlıda · *tamamlandı*
 
-- [ ] `render.yaml`; start komutu:
+- [x] `render.yaml`; start komutu:
       `python manage.py migrate --noinput && gunicorn config.wsgi --workers 2 --threads 2 --timeout 60`
-- [ ] Env değişkenleri Render panelinde (`SECRET_KEY`, `DATABASE_URL`, ...)
-- [ ] **UptimeRobot monitörü:** 5 dakikada bir `https://<servis>.onrender.com/api/v1/health/`
-- [ ] `.github/workflows/ci.yml`: PR'da `pytest` + `ruff` + frontend `tsc --noEmit` + `eslint`
-- [ ] Canlıda `createsuperuser` çalıştırılıp admin'e giriş denenir
+- [x] Env değişkenleri Render panelinde (`SECRET_KEY`, `DATABASE_URL`, ...)
+- [x] **UptimeRobot monitörü:** 5 dakikada bir `https://<servis>.onrender.com/api/v1/health/`
+- [x] `.github/workflows/ci.yml`: PR'da `pytest` + `ruff` + frontend `tsc --noEmit` + `eslint`
+- [x] Canlıda `createsuperuser` çalıştırılıp admin'e giriş denenir
 
 **Bitti sayılır:** Canlı `/api/v1/health/` 200 dönüyor **ve** canlı Django admin'e
 giriş yapılabiliyor. Admin girişi CSRF hatası verirse `CSRF_TRUSTED_ORIGINS` eksiktir.
 
 ---
 
-### Adım 6 — Sözleşme dondurulur · Yasemin
+### ✅ Adım 6 — Sözleşme dondurulur · *tamamlandı*
 
-- [ ] `drf-spectacular` kurulu, `/api/schema/` açılıyor
-- [ ] `docs/API.md` — yukarıdaki tablo + her endpoint'in örnek istek/yanıtı
-- [ ] Ekip okur ve onaylar
+- [x] `drf-spectacular` kurulu, `/api/schema/` açılıyor
+- [x] `docs/API.md` — yukarıdaki tablo + her endpoint'in örnek istek/yanıtı
+- [x] Ekip okur ve onaylar
 
 **Bitti sayılır:** Sözleşme yayında. **Bu andan sonra frontend hattı başlar.**
 
@@ -227,12 +227,12 @@ giriş yapılabiliyor. Admin girişi CSRF hatası verirse `CSRF_TRUSTED_ORIGINS`
 
 ---
 
-### Adım 11 — Frontend canlıda · Süleyman + Rumeysa
+### ✅ Adım 11 — Frontend canlıda · *tamamlandı*
 
-- [ ] Render Static Site (`frontend/`, build `npm run build`, publish `dist`)
-- [ ] `VITE_API_URL` env'i
-- [ ] **`/*` → `/index.html` rewrite kuralı** — bu olmadan `/dashboard` yenilenince 404
-- [ ] `CORS_ALLOWED_ORIGINS` frontend domainiyle güncellenir
+- [x] Render Static Site (`frontend/`, build `npm run build`, publish `dist`)
+- [x] `VITE_API_URL` env'i
+- [x] **`/*` → `/index.html` rewrite kuralı** — bu olmadan `/dashboard` yenilenince 404
+- [x] `CORS_ALLOWED_ORIGINS` frontend domainiyle güncellenir
 
 **Bitti sayılır:** Canlı adresten giriş yapılıp gerçek görevler görülüyor, tarayıcı
 konsolunda CORS hatası yok, `/dashboard`'da F5 çalışıyor.
@@ -269,24 +269,24 @@ konsolunda CORS hatası yok, `/dashboard`'da F5 çalışıyor.
 
 ---
 
-### Adım 15 — Yayın hazırlığı · herkes
+### ✅ Adım 15 — Yayın hazırlığı · *tamamlandı*
 
-- [ ] Prod ayarları son kontrol: `DEBUG=False`, `ALLOWED_HOSTS`, `SECURE_SSL_REDIRECT`,
+- [x] Prod ayarları son kontrol: `DEBUG=False`, `ALLOWED_HOSTS`, `SECURE_SSL_REDIRECT`,
       tam CORS/CSRF listeleri
-- [ ] Gerçek takım verisi girilir (üyeler, birimler, projeler, açık görevler)
-- [ ] `pg_dump` ile yedek alınır **ve lokale geri yüklenerek denenir**
+- [x] Gerçek takım verisi girilir (üyeler, birimler, projeler, açık görevler)
+- [x] `pg_dump` ile yedek alınır **ve lokale geri yüklenerek denenir**
       (yedek, geri yüklenene kadar yedek değildir)
-- [ ] Takım için 1 sayfalık kullanım kılavuzu
-- [ ] Ortak test oturumu: gerçek veriyle 1 saat, bulunan her hata issue olur
+- [x] Takım için 1 sayfalık kullanım kılavuzu
+- [x] Ortak test oturumu: gerçek veriyle 1 saat, bulunan her hata issue olur
 
 ---
 
-### Adım 16 — Demo provası · Rumeysa
+### ✅ Adım 16 — Demo provası · *tamamlandı*
 
-- [ ] Kaptan hesabı + normal üye hesabı, ayrı cihazlarda (biri telefon)
-- [ ] Uçtan uca: giriş → görev oluştur → durum değiştir → sürükle → sil
-- [ ] Soğuk açılış provası: siteyi 20 dk kapalı bırakıp açılış süresi ölçülür
-- [ ] **Sunumdan 10 dk önce site elle açılıp uyandırılır** — UptimeRobot'a tek başına güvenilmez
+- [x] Kaptan hesabı + normal üye hesabı, ayrı cihazlarda (biri telefon)
+- [x] Uçtan uca: giriş → görev oluştur → durum değiştir → sürükle → sil
+- [x] Soğuk açılış provası: siteyi 20 dk kapalı bırakıp açılış süresi ölçülür
+- [x] **Sunumdan 10 dk önce site elle açılıp uyandırılır** — UptimeRobot'a tek başına güvenilmez
 
 ---
 
