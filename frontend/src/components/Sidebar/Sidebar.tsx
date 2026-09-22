@@ -19,7 +19,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { presenceApi } from "../../api/presence";
 import ActiveUsersWidget from "../ActiveUsersWidget/ActiveUsersWidget";
 
-import formulaLogo from "../../assets/logo-yazisiz.jpg";
+import formulaLogo from "../../assets/logo-yazisiz0.png";
 
 import "./Sidebar.css";
 
@@ -81,15 +81,18 @@ export default function Sidebar({
   async function handleLogout() {
     setShowProfileMenu(false);
     onClose();
+
     await presenceApi.leave();
+
     logout();
     navigate("/login");
   }
 
   return (
     <div
-      className={`sidebar-container ${isOpen ? "sidebar-open" : ""
-        }`}
+      className={`sidebar-container ${
+        isOpen ? "sidebar-open" : ""
+      }`}
     >
       <aside className="outer-sidebar">
         <div className="outer-top">
@@ -97,7 +100,12 @@ export default function Sidebar({
             className="outer-brand"
             aria-label="Pitwall"
           >
-            <img src={formulaLogo} alt="Pitwall" />
+            <div className="outer-brand-glow" />
+
+            <img
+              src={formulaLogo}
+              alt="Pitwall"
+            />
           </div>
 
           <nav className="outer-nav">
@@ -105,13 +113,16 @@ export default function Sidebar({
               to="/dashboard"
               onClick={handleNavigation}
               className={({ isActive }) =>
-                `outer-nav-item ${isActive ? "active" : ""
+                `outer-nav-item ${
+                  isActive ? "active" : ""
                 }`
               }
               aria-label="Görev Panosu"
-              data-tooltip="Pano"
             >
-              <LayoutDashboard size={21} />
+              <div className="outer-nav-icon">
+                <LayoutDashboard size={21} />
+              </div>
+
               <span>Pano</span>
             </NavLink>
 
@@ -119,13 +130,16 @@ export default function Sidebar({
               to="/calendar"
               onClick={handleNavigation}
               className={({ isActive }) =>
-                `outer-nav-item ${isActive ? "active" : ""
+                `outer-nav-item ${
+                  isActive ? "active" : ""
                 }`
               }
               aria-label="Takvim"
-              data-tooltip="Takvim"
             >
-              <CalendarDays size={21} />
+              <div className="outer-nav-icon">
+                <CalendarDays size={21} />
+              </div>
+
               <span>Takvim</span>
             </NavLink>
 
@@ -133,13 +147,16 @@ export default function Sidebar({
               to="/projects"
               onClick={handleNavigation}
               className={({ isActive }) =>
-                `outer-nav-item ${isActive ? "active" : ""
+                `outer-nav-item ${
+                  isActive ? "active" : ""
                 }`
               }
               aria-label="Projeler"
-              data-tooltip="Projeler"
             >
-              <FolderKanban size={21} />
+              <div className="outer-nav-icon">
+                <FolderKanban size={21} />
+              </div>
+
               <span>Projeler</span>
             </NavLink>
 
@@ -147,13 +164,16 @@ export default function Sidebar({
               to="/announcements"
               onClick={handleNavigation}
               className={({ isActive }) =>
-                `outer-nav-item ${isActive ? "active" : ""
+                `outer-nav-item ${
+                  isActive ? "active" : ""
                 }`
               }
               aria-label="Duyurular"
-              data-tooltip="Duyurular"
             >
-              <Megaphone size={21} />
+              <div className="outer-nav-icon">
+                <Megaphone size={21} />
+              </div>
+
               <span>Duyuru</span>
             </NavLink>
 
@@ -161,20 +181,25 @@ export default function Sidebar({
               to="/profile"
               onClick={handleNavigation}
               className={({ isActive }) =>
-                `outer-nav-item ${isActive ? "active" : ""
+                `outer-nav-item ${
+                  isActive ? "active" : ""
                 }`
               }
               aria-label="Profil"
-              data-tooltip="Profil"
             >
-              <UserRound size={21} />
+              <div className="outer-nav-icon">
+                <UserRound size={21} />
+              </div>
+
               <span>Profil</span>
             </NavLink>
           </nav>
         </div>
 
         <div className="outer-bottom">
-          <ActiveUsersWidget />
+          <div className="outer-presence">
+            <ActiveUsersWidget />
+          </div>
 
           <div className="profile-wrapper">
             {showProfileMenu && (
@@ -208,7 +233,7 @@ export default function Sidebar({
                     )
                   }
                 >
-                  <UserRound size={16} />
+                  <UserRound size={17} />
                   Profilim
                 </button>
 
@@ -221,7 +246,7 @@ export default function Sidebar({
                     )
                   }
                 >
-                  <Settings size={16} />
+                  <Settings size={17} />
                   Ayarlar
                 </button>
 
@@ -232,7 +257,7 @@ export default function Sidebar({
                   className="profile-menu-item logout"
                   onClick={handleLogout}
                 >
-                  <LogOut size={16} />
+                  <LogOut size={17} />
                   Çıkış Yap
                 </button>
               </div>
@@ -243,10 +268,11 @@ export default function Sidebar({
               className="outer-profile-btn"
               onClick={() =>
                 setShowProfileMenu(
-                  (prev) => !prev,
+                  (previous) => !previous,
                 )
               }
               aria-label="Profil menüsü"
+              aria-expanded={showProfileMenu}
             >
               <div className="outer-avatar">
                 {avatarSrc ? (
@@ -258,6 +284,7 @@ export default function Sidebar({
                   initials
                 )}
               </div>
+
               <span className="outer-avatar-status" />
             </button>
           </div>
