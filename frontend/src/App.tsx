@@ -5,7 +5,7 @@ import {
   Navigate,
   Route,
   Routes,
-  useLocation
+  useLocation,
 } from "react-router-dom";
 
 import Sidebar from "./components/Sidebar/Sidebar";
@@ -15,16 +15,18 @@ import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
 
 import "./App.css";
 
-// Yükleme sırasında gecikmeyi engellemek için Login component'ini normal import tutabiliriz
-// veya login ekranını da lazy loading ile alabiliriz.
 import Login from "./pages/Login/Login";
 
 const Dashboard = lazy(() => import("./pages/Dashboard/Dashboard"));
 const Calendar = lazy(() => import("./pages/Calendar/Calendar"));
 const Projects = lazy(() => import("./pages/Projects/Projects"));
-
-const ProjectDetail = lazy(() => import("./pages/ProjectDetail/ProjectDetail"));
-const Announcements = lazy(() => import("./pages/Announcements/Announcements"));
+const ProjectDetail = lazy(
+  () => import("./pages/ProjectDetail/ProjectDetail")
+);
+const Announcements = lazy(
+  () => import("./pages/Announcements/Announcements")
+);
+const Inbox = lazy(() => import("./pages/Inbox/Inbox"));
 const Profile = lazy(() => import("./pages/Profile/Profile"));
 const Settings = lazy(() => import("./pages/Settings/Settings"));
 
@@ -37,6 +39,7 @@ function AppLayout() {
     } else {
       document.body.style.overflow = "unset";
     }
+
     return () => {
       document.body.style.overflow = "unset";
     };
@@ -52,7 +55,10 @@ function AppLayout() {
 
   return (
     <div className="app">
-      <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
+      <Sidebar
+        isOpen={isSidebarOpen}
+        onClose={closeSidebar}
+      />
 
       {isSidebarOpen && (
         <button
@@ -67,16 +73,51 @@ function AppLayout() {
         <Header onMenuClick={openSidebar} />
 
         <ErrorBoundary>
-          <Suspense fallback={<LoadingScreen fullScreen={false} />}>
+          <Suspense
+            fallback={
+              <LoadingScreen fullScreen={false} />
+            }
+          >
             <Routes>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/calendar" element={<Calendar />} />
-              <Route path="/projects" element={<Projects />} />
+              <Route
+                path="/dashboard"
+                element={<Dashboard />}
+              />
 
-              <Route path="/projects/:projectId" element={<ProjectDetail />} />
-              <Route path="/announcements" element={<Announcements />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/settings" element={<Settings />} />
+              <Route
+                path="/calendar"
+                element={<Calendar />}
+              />
+
+              <Route
+                path="/projects"
+                element={<Projects />}
+              />
+
+              <Route
+                path="/projects/:projectId"
+                element={<ProjectDetail />}
+              />
+
+              <Route
+                path="/inbox"
+                element={<Inbox />}
+              />
+
+              <Route
+                path="/announcements"
+                element={<Announcements />}
+              />
+
+              <Route
+                path="/profile"
+                element={<Profile />}
+              />
+
+              <Route
+                path="/settings"
+                element={<Settings />}
+              />
             </Routes>
           </Suspense>
         </ErrorBoundary>
@@ -85,7 +126,11 @@ function AppLayout() {
   );
 }
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+function ProtectedRoute({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
 
@@ -94,7 +139,13 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return (
+      <Navigate
+        to="/login"
+        state={{ from: location }}
+        replace
+      />
+    );
   }
 
   return <>{children}</>;
@@ -109,13 +160,25 @@ function App() {
         <Route
           path="/login"
           element={
-            isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
+            isAuthenticated ? (
+              <Navigate
+                to="/dashboard"
+                replace
+              />
+            ) : (
+              <Login />
+            )
           }
         />
 
         <Route
           path="/"
-          element={<Navigate to="/dashboard" replace />}
+          element={
+            <Navigate
+              to="/dashboard"
+              replace
+            />
+          }
         />
 
         <Route

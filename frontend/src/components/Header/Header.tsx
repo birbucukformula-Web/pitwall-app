@@ -223,6 +223,10 @@ export default function Header({
       return "Duyurular";
     }
 
+    if (path === "/inbox") {
+      return "Inbox";
+    }
+
     if (path === "/profile") {
       return "Profil";
     }

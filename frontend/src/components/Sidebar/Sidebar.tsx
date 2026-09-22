@@ -3,6 +3,7 @@ import { useState } from "react";
 import {
   CalendarDays,
   FolderKanban,
+  Inbox,
   LayoutDashboard,
   LogOut,
   Megaphone,
@@ -122,7 +123,6 @@ export default function Sidebar({
               <div className="outer-nav-icon">
                 <LayoutDashboard size={21} />
               </div>
-
               <span>Pano</span>
             </NavLink>
 
@@ -139,7 +139,6 @@ export default function Sidebar({
               <div className="outer-nav-icon">
                 <CalendarDays size={21} />
               </div>
-
               <span>Takvim</span>
             </NavLink>
 
@@ -156,7 +155,6 @@ export default function Sidebar({
               <div className="outer-nav-icon">
                 <FolderKanban size={21} />
               </div>
-
               <span>Projeler</span>
             </NavLink>
 
@@ -173,8 +171,23 @@ export default function Sidebar({
               <div className="outer-nav-icon">
                 <Megaphone size={21} />
               </div>
-
               <span>Duyuru</span>
+            </NavLink>
+
+            <NavLink
+              to="/inbox"
+              onClick={handleNavigation}
+              className={({ isActive }) =>
+                `outer-nav-item ${
+                  isActive ? "active" : ""
+                }`
+              }
+              aria-label="Inbox"
+            >
+              <div className="outer-nav-icon">
+                <Inbox size={21} />
+              </div>
+              <span>Inbox</span>
             </NavLink>
 
             <NavLink
@@ -190,7 +203,6 @@ export default function Sidebar({
               <div className="outer-nav-icon">
                 <UserRound size={21} />
               </div>
-
               <span>Profil</span>
             </NavLink>
           </nav>
@@ -207,10 +219,7 @@ export default function Sidebar({
                 <div className="profile-menu-user">
                   <div className="profile-menu-avatar">
                     {avatarSrc ? (
-                      <img
-                        src={avatarSrc}
-                        alt="avatar"
-                      />
+                      <img src={avatarSrc} alt="avatar" />
                     ) : (
                       initials
                     )}
@@ -228,9 +237,7 @@ export default function Sidebar({
                   type="button"
                   className="profile-menu-item"
                   onClick={() =>
-                    handleProfileNavigation(
-                      "/profile",
-                    )
+                    handleProfileNavigation("/profile")
                   }
                 >
                   <UserRound size={17} />
@@ -241,9 +248,7 @@ export default function Sidebar({
                   type="button"
                   className="profile-menu-item"
                   onClick={() =>
-                    handleProfileNavigation(
-                      "/settings",
-                    )
+                    handleProfileNavigation("/settings")
                   }
                 >
                   <Settings size={17} />
@@ -276,10 +281,7 @@ export default function Sidebar({
             >
               <div className="outer-avatar">
                 {avatarSrc ? (
-                  <img
-                    src={avatarSrc}
-                    alt="avatar"
-                  />
+                  <img src={avatarSrc} alt="avatar" />
                 ) : (
                   initials
                 )}
