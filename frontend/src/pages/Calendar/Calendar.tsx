@@ -329,6 +329,7 @@ export default function Calendar() {
       project: newTask.project?.id,
       unit: newTask.unit?.id,
       assignees: newTask.assignees?.map((a) => a.id),
+      start_date: newTask.start_date || null,
       due_date: newTask.due_date,
     });
   }
@@ -346,6 +347,7 @@ export default function Calendar() {
         project: updatedTask.project?.id,
         unit: updatedTask.unit?.id,
         assignees: updatedTask.assignees?.map((a) => a.id),
+        start_date: updatedTask.start_date || null,
         due_date: updatedTask.due_date,
       },
     });
@@ -482,8 +484,8 @@ export default function Calendar() {
                     return (
                       <div
                         className={`calendar-day ${!isCurrentMonth
-                            ? "other-month"
-                            : ""
+                          ? "other-month"
+                          : ""
                           }`}
                         key={
                           date.toISOString()

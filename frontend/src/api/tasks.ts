@@ -20,6 +20,7 @@ export interface TaskPayload {
   assignees?: number[];
   due_date?: string;
   order?: number;
+  start_date?: string | null;
 }
 
 export const tasksApi = {

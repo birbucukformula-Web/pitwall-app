@@ -303,6 +303,7 @@ export default function ProjectTasksTab({ projectId, project, tasks, setTasks }:
       priority: newTask.priority,
       unit: Number(projectId),
       assignees: newTask.assignees?.map((a: any) => a.id),
+      start_date: newTask.start_date || null,
       due_date: newTask.due_date,
     });
   }
@@ -317,6 +318,7 @@ export default function ProjectTasksTab({ projectId, project, tasks, setTasks }:
         priority: updatedTask.priority,
         unit: Number(projectId),
         assignees: updatedTask.assignees?.map((a: any) => a.id),
+        start_date: updatedTask.start_date || null,
         due_date: updatedTask.due_date,
       },
     });
