@@ -20,6 +20,7 @@ import { useQuery } from "@tanstack/react-query";
 import { tasksApi } from "../../api/tasks";
 
 import type { Task } from "../../types/task";
+import { useNotifications, type NotificationItem } from "../../contexts/NotificationContext";
 
 import "./Header.css";
 
@@ -27,133 +28,7 @@ type HeaderProps = {
   onMenuClick: () => void;
 };
 
-type Notification = {
-  id: number;
-  title: string;
-  description: string;
-  time: string;
-  unread: boolean;
 
-  type:
-  | "task"
-  | "comment"
-  | "status"
-  | "announcement"
-  | "deadline";
-
-  taskId?: number;
-};
-
-const initialNotifications: Notification[] = [
-  {
-    id: 1,
-    title: "Yeni görev atandı",
-    description:
-      "Telemetri dashboard frontend görevine dahil edildin.",
-    time: "2 dk önce",
-    unread: true,
-    type: "task",
-    taskId: 1,
-  },
-  {
-    id: 2,
-    title: "Yeni yorum",
-    description:
-      "Furkan, Araç veri API bağlantısı görevine yorum yaptı.",
-    time: "18 dk önce",
-    unread: true,
-    type: "comment",
-    taskId: 3,
-  },
-  {
-    id: 3,
-    title: "Görev durumu değişti",
-    description:
-      "Görev takip ekranı tasarımı İncelemede durumuna alındı.",
-    time: "1 sa önce",
-    unread: false,
-    type: "status",
-    taskId: 5,
-  },
-  {
-    id: 4,
-    title: "Yeni duyuru",
-    description:
-      "Web ekibi toplantısı duyurusu yayınlandı.",
-    time: "2 sa önce",
-    unread: false,
-    type: "announcement",
-  },
-  {
-    id: 5,
-    title: "Teslim tarihi yaklaşıyor",
-    description:
-      "Telemetri dashboard arayüzü görevinin teslim tarihi yaklaşıyor.",
-    time: "Bugün",
-    unread: false,
-    type: "deadline",
-    taskId: 1,
-  },
-  {
-    id: 6,
-    title: "Göreve yeni üye eklendi",
-    description:
-      "Busenur, Pitwall dashboard frontend görevine eklendi.",
-    time: "Dün",
-    unread: false,
-    type: "task",
-    taskId: 1,
-  },
-  {
-    id: 7,
-    title: "Yeni yorum",
-    description:
-      "Lidya, Görev takip ekranı tasarımı görevine yorum yaptı.",
-    time: "Dün",
-    unread: false,
-    type: "comment",
-    taskId: 5,
-  },
-  {
-    id: 8,
-    title: "Görev tamamlandı",
-    description:
-      "Parça maliyet tablosu görevi tamamlandı.",
-    time: "2 gün önce",
-    unread: false,
-    type: "status",
-    taskId: 6,
-  },
-  {
-    id: 9,
-    title: "Yeni duyuru",
-    description:
-      "Takım toplantısı için yeni duyuru yayınlandı.",
-    time: "3 gün önce",
-    unread: false,
-    type: "announcement",
-  },
-  {
-    id: 10,
-    title: "Teslim tarihi yaklaşıyor",
-    description:
-      "Elektrik sistemi dokümantasyonu görevinin teslim tarihine 2 gün kaldı.",
-    time: "3 gün önce",
-    unread: false,
-    type: "deadline",
-    taskId: 4,
-  },
-  {
-    id: 11,
-    title: "Görev durumu değişti",
-    description:
-      "Araç veri API bağlantısı görevi Devam Ediyor durumuna alındı.",
-    time: "4 gün önce",
-    unread: false,
-    type: "status",
-    taskId: 3,
-  },
-];
 
 export default function Header({
   onMenuClick,
@@ -166,12 +41,11 @@ export default function Header({
     setShowNotifications,
   ] = useState(false);
 
-  const [
-    notifications,
-    setNotifications,
-  ] = useState<Notification[]>(
-    initialNotifications,
-  );
+  const {
+    unreadNotifications: activeNotifications,
+    unreadCount,
+    markAllAsRead,
+  } = useNotifications();
 
   const [
     selectedTask,
@@ -258,15 +132,8 @@ export default function Header({
       })
       : [];
 
-  const activeNotifications =
-    notifications.filter(
-      (notification) => notification.unread,
-    );
-
-  const unreadCount = activeNotifications.length;
-
   function handleNotificationClick(
-    notification: Notification,
+    notification: NotificationItem,
   ) {
     setShowNotifications(false);
 
@@ -289,17 +156,6 @@ export default function Header({
         setSelectedTask(task);
       }
     }
-  }
-
-  function markAllAsRead() {
-    setNotifications((previous) =>
-      previous.map(
-        (notification) => ({
-          ...notification,
-          unread: false,
-        }),
-      ),
-    );
   }
 
   function handleSearchResultClick(
@@ -399,9 +255,9 @@ export default function Header({
                       (notification) => (
                         <button
                           type="button"
-                          className={`notification-item ${notification.unread
-                              ? "unread"
-                              : ""
+                          className={`notification-item ${!notification.isRead
+                            ? "unread"
+                            : ""
                             }`}
                           key={
                             notification.id
@@ -424,14 +280,14 @@ export default function Header({
 
                               <span>
                                 {
-                                  notification.time
+                                  notification.createdAt
                                 }
                               </span>
                             </div>
 
                             <p>
                               {
-                                notification.description
+                                notification.message
                               }
                             </p>
                           </div>
@@ -440,12 +296,16 @@ export default function Header({
                     )
                   ) : (
                     <div className="notification-empty">
-                      Aktif bildirimin yok.
+                      <div className="notification-empty-icon">
+                        <Bell size={17} />
+                      </div>
+
+                      <strong>Yeni bildirimin yok</strong>
                     </div>
                   )}
                 </div>
 
-                <div className="notification-footer">
+                <div className={`notification-footer ${unreadCount === 0 ? "empty" : ""}`}>
                   <button
                     type="button"
                     className="notification-inbox-link"

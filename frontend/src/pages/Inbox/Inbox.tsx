@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNotifications, type NotificationType } from "../../contexts/NotificationContext";
 import { useNavigate } from "react-router-dom";
 import {
     Bell,
@@ -13,65 +14,11 @@ import {
 
 import "./Inbox.css";
 
-type InboxItemType =
-    | "task_assigned"
-    | "comment"
-    | "due_date"
-    | "task_updated";
-
-type InboxItem = {
-    id: number;
-    type: InboxItemType;
-    title: string;
-    message: string;
-    createdAt: string;
-    isRead: boolean;
-    link: string;
-};
+type InboxItemType = NotificationType;
 
 type Filter = "all" | "unread";
 
-const initialItems: InboxItem[] = [
-    {
-        id: 1,
-        type: "task_assigned",
-        title: "Yeni görev atandı",
-        message: "Dashboard UI Tasarımı görevi sana atandı.",
-        createdAt: "5 dk",
-        isRead: false,
-        link: "/projects",
-    },
-    {
-        id: 2,
-        type: "comment",
-        title: "Yeni yorum",
-        message:
-            "Dashboard UI Tasarımı görevüne yeni bir yorum eklendi.",
-        createdAt: "32 dk",
-        isRead: false,
-        link: "/projects",
-    },
-    {
-        id: 3,
-        type: "due_date",
-        title: "Teslim tarihi güncellendi",
-        message:
-            "Karbon Fiber Analizi görevinin teslim tarihi değiştirildi.",
-        createdAt: "2 sa",
-        isRead: true,
-        link: "/projects",
-    },
-    {
-        id: 4,
-        type: "task_updated",
-        title: "Görev güncellendi",
-        message:
-            "Telemetri Sistemi projesindeki bir görev güncellendi.",
-        createdAt: "Dün",
-        isRead: true,
-        link: "/projects",
-    },
-];
+
 
 function NotificationIcon({
     type,
@@ -96,18 +43,18 @@ function NotificationIcon({
 export default function Inbox() {
     const navigate = useNavigate();
 
-    const [items, setItems] =
-        useState<InboxItem[]>(initialItems);
+    const {
+        notifications: items,
+        unreadCount,
+        markManyAsRead,
+        markAllAsRead: markAllNotificationsAsRead,
+    } = useNotifications();
 
     const [filter, setFilter] =
         useState<Filter>("all");
 
     const [selectedIds, setSelectedIds] =
         useState<number[]>([]);
-
-    const unreadCount = items.filter(
-        (item) => !item.isRead,
-    ).length;
 
     const visibleItems = useMemo(() => {
         if (filter === "unread") {
@@ -156,25 +103,12 @@ export default function Inbox() {
     }
 
     function markSelectedAsRead() {
-        setItems((current) =>
-            current.map((item) =>
-                selectedIds.includes(item.id)
-                    ? { ...item, isRead: true }
-                    : item,
-            ),
-        );
-
+        markManyAsRead(selectedIds);
         setSelectedIds([]);
     }
 
     function markAllAsRead() {
-        setItems((current) =>
-            current.map((item) => ({
-                ...item,
-                isRead: true,
-            })),
-        );
-
+        markAllNotificationsAsRead();
         setSelectedIds([]);
     }
 

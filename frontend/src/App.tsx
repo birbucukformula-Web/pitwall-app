@@ -12,6 +12,7 @@ import Sidebar from "./components/Sidebar/Sidebar";
 import Header from "./components/Header/Header";
 import LoadingScreen from "./components/LoadingScreen/LoadingScreen";
 import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
+import { NotificationProvider } from "./contexts/NotificationContext";
 
 import "./App.css";
 
@@ -54,6 +55,7 @@ function AppLayout() {
   }
 
   return (
+  <NotificationProvider>
     <div className="app">
       <Sidebar
         isOpen={isSidebarOpen}
@@ -123,7 +125,8 @@ function AppLayout() {
         </ErrorBoundary>
       </main>
     </div>
-  );
+  </NotificationProvider>
+);
 }
 
 function ProtectedRoute({

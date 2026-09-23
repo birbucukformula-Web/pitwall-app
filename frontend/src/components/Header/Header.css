@@ -340,20 +340,27 @@
 }
 
 .notification-empty {
-  min-height: 154px;
-
+  min-height: 152px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-
-  gap: 6px;
-
-  padding: 26px 22px;
-
+  gap: 8px;
+  padding: 22px 22px 18px;
   color: var(--text-muted);
-
   text-align: center;
+}
+
+.notification-empty strong {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.notification-empty span {
+  max-width: 245px;
+  font-size: 10px;
+  line-height: 1.5;
 }
 
 .notification-empty-icon {
@@ -371,20 +378,6 @@
 
   border: 1px solid var(--border);
   border-radius: 50%;
-}
-
-.notification-empty strong {
-  color: var(--text);
-
-  font-size: 13px;
-  font-weight: 650;
-}
-
-.notification-empty span {
-  max-width: 245px;
-
-  font-size: 10px;
-  line-height: 1.5;
 }
 
 .notification-footer {
@@ -447,12 +440,25 @@
 }
 
 .notification-footer.empty {
+  min-height: 48px;
   justify-content: center;
+  padding: 7px 14px;
+  background: var(--surface-soft);
+  border-top: 1px solid var(--border-soft);
+}
 
-  border-top: 0;
+.notification-footer.empty .notification-inbox-link {
+  padding: 7px 12px;
+  color: var(--text-secondary);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+}
 
-  padding-top: 0;
-  padding-bottom: 13px;
+.notification-footer.empty .notification-inbox-link:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+  border-color: var(--border);
 }
 
 /* SEARCH */
