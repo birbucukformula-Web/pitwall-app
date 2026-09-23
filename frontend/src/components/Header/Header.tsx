@@ -35,11 +35,11 @@ type Notification = {
   unread: boolean;
 
   type:
-    | "task"
-    | "comment"
-    | "status"
-    | "announcement"
-    | "deadline";
+  | "task"
+  | "comment"
+  | "status"
+  | "announcement"
+  | "deadline";
 
   taskId?: number;
 };
@@ -241,43 +241,33 @@ export default function Header({
   const searchResults =
     searchTerm.trim().length > 0
       ? tasks.filter((task) => {
-          const search =
-            searchTerm.toLowerCase();
+        const search =
+          searchTerm.toLowerCase();
 
-          return (
-            task.title
-              .toLowerCase()
-              .includes(search) ||
-            task.project?.name
-              .toLowerCase()
-              .includes(search) ||
-            task.unit?.name
-              .toLowerCase()
-              .includes(search)
-          );
-        })
+        return (
+          task.title
+            .toLowerCase()
+            .includes(search) ||
+          task.project?.name
+            .toLowerCase()
+            .includes(search) ||
+          task.unit?.name
+            .toLowerCase()
+            .includes(search)
+        );
+      })
       : [];
 
-  const unreadCount =
+  const activeNotifications =
     notifications.filter(
-      (notification) =>
-        notification.unread,
-    ).length;
+      (notification) => notification.unread,
+    );
+
+  const unreadCount = activeNotifications.length;
 
   function handleNotificationClick(
     notification: Notification,
   ) {
-    setNotifications((previous) =>
-      previous.map((item) =>
-        item.id === notification.id
-          ? {
-              ...item,
-              unread: false,
-            }
-          : item,
-      ),
-    );
-
     setShowNotifications(false);
 
     if (
@@ -404,65 +394,79 @@ export default function Header({
                 </div>
 
                 <div className="notification-list">
-                  {notifications.map(
-                    (notification) => (
-                      <button
-                        type="button"
-                        className={`notification-item ${
-                          notification.unread
-                            ? "unread"
-                            : ""
-                        }`}
-                        key={
-                          notification.id
-                        }
-                        onClick={() =>
-                          handleNotificationClick(
-                            notification,
-                          )
-                        }
-                      >
-                        <span className="notification-indicator" />
+                  {activeNotifications.length > 0 ? (
+                    activeNotifications.map(
+                      (notification) => (
+                        <button
+                          type="button"
+                          className={`notification-item ${notification.unread
+                              ? "unread"
+                              : ""
+                            }`}
+                          key={
+                            notification.id
+                          }
+                          onClick={() =>
+                            handleNotificationClick(
+                              notification,
+                            )
+                          }
+                        >
+                          <span className="notification-indicator" />
 
-                        <div className="notification-content">
-                          <div className="notification-title-row">
-                            <strong>
-                              {
-                                notification.title
-                              }
-                            </strong>
+                          <div className="notification-content">
+                            <div className="notification-title-row">
+                              <strong>
+                                {
+                                  notification.title
+                                }
+                              </strong>
 
-                            <span>
+                              <span>
+                                {
+                                  notification.time
+                                }
+                              </span>
+                            </div>
+
+                            <p>
                               {
-                                notification.time
+                                notification.description
                               }
-                            </span>
+                            </p>
                           </div>
-
-                          <p>
-                            {
-                              notification.description
-                            }
-                          </p>
-                        </div>
-                      </button>
-                    ),
+                        </button>
+                      ),
+                    )
+                  ) : (
+                    <div className="notification-empty">
+                      Aktif bildirimin yok.
+                    </div>
                   )}
                 </div>
 
                 <div className="notification-footer">
                   <button
                     type="button"
-                    onClick={
-                      markAllAsRead
-                    }
+                    className="notification-inbox-link"
+                    onClick={() => {
+                      setShowNotifications(false);
+                      navigate("/inbox");
+                    }}
                   >
-                    <CheckCheck
-                      size={14}
-                    />
-
-                    Tümünü okundu işaretle
+                    Tüm bildirimleri gör
                   </button>
+
+                  {unreadCount > 0 && (
+                    <button
+                      type="button"
+                      className="notification-read-all"
+                      onClick={markAllAsRead}
+                    >
+                      <CheckCheck size={14} />
+                      Tümünü okundu işaretle
+                    </button>
+                  )}
                 </div>
               </div>
             )}
@@ -515,7 +519,7 @@ export default function Header({
               !showMobileSearch && (
                 <div className="search-results desktop-search-results">
                   {searchResults.length >
-                  0 ? (
+                    0 ? (
                     searchResults.map(
                       (task) => (
                         <button
