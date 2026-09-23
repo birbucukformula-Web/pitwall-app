@@ -17,6 +17,7 @@ import {
 } from "react-router-dom";
 
 import { useAuth } from "../../contexts/AuthContext";
+import { useAvatar } from "../../contexts/AvatarContext";
 import { presenceApi } from "../../api/presence";
 import ActiveUsersWidget from "../ActiveUsersWidget/ActiveUsersWidget";
 
@@ -24,17 +25,6 @@ import formulaLogo from "../../assets/logo-yazisiz0.png";
 
 import "./Sidebar.css";
 
-const AVATARS: Record<string, string> = {
-  red: "/avatars/avatar_red.png",
-  blue: "/avatars/avatar_blue.png",
-  black: "/avatars/avatar_black.png",
-  frog: "/avatars/avatar_frog.png",
-  pink: "/avatars/avatar_pink.png",
-  purple: "/avatars/avatar_purple.png",
-  yellow: "/avatars/avatar_yellow.png",
-  orange: "/avatars/avatar_orange.png",
-  white: "/avatars/avatar_white.png",
-};
 
 type SidebarProps = {
   isOpen: boolean;
@@ -50,6 +40,7 @@ export default function Sidebar({
 
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { selectedAvatar } = useAvatar();
 
   const roleName =
     user?.organization?.name || "Takım Üyesi";
@@ -62,11 +53,8 @@ export default function Sidebar({
     ? `${user.first_name.charAt(0)}${user.last_name.charAt(0)}`
     : "?";
 
-  const selectedAvatarId =
-    localStorage.getItem("pitwall_avatar") ?? "";
-
   const avatarSrc =
-    AVATARS[selectedAvatarId] ?? null;
+    selectedAvatar?.src ?? null;
 
   function handleNavigation() {
     setShowProfileMenu(false);

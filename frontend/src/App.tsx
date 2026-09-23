@@ -13,6 +13,7 @@ import Header from "./components/Header/Header";
 import LoadingScreen from "./components/LoadingScreen/LoadingScreen";
 import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
 import { NotificationProvider } from "./contexts/NotificationContext";
+import { AvatarProvider } from "./contexts/AvatarContext";
 
 import "./App.css";
 
@@ -56,11 +57,12 @@ function AppLayout() {
 
   return (
   <NotificationProvider>
-    <div className="app">
-      <Sidebar
-        isOpen={isSidebarOpen}
-        onClose={closeSidebar}
-      />
+    <AvatarProvider>
+      <div className="app">
+        <Sidebar
+          isOpen={isSidebarOpen}
+          onClose={closeSidebar}
+        />
 
       {isSidebarOpen && (
         <button
@@ -125,6 +127,7 @@ function AppLayout() {
         </ErrorBoundary>
       </main>
     </div>
+      </AvatarProvider>
   </NotificationProvider>
 );
 }
