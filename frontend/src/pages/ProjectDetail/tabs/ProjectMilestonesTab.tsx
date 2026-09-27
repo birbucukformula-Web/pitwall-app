@@ -187,24 +187,6 @@ export default function ProjectMilestonesTab() {
   return (
     <div className="tab-pane active fade-in">
       <div className="milestones-page">
-        {/* PAGE HEADER */}
-
-        <header className="milestones-hero">
-          <div className="milestones-hero-icon">
-            <Flag size={24} />
-          </div>
-
-          <div>
-            <h3>Hedefler</h3>
-
-            <p>
-              Projenin önemli kilometre
-              taşlarını, teslim tarihlerini ve
-              ana hedeflerini buradan takip
-              edebilirsin.
-            </p>
-          </div>
-        </header>
 
         {/* SUMMARY */}
 

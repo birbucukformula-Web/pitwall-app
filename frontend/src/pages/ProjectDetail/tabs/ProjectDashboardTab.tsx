@@ -11,6 +11,8 @@ import {
 import type { Task } from "../../../types/task";
 import { tasksApi } from "../../../api/tasks";
 
+import "./ProjectDashboardTab.css";
+
 interface Props {
   project: any;
   tasks: Task[];
@@ -118,7 +120,7 @@ export default function ProjectDashboardTab({ tasks }: Props) {
   }
 
   return (
-    <div className="tab-pane active fade-in">
+    <div className="tab-pane active fade-in project-dashboard-tab">
       <div className="dashboard-overview-cards">
         <div className="overview-card">
           <div
@@ -181,7 +183,7 @@ export default function ProjectDashboardTab({ tasks }: Props) {
         </div>
       </div>
 
-      <div className="dashboard-progress-section mt-4">
+      <div className="dashboard-progress-section">
         <div className="progress-header">
           <h3>Proje İlerlemesi</h3>
 
@@ -198,7 +200,7 @@ export default function ProjectDashboardTab({ tasks }: Props) {
         </div>
       </div>
 
-      <div className="dashboard-widgets mt-4">
+      <div className="dashboard-widgets">
         <div className="dashboard-widget">
           <h4>Son Aktiviteler</h4>
 
