@@ -4,7 +4,7 @@
 
 .project-dashboard-tab {
   width: 100%;
-  padding: 0 16px;
+  padding: 0 32px;
   box-sizing: border-box;
 }
 
@@ -34,11 +34,428 @@
 
 
 /* =========================================
-   WIDGETS
+   WIDGET GRID
 ========================================= */
 
 .project-dashboard-tab .dashboard-widgets {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1fr);
+
+  gap: 18px;
+  align-items: stretch;
+
   margin-top: 0 !important;
+}
+
+
+/* =========================================
+   COMMON WIDGET STYLE
+========================================= */
+
+.project-dashboard-tab .dashboard-widget {
+  min-width: 0;
+  overflow: hidden;
+
+  background: var(--surface);
+
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+
+/* =========================================
+   SHARED WIDGET HEADER
+========================================= */
+
+.project-dashboard-tab .activity-widget-header,
+.project-dashboard-tab .budget-widget-header {
+  min-height: 58px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 14px;
+
+  padding: 14px 18px;
+
+  background: transparent;
+
+  border-bottom: 1px solid var(--border);
+}
+
+.project-dashboard-tab .activity-widget-header h4,
+.project-dashboard-tab .budget-widget-header h4 {
+  margin: 0;
+
+  color: var(--text);
+
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.project-dashboard-tab
+  .activity-widget-header
+  > div:first-child
+  > span,
+.project-dashboard-tab
+  .budget-widget-header
+  > div:first-child
+  > span {
+  display: block;
+
+  margin-top: 3px;
+
+  color: var(--text-muted);
+
+  font-size: 9.5px;
+  font-weight: 400;
+}
+
+.project-dashboard-tab .activity-header-icon,
+.project-dashboard-tab .budget-header-icon {
+  width: 32px;
+  height: 32px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  background: var(--accent-soft);
+  color: var(--accent);
+
+  border-radius: 7px;
+}
+
+
+/* =========================================
+   ACTIVITY WIDGET
+========================================= */
+
+.project-dashboard-tab .activity-widget {
+  display: flex;
+  flex-direction: column;
+
+  height: 100%;
+
+  padding: 0;
+}
+
+.project-dashboard-tab .activity-widget-content {
+  flex: 1;
+  min-height: 0;
+}
+
+.project-dashboard-tab
+  .activity-widget
+  .project-activity-list {
+  width: 100%;
+}
+
+
+/* =========================================
+   BUDGET WIDGET
+========================================= */
+
+.project-dashboard-tab .budget-widget {
+  display: flex;
+  flex-direction: column;
+
+  height: 100%;
+
+  padding: 0;
+}
+
+
+/* =========================================
+   BUDGET CONTENT
+========================================= */
+
+.project-dashboard-tab .budget-content {
+  flex: 1;
+
+  padding: 17px 18px 18px;
+}
+
+
+/* TOTAL */
+
+.project-dashboard-tab .budget-total-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+
+  gap: 16px;
+}
+
+.project-dashboard-tab
+  .budget-total-row
+  > div:first-child {
+  display: flex;
+  flex-direction: column;
+}
+
+.project-dashboard-tab .budget-label {
+  color: var(--text-muted);
+
+  font-size: 9px;
+  font-weight: 400;
+}
+
+.project-dashboard-tab .budget-total {
+  margin-top: 3px;
+
+  color: var(--text);
+
+  font-size: 20px;
+  font-weight: 600;
+
+  line-height: 1.2;
+  letter-spacing: -0.25px;
+}
+
+.project-dashboard-tab .budget-percentage {
+  padding: 4px 7px;
+
+  background: var(--surface-soft);
+  color: var(--text-secondary);
+
+  border: 1px solid var(--border);
+  border-radius: 5px;
+
+  font-size: 8.5px;
+  font-weight: 500;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================
+   BUDGET PROGRESS
+========================================= */
+
+.project-dashboard-tab .budget-progress {
+  width: 100%;
+  height: 5px;
+
+  overflow: hidden;
+
+  margin-top: 12px;
+
+  background: var(--surface-soft);
+
+  border-radius: 999px;
+}
+
+.project-dashboard-tab .budget-progress-fill {
+  height: 100%;
+
+  background: var(--accent);
+
+  border-radius: inherit;
+
+  transition: width 0.3s ease;
+}
+
+
+/* =========================================
+   BUDGET SUMMARY
+========================================= */
+
+.project-dashboard-tab .budget-summary-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 10px;
+
+  margin-top: 14px;
+}
+
+.project-dashboard-tab .budget-summary-item {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  padding: 10px 11px;
+
+  background: var(--surface-soft);
+
+  border: 1px solid var(--border);
+  border-radius: 7px;
+}
+
+.project-dashboard-tab .budget-summary-icon {
+  width: 29px;
+  height: 29px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 6px;
+}
+
+.project-dashboard-tab
+  .budget-summary-icon.spent {
+  background: rgba(226, 29, 44, 0.08);
+  color: var(--accent);
+}
+
+.project-dashboard-tab
+  .budget-summary-icon.remaining {
+  background: rgba(16, 185, 129, 0.08);
+  color: #10b981;
+}
+
+.project-dashboard-tab
+  .budget-summary-item
+  > div:last-child {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.project-dashboard-tab
+  .budget-summary-item span {
+  color: var(--text-muted);
+
+  font-size: 8.5px;
+  font-weight: 400;
+}
+
+.project-dashboard-tab
+  .budget-summary-item strong {
+  margin-top: 2px;
+
+  overflow: hidden;
+
+  color: var(--text);
+
+  font-size: 11px;
+  font-weight: 600;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+/* =========================================
+   DIVIDER
+========================================= */
+
+.project-dashboard-tab .budget-divider {
+  width: 100%;
+  height: 1px;
+
+  margin: 15px 0 13px;
+
+  background: var(--border);
+}
+
+
+/* =========================================
+   RESOURCE DISTRIBUTION
+========================================= */
+
+.project-dashboard-tab .budget-categories {
+  display: flex;
+  flex-direction: column;
+
+  gap: 10px;
+}
+
+.project-dashboard-tab
+  .budget-categories-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 1px;
+}
+
+.project-dashboard-tab
+  .budget-categories-header
+  > span {
+  color: var(--text);
+
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+.project-dashboard-tab .budget-category {
+  width: 100%;
+}
+
+.project-dashboard-tab
+  .budget-category-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 14px;
+
+  margin-bottom: 5px;
+}
+
+.project-dashboard-tab
+  .budget-category-main span {
+  min-width: 0;
+
+  overflow: hidden;
+
+  color: var(--text-secondary);
+
+  font-size: 9px;
+  font-weight: 400;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-dashboard-tab
+  .budget-category-main strong {
+  flex-shrink: 0;
+
+  color: var(--text);
+
+  font-size: 9px;
+  font-weight: 550;
+}
+
+.project-dashboard-tab
+  .budget-category-track {
+  width: 100%;
+  height: 3px;
+
+  overflow: hidden;
+
+  background: var(--surface-soft);
+
+  border-radius: 999px;
+}
+
+.project-dashboard-tab
+  .budget-category-fill {
+  height: 100%;
+
+  background: var(--accent);
+
+  border-radius: inherit;
+
+  opacity: 0.7;
 }
 
 
@@ -48,36 +465,83 @@
 
 @media (max-width: 1100px) {
   .project-dashboard-tab {
-    padding-left: 14px;
-    padding-right: 14px;
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .project-dashboard-tab .dashboard-widgets {
+    gap: 14px;
   }
 }
+
+
+@media (max-width: 900px) {
+  .project-dashboard-tab .dashboard-widgets {
+    grid-template-columns: 1fr;
+  }
+}
+
 
 @media (max-width: 768px) {
   .project-dashboard-tab {
-    padding: 0 8px;
+    padding: 0 14px;
   }
 
-  .project-dashboard-tab .dashboard-overview-cards {
+  .project-dashboard-tab
+    .dashboard-overview-cards {
     margin-bottom: 22px !important;
   }
 
-  .project-dashboard-tab .dashboard-progress-section {
+  .project-dashboard-tab
+    .dashboard-progress-section {
     margin-bottom: 24px !important;
+  }
+
+  .project-dashboard-tab .budget-content {
+    padding: 15px 16px 16px;
+  }
+
+  .project-dashboard-tab .budget-total {
+    font-size: 19px;
   }
 }
 
+
 @media (max-width: 480px) {
   .project-dashboard-tab {
-    padding-left: 0;
-    padding-right: 0;
+    padding-left: 8px;
+    padding-right: 8px;
   }
 
-  .project-dashboard-tab .dashboard-overview-cards {
+  .project-dashboard-tab
+    .dashboard-overview-cards {
     margin-bottom: 20px !important;
   }
 
-  .project-dashboard-tab .dashboard-progress-section {
+  .project-dashboard-tab
+    .dashboard-progress-section {
     margin-bottom: 22px !important;
+  }
+
+  .project-dashboard-tab .activity-widget-header,
+  .project-dashboard-tab .budget-widget-header {
+    padding: 13px 14px;
+  }
+
+  .project-dashboard-tab .budget-content {
+    padding: 14px;
+  }
+
+  .project-dashboard-tab
+    .budget-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .project-dashboard-tab
+    .budget-total-row {
+    align-items: flex-start;
+    flex-direction: column;
+
+    gap: 8px;
   }
 }
