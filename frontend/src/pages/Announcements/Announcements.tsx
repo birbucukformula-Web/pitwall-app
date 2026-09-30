@@ -114,10 +114,14 @@ export default function Announcements() {
     <>
       <section className="announcements-page">
         <div className="announcements-header">
-          <p className="announcements-description">
-            Takımla ilgili güncel bilgilendirmeleri
-            buradan takip edebilirsin.
-          </p>
+          <div>
+            <h2>Duyurular</h2>
+
+            <p>
+              Takımla ilgili güncel bilgilendirmeleri
+              buradan takip edebilirsin.
+            </p>
+          </div>
 
           {canCreateAnnouncement && (
             <button
@@ -137,10 +141,11 @@ export default function Announcements() {
             {announcements.map(
               (announcement) => (
                 <article
-                  className={`announcement-card ${announcement.important
+                  className={`announcement-card ${
+                    announcement.important
                       ? "important"
                       : ""
-                    }`}
+                  }`}
                   key={announcement.id}
                 >
                   <div className="announcement-icon">

@@ -277,11 +277,12 @@ export default function TaskDrawer({
                         {showCompleteAction && (
                             <button
                                 type="button"
-                                className={`drawer-status-action ${task.status ===
-                                        "done"
+                                className={`drawer-status-action ${
+                                    task.status ===
+                                    "done"
                                         ? "undo"
                                         : ""
-                                    }`}
+                                }`}
                                 disabled={
                                     isStatusUpdating
                                 }
@@ -293,7 +294,7 @@ export default function TaskDrawer({
                             >
 
                                 {task.status ===
-                                    "done" ? (
+                                "done" ? (
                                     <RotateCcw
                                         size={
                                             15
@@ -308,7 +309,7 @@ export default function TaskDrawer({
                                 )}
 
                                 {task.status ===
-                                    "done"
+                                "done"
                                     ? "Tamamlanmayı geri al"
                                     : "Tamamlandı olarak işaretle"}
 
@@ -322,32 +323,14 @@ export default function TaskDrawer({
 
                             <strong>
                                 {task.priority ===
-                                    "high"
+                                "high"
                                     ? "Yüksek"
                                     : task.priority ===
                                         "medium"
-                                        ? "Orta"
-                                        : "Normal"}
+                                      ? "Orta"
+                                      : "Normal"}
                             </strong>
                         </div>
-
-                        {task.start_date && (
-                            <div className="info-row">
-                                <span>
-                                    Başlangıç Tarihi
-                                </span>
-
-                                <strong className="date-value">
-                                    <CalendarDays
-                                        size={16}
-                                    />
-
-                                    {formatDate(
-                                        task.start_date,
-                                    )}
-                                </strong>
-                            </div>
-                        )}
 
                         <div className="info-row">
                             <span>
@@ -494,13 +477,13 @@ export default function TaskDrawer({
                                                 style={{
                                                     fontStyle:
                                                         activity.activity_type ===
-                                                            "status_change"
+                                                        "status_change"
                                                             ? "italic"
                                                             : "normal",
 
                                                     color:
                                                         activity.activity_type ===
-                                                            "status_change"
+                                                        "status_change"
                                                             ? "var(--text-muted)"
                                                             : "inherit",
                                                 }}

@@ -1,28 +1,6 @@
-/* =====================================
-   PITWALL SIDEBAR
-   Unified Anthracite Theme
-   Same sidebar in Light + Dark mode
-===================================== */
-
 .sidebar-container {
-  --sidebar-width: 94px;
-
-  --sidebar-bg-top: #24252b;
-  --sidebar-bg-middle: #202126;
-  --sidebar-bg-bottom: #1c1d22;
-
-  --sidebar-border: rgba(255, 255, 255, 0.065);
-
-  --nav-color: #b2b4bc;
-  --nav-hover-color: #fafafd;
-  --nav-hover-bg: rgba(255, 255, 255, 0.06);
-
-  --accent: #ef5963;
-  --accent-strong: #df3541;
-  --accent-bg: rgba(224, 53, 65, 0.105);
-  --accent-bg-hover: rgba(224, 53, 65, 0.135);
-
   position: fixed;
+
   top: 0;
   left: 0;
   bottom: 0;
@@ -31,88 +9,32 @@
 
   display: flex;
 
-  width: var(--sidebar-width);
-
+  background: #0a0a0a;
   color: #ffffff;
-
-  background: var(--sidebar-bg-middle);
 }
 
 /* =====================================
-   SIDEBAR
+   OUTER SIDEBAR
 ===================================== */
 
 .outer-sidebar {
-  position: relative;
-
-  width: var(--sidebar-width);
-  min-width: var(--sidebar-width);
-  height: 100%;
+  width: 72px;
+  min-width: 72px;
 
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
 
-  padding: 23px 0 18px;
+  padding: 14px 0 16px;
 
-  overflow: visible;
+  background: #0a0a0a;
 
-  background:
-    radial-gradient(
-      circle at 88% 9%,
-      rgba(224, 53, 65, 0.095) 0%,
-      rgba(224, 53, 65, 0.035) 18%,
-      transparent 38%
-    ),
-    linear-gradient(
-      180deg,
-      var(--sidebar-bg-top) 0%,
-      var(--sidebar-bg-middle) 43%,
-      var(--sidebar-bg-bottom) 100%
-    );
-
-  border-right: 1px solid rgba(255, 255, 255, 0.075);
-
-  box-shadow:
-    8px 0 28px rgba(0, 0, 0, 0.09);
-
-  isolation: isolate;
+  border-right:
+    1px solid rgba(255, 255, 255, 0.06);
 }
-
-/* Very subtle red ambient reflection */
-
-.outer-sidebar::after {
-  content: "";
-
-  position: absolute;
-
-  top: 35px;
-  right: -1px;
-
-  width: 1px;
-  height: 150px;
-
-  background: linear-gradient(
-    180deg,
-    transparent,
-    rgba(238, 74, 85, 0.19),
-    transparent
-  );
-
-  opacity: 0.42;
-
-  pointer-events: none;
-}
-
-/* =====================================
-   TOP
-===================================== */
 
 .outer-top {
-  position: relative;
-  z-index: 2;
-
   width: 100%;
 
   display: flex;
@@ -125,57 +47,32 @@
 ===================================== */
 
 .outer-brand {
-  position: relative;
-
-  width: 62px;
-  height: 62px;
+  width: 52px;
+  height: 52px;
+  cursor: default;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  margin-bottom: 24px;
+  margin-bottom: 22px;
 
-  border-radius: 17px;
+  border-radius: 12px;
 
-  cursor: default;
+  background: transparent;
 
   transition:
-    transform 0.18s ease,
-    border-color 0.18s ease,
-    background 0.18s ease,
-    box-shadow 0.18s ease;
-}
-
-.outer-brand::after {
-  content: "";
-
-  position: absolute;
-
-  inset: -1px;
-
-  pointer-events: none;
-}
-
-.outer-brand:hover {
-  transform: translateY(-1px);
+    background 0.15s ease,
+    transform 0.15s ease;
 }
 
 .outer-brand img {
-  position: relative;
-  z-index: 1;
+  width: 38px;
+  height: 38px;
 
-  width: 46px;
-  height: 46px;
-
-  display: block;
   object-fit: contain;
 
   mix-blend-mode: screen;
-
-  filter:
-    brightness(1.04)
-    saturate(1.08);
 }
 
 /* =====================================
@@ -189,141 +86,76 @@
   flex-direction: column;
   align-items: center;
 
-  gap: 6px;
+  gap: 10px;
 }
 
 .outer-nav-item {
   position: relative;
 
-  width: 76px;
-  height: 64px;
+  width: 56px;
+  height: 56px;
 
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
 
-  color: var(--nav-color);
+  color: #74777d;
 
-  border-radius: 17px;
+  border-radius: 11px;
 
   text-decoration: none;
 
   transition:
-    color 0.18s ease,
-    background-color 0.18s ease,
-    transform 0.18s ease,
-    box-shadow 0.18s ease;
+    background 0.15s ease,
+    color 0.15s ease,
+    transform 0.15s ease;
 }
-
-.outer-nav-item svg {
-  width: 23px;
-  height: 23px;
-
-  stroke-width: 1.75;
-
-  transition:
-    color 0.18s ease,
-    transform 0.18s ease;
-}
-
-.outer-nav-item span {
-  margin-top: 7px;
-
-  color: inherit;
-
-  font-size: 11px;
-  font-weight: 560;
-  line-height: 1.1;
-
-  transition: color 0.18s ease;
-}
-
-/* =====================================
-   ACTIVE INDICATOR
-===================================== */
 
 .outer-nav-item::before {
   content: "";
 
   position: absolute;
 
-  left: -9px;
+  left: -8px;
   top: 50%;
 
   width: 4px;
-  height: 18px;
+  height: 24px;
 
-  border-radius: 0 999px 999px 0;
+  border-radius: 0 4px 4px 0;
 
-  background: linear-gradient(
-    180deg,
-    #f26770,
-    #df3541
-  );
-
-  box-shadow:
-    0 0 7px rgba(226, 55, 68, 0.24),
-    0 0 14px rgba(226, 55, 68, 0.08);
+  background: #e21d2c;
 
   opacity: 0;
 
   transform:
     translateY(-50%)
-    scaleY(0.55);
+    scaleY(0.5);
 
   transition:
-    opacity 0.18s ease,
-    transform 0.18s ease,
-    height 0.18s ease;
+    opacity 0.15s ease,
+    transform 0.15s ease;
 }
-
-/* =====================================
-   NAV HOVER
-===================================== */
 
 .outer-nav-item:hover {
-  color: var(--nav-hover-color);
-
-  background: var(--nav-hover-bg);
-
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.025);
-
-  transform: translateX(1px);
-}
-
-.outer-nav-item:hover svg {
-  transform: scale(1.045);
-}
-
-/* =====================================
-   ACTIVE NAV ITEM
-===================================== */
-
-.outer-nav-item.active {
-  color: var(--accent);
+  color: #ffffff;
 
   background:
-    radial-gradient(
-      circle at 28% 12%,
-      rgba(239, 89, 99, 0.085),
-      transparent 58%
-    ),
-    linear-gradient(
-      145deg,
-      rgba(224, 53, 65, 0.065),
-      rgba(224, 53, 65, 0.035)
-    );
+    rgba(255, 255, 255, 0.09);
 
-  box-shadow:
-    inset 0 0 0 1px rgba(240, 87, 97, 0.075),
-    0 7px 20px rgba(0, 0, 0, 0.085),
-    0 0 16px rgba(224, 53, 65, 0.025);
+  transform:
+    translateX(1px);
+}
+
+.outer-nav-item.active {
+  color: #ffffff;
+
+  background:
+    rgba(226, 29, 44, 0.15);
 }
 
 .outer-nav-item.active::before {
-  height: 22px;
-
   opacity: 1;
 
   transform:
@@ -332,36 +164,33 @@
 }
 
 .outer-nav-item.active svg {
-  color: #f05b65;
-}
-
-.outer-nav-item.active span {
-  color: #f05b65;
-
-  font-weight: 650;
+  color: #f04a54;
 }
 
 .outer-nav-item.active:hover {
   background:
-    radial-gradient(
-      circle at 30% 15%,
-      rgba(239, 89, 99, 0.09),
-      transparent 55%
-    ),
-    linear-gradient(
-      145deg,
-      rgba(224, 53, 65, 0.14),
-      rgba(224, 53, 65, 0.065)
-    );
+    rgba(226, 29, 44, 0.18);
 
   transform: none;
 }
 
-/* Keyboard accessibility without changing the visual language */
-.outer-nav-item:focus-visible,
-.outer-profile-btn:focus-visible {
-  outline: 2px solid rgba(239, 89, 99, 0.72);
-  outline-offset: 3px;
+.outer-nav-item span {
+  margin-top: 5px;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  line-height: 1.1;
+
+  color: #8f9298;
+}
+
+.outer-nav-item:hover span {
+  color: #ffffff;
+}
+
+.outer-nav-item.active span {
+  color: #ffffff;
 }
 
 /* =====================================
@@ -369,7 +198,8 @@
 ===================================== */
 
 .outer-nav-item::after {
-  content: attr(data-tooltip);
+  content:
+    attr(data-tooltip);
 
   position: absolute;
 
@@ -378,19 +208,30 @@
 
   z-index: 1000;
 
-  padding: 7px 10px;
+  padding: 6px 9px;
 
-  color: #f4f4f6;
+  background: #1b1b1c;
+  color: #f6f6f6;
 
-  
+  border:
+    1px solid #2b2b2e;
+
+  border-radius: 7px;
+
+  box-shadow:
+    0 8px 24px
+    rgba(0, 0, 0, 0.28);
+
   font-size: 10px;
   font-weight: 500;
+
   line-height: 1;
 
   white-space: nowrap;
 
   opacity: 0;
   visibility: hidden;
+
   pointer-events: none;
 
   transform:
@@ -398,9 +239,9 @@
     translateX(-4px);
 
   transition:
-    opacity 0.13s ease,
-    visibility 0.13s ease,
-    transform 0.13s ease;
+    opacity 0.12s ease,
+    transform 0.12s ease,
+    visibility 0.12s ease;
 }
 
 .outer-nav-item:hover::after {
@@ -413,51 +254,24 @@
 }
 
 /* =====================================
-   BOTTOM AREA
+   PROFILE & PRESENCE
 ===================================== */
 
 .outer-bottom {
   position: relative;
-  z-index: 2;
 
-  width: calc(100% - 22px);
+  width: 100%;
 
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 12px;
 
-  gap: 10px;
+  padding-top: 14px;
 
-  padding-top: 12px;
-  padding-bottom: 4px;
-
-  border-top: 1px solid rgba(255, 255, 255, 0.065);
+  border-top:
+    1px solid rgba(255, 255, 255, 0.06);
 }
-
-/* Presence widget: keep it visually integrated with the rail */
-.outer-bottom > :first-child:not(.profile-wrapper) {
-  border-radius: 999px;
-  filter: saturate(0.82) brightness(1.04);
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.055),
-    0 4px 12px rgba(0, 0, 0, 0.10);
-  transition:
-    transform 0.16s ease,
-    filter 0.16s ease,
-    box-shadow 0.16s ease;
-}
-
-.outer-bottom > :first-child:not(.profile-wrapper):hover {
-  transform: translateY(-1px);
-  filter: saturate(0.95) brightness(1.06);
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.075),
-    0 6px 16px rgba(0, 0, 0, 0.12);
-}
-
-/* =====================================
-   PROFILE
-===================================== */
 
 .profile-wrapper {
   position: relative;
@@ -470,20 +284,33 @@
 
 .outer-profile-btn {
   position: relative;
-
   padding: 0;
 
   background: transparent;
 
   border: none;
+
   border-radius: 50%;
 
   cursor: pointer;
 }
 
+.outer-avatar-status {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  background-color: #22c55e;
+  border: 2px solid #0a0a0a;
+  border-radius: 50%;
+  box-shadow: 0 0 5px rgba(34, 197, 94, 0.6);
+  z-index: 2;
+}
+
 .outer-avatar {
-  width: 46px;
-  height: 46px;
+  width: 38px;
+  height: 38px;
 
   display: flex;
   align-items: center;
@@ -491,42 +318,31 @@
 
   overflow: hidden;
 
-  background:
-    linear-gradient(
-      145deg,
-      #2c2e34,
-      #18191d
-    );
-
+  background: #202023;
   color: #ffffff;
 
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  border:
+    1px solid rgba(255, 255, 255, 0.08);
 
   border-radius: 50%;
 
-  box-shadow:
-    0 6px 18px rgba(0, 0, 0, 0.2);
-
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 650;
 
   transition:
-    transform 0.16s ease,
-    border-color 0.16s ease,
-    box-shadow 0.16s ease;
+    border-color 0.15s ease,
+    transform 0.15s ease;
 }
 
-.outer-profile-btn:hover .outer-avatar {
-  transform: translateY(-1px);
-
-  border-color: rgba(255, 255, 255, 0.16);
-
-  box-shadow:
-    0 8px 22px rgba(0, 0, 0, 0.25);
+.outer-profile-btn:hover
+.outer-avatar {
+  border-color:
+    rgba(255, 255, 255, 0.25);
 }
 
-.outer-profile-btn:active .outer-avatar {
-  transform: scale(0.95);
+.outer-profile-btn:active
+.outer-avatar {
+  transform: scale(0.94);
 }
 
 .outer-avatar img {
@@ -537,69 +353,38 @@
 }
 
 /* =====================================
-   ONLINE STATUS
-===================================== */
-
-.outer-avatar-status {
-  position: absolute;
-
-  right: -1px;
-  bottom: 0;
-
-  z-index: 2;
-
-  width: 9px;
-  height: 9px;
-
-  background: #4acb70;
-
-  border: 2px solid #1d1e23;
-
-  border-radius: 50%;
-
-  box-shadow:
-    0 0 0 2px rgba(74, 203, 112, 0.055),
-    0 0 5px rgba(74, 203, 112, 0.14);
-}
-
-/* =====================================
    PROFILE MENU
 ===================================== */
 
 .profile-menu {
+  width: 230px;
+
   position: absolute;
 
-  left: 68px;
+  left: 60px;
   bottom: 0;
 
-  z-index: 1000;
-
-  width: 230px;
+  z-index: 300;
 
   padding: 8px;
 
-  background:
-    linear-gradient(
-      145deg,
-      #292b31,
-      #232429
-    );
+  background: #1b1b1c;
 
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border:
+    1px solid #2b2b2e;
 
-  border-radius: 13px;
+  border-radius: 12px;
 
   box-shadow:
-    0 20px 50px rgba(0, 0, 0, 0.3);
-
-  backdrop-filter: blur(14px);
+    0 18px 45px
+    rgba(0, 0, 0, 0.4);
 }
 
 .profile-menu-user {
   display: flex;
   align-items: center;
 
-  gap: 6px;
+  gap: 10px;
 
   padding: 9px;
 }
@@ -612,20 +397,15 @@
   align-items: center;
   justify-content: center;
 
-  flex-shrink: 0;
-
   overflow: hidden;
 
-  background: #17181c;
-
-  color: #ffffff;
-
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #ffffff;
+  color: #171717;
 
   border-radius: 50%;
 
   font-size: 9px;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .profile-menu-avatar img {
@@ -645,26 +425,16 @@
 }
 
 .profile-menu-user-info strong {
-  overflow: hidden;
-
-  color: #f2f2f4;
+  color: #ffffff;
 
   font-size: 12px;
   font-weight: 650;
-
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .profile-menu-user-info span {
-  overflow: hidden;
-
-  color: #9699a2;
+  color: #828288;
 
   font-size: 9px;
-
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .profile-menu-divider {
@@ -672,7 +442,7 @@
 
   margin: 5px 3px;
 
-  background: rgba(255, 255, 255, 0.07);
+  background: #2c2c2f;
 }
 
 .profile-menu-item {
@@ -682,18 +452,19 @@
   display: flex;
   align-items: center;
 
-  gap: 6px;
+  gap: 10px;
 
   padding: 0 10px;
 
   background: transparent;
-
-  color: #b9bbc2;
+  color: #c2c2c7;
 
   border: 0;
-  border-radius: 8px;
+
+  border-radius: 7px;
 
   font-family: inherit;
+
   font-size: 11px;
   font-weight: 500;
 
@@ -702,36 +473,24 @@
   cursor: pointer;
 
   transition:
-    background-color 0.15s ease,
+    background 0.15s ease,
     color 0.15s ease;
 }
 
 .profile-menu-item:hover {
-  background: rgba(255, 255, 255, 0.06);
-
+  background: #262628;
   color: #ffffff;
 }
 
 .profile-menu-item.logout {
-  color: #f15b65;
+  color: #e84a54;
 }
 
 .profile-menu-item.logout:hover {
-  background: rgba(226, 55, 68, 0.12);
+  background:
+    rgba(226, 29, 44, 0.1);
 
-  color: #ff6872;
-}
-
-/* =====================================
-   IMPORTANT:
-   SIDEBAR STAYS THE SAME IN BOTH THEMES
-===================================== */
-
-.dark .sidebar-container,
-[data-theme="dark"] .sidebar-container,
-.light .sidebar-container,
-[data-theme="light"] .sidebar-container {
-  background: var(--sidebar-bg-middle);
+  color: #ff5b65;
 }
 
 /* =====================================
@@ -761,11 +520,6 @@
     transform: translateX(0);
   }
 
-  .outer-sidebar {
-    box-shadow:
-      12px 0 35px rgba(0, 0, 0, 0.24);
-  }
-
   .outer-nav-item::after {
     display: none;
   }
@@ -778,146 +532,13 @@
     align-items: center;
     justify-content: center;
 
-    background: #282a30;
+    background: #1a1a1a;
+    color: #ffffff;
 
-    color: #e6e7ea;
+    border: none;
 
-    border: 1px solid rgba(255, 255, 255, 0.07);
-
-    border-radius: 10px;
+    border-radius: 8px;
 
     cursor: pointer;
-  }
-}
-
-/* =====================================
-   SHORT SCREENS
-===================================== */
-
-@media (max-height: 680px) {
-  .outer-sidebar {
-    padding-top: 9px;
-    padding-bottom: 9px;
-  }
-
-  .outer-brand {
-    width: 46px;
-    height: 46px;
-
-    margin-bottom: 12px;
-  }
-
-  .outer-brand img {
-    width: 34px;
-    height: 34px;
-  }
-
-  .outer-nav {
-    gap: 4px;
-  }
-
-  .outer-nav-item {
-    height: 48px;
-  }
-
-  .outer-bottom {
-    gap: 6px;
-
-    padding-top: 9px;
-  }
-
-  .outer-avatar {
-    width: 36px;
-    height: 36px;
-  }
-}
-/* =====================================
-   MOBILE SIDEBAR POLISH
-===================================== */
-
-@media (max-width: 768px) {
-  .sidebar-container {
-    --sidebar-width: 78px;
-  }
-
-  .outer-sidebar {
-    padding-top: 16px;
-    padding-bottom: 14px;
-  }
-
-  .outer-brand {
-    width: 50px;
-    height: 50px;
-    margin-bottom: 18px;
-    border-radius: 14px;
-  }
-
-  .outer-brand img {
-    width: 38px;
-    height: 38px;
-  }
-
-  .outer-nav {
-    gap: 4px;
-  }
-
-  .outer-nav-item {
-    width: 66px;
-    height: 58px;
-    border-radius: 14px;
-  }
-
-  .outer-nav-item svg {
-    width: 21px;
-    height: 21px;
-  }
-
-  .outer-nav-item span {
-    margin-top: 5px;
-    font-size: 10px;
-  }
-
-  .outer-nav-item::before {
-    left: -6px;
-  }
-
-  .outer-bottom {
-    width: calc(100% - 16px);
-    gap: 8px;
-    padding-top: 10px;
-  }
-
-  .outer-avatar {
-    width: 40px;
-    height: 40px;
-  }
-
-  .outer-avatar-status {
-    width: 8px;
-    height: 8px;
-  }
-
-  .profile-menu {
-    left: 58px;
-    width: min(220px, calc(100vw - 90px));
-  }
-}
-
-@media (max-width: 420px) {
-  .sidebar-container {
-    --sidebar-width: 74px;
-  }
-
-  .outer-nav-item {
-    width: 62px;
-    height: 56px;
-  }
-
-  .outer-nav-item span {
-    font-size: 9.5px;
-  }
-
-  .outer-brand {
-    margin-bottom: 14px;
   }
 }

@@ -3,7 +3,6 @@ import { useState } from "react";
 import {
   CalendarDays,
   FolderKanban,
-  Inbox,
   LayoutDashboard,
   LogOut,
   Megaphone,
@@ -17,14 +16,24 @@ import {
 } from "react-router-dom";
 
 import { useAuth } from "../../contexts/AuthContext";
-import { useAvatar } from "../../contexts/AvatarContext";
 import { presenceApi } from "../../api/presence";
 import ActiveUsersWidget from "../ActiveUsersWidget/ActiveUsersWidget";
 
-import formulaLogo from "../../assets/logo-yazisiz0.png";
+import formulaLogo from "../../assets/logo-yazisiz.jpg";
 
 import "./Sidebar.css";
 
+const AVATARS: Record<string, string> = {
+  red: "/avatars/avatar_red.png",
+  blue: "/avatars/avatar_blue.png",
+  black: "/avatars/avatar_black.png",
+  frog: "/avatars/avatar_frog.png",
+  pink: "/avatars/avatar_pink.png",
+  purple: "/avatars/avatar_purple.png",
+  yellow: "/avatars/avatar_yellow.png",
+  orange: "/avatars/avatar_orange.png",
+  white: "/avatars/avatar_white.png",
+};
 
 type SidebarProps = {
   isOpen: boolean;
@@ -40,7 +49,6 @@ export default function Sidebar({
 
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { selectedAvatar } = useAvatar();
 
   const roleName =
     user?.organization?.name || "Takım Üyesi";
@@ -53,8 +61,11 @@ export default function Sidebar({
     ? `${user.first_name.charAt(0)}${user.last_name.charAt(0)}`
     : "?";
 
+  const selectedAvatarId =
+    localStorage.getItem("pitwall_avatar") ?? "";
+
   const avatarSrc =
-    selectedAvatar?.src ?? null;
+    AVATARS[selectedAvatarId] ?? null;
 
   function handleNavigation() {
     setShowProfileMenu(false);
@@ -70,18 +81,15 @@ export default function Sidebar({
   async function handleLogout() {
     setShowProfileMenu(false);
     onClose();
-
     await presenceApi.leave();
-
     logout();
     navigate("/login");
   }
 
   return (
     <div
-      className={`sidebar-container ${
-        isOpen ? "sidebar-open" : ""
-      }`}
+      className={`sidebar-container ${isOpen ? "sidebar-open" : ""
+        }`}
     >
       <aside className="outer-sidebar">
         <div className="outer-top">
@@ -89,12 +97,7 @@ export default function Sidebar({
             className="outer-brand"
             aria-label="Pitwall"
           >
-            <div className="outer-brand-glow" />
-
-            <img
-              src={formulaLogo}
-              alt="Pitwall"
-            />
+            <img src={formulaLogo} alt="Pitwall" />
           </div>
 
           <nav className="outer-nav">
@@ -102,15 +105,13 @@ export default function Sidebar({
               to="/dashboard"
               onClick={handleNavigation}
               className={({ isActive }) =>
-                `outer-nav-item ${
-                  isActive ? "active" : ""
+                `outer-nav-item ${isActive ? "active" : ""
                 }`
               }
               aria-label="Görev Panosu"
+              data-tooltip="Pano"
             >
-              <div className="outer-nav-icon">
-                <LayoutDashboard size={21} />
-              </div>
+              <LayoutDashboard size={21} />
               <span>Pano</span>
             </NavLink>
 
@@ -118,15 +119,13 @@ export default function Sidebar({
               to="/calendar"
               onClick={handleNavigation}
               className={({ isActive }) =>
-                `outer-nav-item ${
-                  isActive ? "active" : ""
+                `outer-nav-item ${isActive ? "active" : ""
                 }`
               }
               aria-label="Takvim"
+              data-tooltip="Takvim"
             >
-              <div className="outer-nav-icon">
-                <CalendarDays size={21} />
-              </div>
+              <CalendarDays size={21} />
               <span>Takvim</span>
             </NavLink>
 
@@ -134,15 +133,13 @@ export default function Sidebar({
               to="/projects"
               onClick={handleNavigation}
               className={({ isActive }) =>
-                `outer-nav-item ${
-                  isActive ? "active" : ""
+                `outer-nav-item ${isActive ? "active" : ""
                 }`
               }
               aria-label="Projeler"
+              data-tooltip="Projeler"
             >
-              <div className="outer-nav-icon">
-                <FolderKanban size={21} />
-              </div>
+              <FolderKanban size={21} />
               <span>Projeler</span>
             </NavLink>
 
@@ -150,56 +147,34 @@ export default function Sidebar({
               to="/announcements"
               onClick={handleNavigation}
               className={({ isActive }) =>
-                `outer-nav-item ${
-                  isActive ? "active" : ""
+                `outer-nav-item ${isActive ? "active" : ""
                 }`
               }
               aria-label="Duyurular"
+              data-tooltip="Duyurular"
             >
-              <div className="outer-nav-icon">
-                <Megaphone size={21} />
-              </div>
+              <Megaphone size={21} />
               <span>Duyuru</span>
-            </NavLink>
-
-            <NavLink
-              to="/inbox"
-              onClick={handleNavigation}
-              className={({ isActive }) =>
-                `outer-nav-item ${
-                  isActive ? "active" : ""
-                }`
-              }
-              aria-label="Inbox"
-            >
-              <div className="outer-nav-icon">
-                <Inbox size={21} />
-              </div>
-              <span>Inbox</span>
             </NavLink>
 
             <NavLink
               to="/profile"
               onClick={handleNavigation}
               className={({ isActive }) =>
-                `outer-nav-item ${
-                  isActive ? "active" : ""
+                `outer-nav-item ${isActive ? "active" : ""
                 }`
               }
               aria-label="Profil"
+              data-tooltip="Profil"
             >
-              <div className="outer-nav-icon">
-                <UserRound size={21} />
-              </div>
+              <UserRound size={21} />
               <span>Profil</span>
             </NavLink>
           </nav>
         </div>
 
         <div className="outer-bottom">
-          <div className="outer-presence">
-            <ActiveUsersWidget />
-          </div>
+          <ActiveUsersWidget />
 
           <div className="profile-wrapper">
             {showProfileMenu && (
@@ -207,7 +182,10 @@ export default function Sidebar({
                 <div className="profile-menu-user">
                   <div className="profile-menu-avatar">
                     {avatarSrc ? (
-                      <img src={avatarSrc} alt="avatar" />
+                      <img
+                        src={avatarSrc}
+                        alt="avatar"
+                      />
                     ) : (
                       initials
                     )}
@@ -225,10 +203,12 @@ export default function Sidebar({
                   type="button"
                   className="profile-menu-item"
                   onClick={() =>
-                    handleProfileNavigation("/profile")
+                    handleProfileNavigation(
+                      "/profile",
+                    )
                   }
                 >
-                  <UserRound size={17} />
+                  <UserRound size={16} />
                   Profilim
                 </button>
 
@@ -236,10 +216,12 @@ export default function Sidebar({
                   type="button"
                   className="profile-menu-item"
                   onClick={() =>
-                    handleProfileNavigation("/settings")
+                    handleProfileNavigation(
+                      "/settings",
+                    )
                   }
                 >
-                  <Settings size={17} />
+                  <Settings size={16} />
                   Ayarlar
                 </button>
 
@@ -250,7 +232,7 @@ export default function Sidebar({
                   className="profile-menu-item logout"
                   onClick={handleLogout}
                 >
-                  <LogOut size={17} />
+                  <LogOut size={16} />
                   Çıkış Yap
                 </button>
               </div>
@@ -261,20 +243,21 @@ export default function Sidebar({
               className="outer-profile-btn"
               onClick={() =>
                 setShowProfileMenu(
-                  (previous) => !previous,
+                  (prev) => !prev,
                 )
               }
               aria-label="Profil menüsü"
-              aria-expanded={showProfileMenu}
             >
               <div className="outer-avatar">
                 {avatarSrc ? (
-                  <img src={avatarSrc} alt="avatar" />
+                  <img
+                    src={avatarSrc}
+                    alt="avatar"
+                  />
                 ) : (
                   initials
                 )}
               </div>
-
               <span className="outer-avatar-status" />
             </button>
           </div>

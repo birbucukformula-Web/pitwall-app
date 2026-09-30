@@ -72,6 +72,165 @@
   line-height: 1.55;
 }
 
+/* RACE */
+
+.pd-race {
+  display: grid;
+
+  grid-template-columns:
+    auto 1fr;
+
+  grid-template-areas:
+    "left right"
+    "progress progress";
+
+  align-items: center;
+
+  gap:
+    0 24px;
+
+  padding:
+    26px 30px;
+
+  border-left:
+    1px solid
+    var(--border-soft);
+}
+
+.pd-race-left {
+  grid-area: left;
+
+  display: flex;
+  align-items: center;
+
+  gap: 13px;
+}
+
+.pd-race-icon {
+  width: 48px;
+  height: 48px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background:
+    var(--accent-soft);
+
+  color:
+    var(--accent);
+
+  border-radius: 10px;
+}
+
+.pd-race-left > div:last-child {
+  display: flex;
+  flex-direction: column;
+}
+
+.pd-race-label {
+  color:
+    var(--text-muted);
+
+  font-size: 9px;
+  font-weight: 650;
+
+  letter-spacing: 1.4px;
+}
+
+.pd-race-days {
+  margin-top: 3px;
+
+  color:
+    var(--text);
+
+  font-size: 24px;
+  font-weight: 650;
+
+  line-height: 1.1;
+}
+
+.pd-race-caption {
+  margin-top: 4px;
+
+  color:
+    var(--text-muted);
+
+  font-size: 10px;
+}
+
+.pd-race-right {
+  grid-area: right;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+
+  gap: 34px;
+
+  text-align: right;
+}
+
+.pd-race-date,
+.pd-race-completion {
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+}
+
+.pd-race-date span,
+.pd-race-completion span {
+  color:
+    var(--text-muted);
+
+  font-size: 9px;
+}
+
+.pd-race-date strong {
+  color:
+    var(--text-secondary);
+
+  font-size: 11px;
+  font-weight: 550;
+}
+
+.pd-race-completion strong {
+  color:
+    var(--text);
+
+  font-size: 22px;
+  font-weight: 650;
+}
+
+.pd-progress {
+  grid-area: progress;
+
+  height: 6px;
+
+  margin-top: 20px;
+
+  overflow: hidden;
+
+  background:
+    var(--surface-soft);
+
+  border-radius: 999px;
+}
+
+.pd-progress-value {
+  height: 100%;
+
+  background:
+    var(--accent);
+
+  border-radius: 999px;
+
+  transition:
+    width 0.35s ease;
+}
 
 /* =====================================
    STATS
@@ -704,6 +863,27 @@ span:first-child {
 
 }
 
+@media (max-width: 950px) {
+
+  .pd-hero {
+    grid-template-columns:
+      1fr;
+  }
+
+  .pd-race {
+    border-left: 0;
+
+    border-top:
+      1px solid
+      var(--border-soft);
+  }
+
+  .pd-main-grid {
+    grid-template-columns:
+      1fr;
+  }
+
+}
 
 @media (max-width: 760px) {
 
@@ -734,6 +914,20 @@ span:first-child {
   .pd-welcome p {
     font-size: 12px;
   }
+
+  .pd-race {
+    grid-template-columns:
+      1fr;
+
+    grid-template-areas:
+      "left"
+      "right"
+      "progress";
+
+    row-gap: 16px;
+
+    padding:
+      20px 18px;
   }
 
   .pd-race-right {
@@ -760,3 +954,5 @@ span:first-child {
 
     font-size: 0;
   }
+
+}

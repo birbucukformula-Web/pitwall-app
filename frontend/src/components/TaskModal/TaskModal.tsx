@@ -74,16 +74,13 @@ export default function TaskModal({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [newActivity, setNewActivity] = useState("");
-
+  
   // We use string here, but will handle empty state.
   const [projectId, setProjectId] = useState("");
   const [unitId, setUnitId] = useState("");
 
   const [priority, setPriority] =
     useState<Task["priority"]>("medium");
-
-  const [startDate, setStartDate] =
-    useState("");
 
   const [dueDate, setDueDate] =
     useState("");
@@ -114,7 +111,6 @@ export default function TaskModal({
     );
 
     setPriority("medium");
-    setStartDate("");
     setDueDate("");
     setAssignees([]);
     setShowAssigneePicker(false);
@@ -149,10 +145,6 @@ export default function TaskModal({
 
       setPriority(
         editingTask.priority,
-      );
-
-      setStartDate(
-        editingTask.start_date ?? "",
       );
 
       setDueDate(
@@ -269,9 +261,6 @@ export default function TaskModal({
 
         priority,
 
-        start_date:
-          startDate || null,
-
         due_date:
           dueDate,
 
@@ -309,7 +298,7 @@ export default function TaskModal({
       priority,
 
       start_date:
-        startDate || null,
+        null,
 
       due_date:
         dueDate,
@@ -413,7 +402,6 @@ export default function TaskModal({
             />
           </label>
 
-
           <div className="task-modal-grid">
             <label>
               Proje
@@ -492,16 +480,21 @@ export default function TaskModal({
             </label>
           </div>
 
-
           <div className="task-modal-grid">
             <label>
               Öncelik
 
               <select
-                value={priority}
-                onChange={(event) =>
+                value={
+                  priority
+                }
+                onChange={(
+                  event,
+                ) =>
                   setPriority(
-                    event.target.value as Task["priority"],
+                    event
+                      .target
+                      .value as Task["priority"],
                   )
                 }
               >
@@ -518,38 +511,30 @@ export default function TaskModal({
                 </option>
               </select>
             </label>
-          </div>
-
-          <div className="task-modal-grid">
-            <label>
-              Başlangıç tarihi
-
-              <input
-                type="date"
-                value={startDate}
-                max={dueDate || undefined}
-                onChange={(event) =>
-                  setStartDate(event.target.value)
-                }
-              />
-            </label>
 
             <label>
               Teslim tarihi
 
               <input
                 type="date"
-                value={dueDate}
-                min={startDate || undefined}
-                onChange={(event) =>
-                  setDueDate(event.target.value)
+                value={
+                  dueDate
                 }
-                onKeyDown={(event) => {
-                  if (event.key.toLowerCase() === "b") {
+                onChange={(
+                  event,
+                ) =>
+                  setDueDate(
+                    event
+                      .target
+                      .value,
+                  )
+                }
+                onKeyDown={(
+                  event,
+                ) => {
+                  if (event.key.toLowerCase() === 'b') {
                     event.preventDefault();
-                    setDueDate(
-                      new Date().toISOString().split("T")[0],
-                    );
+                    setDueDate(new Date().toISOString().split('T')[0]);
                   }
                 }}
               />
@@ -679,10 +664,11 @@ export default function TaskModal({
                             member.id
                           }
                           type="button"
-                          className={`assignee-member-row ${isSelected
-                            ? "selected"
-                            : ""
-                            }`}
+                          className={`assignee-member-row ${
+                            isSelected
+                              ? "selected"
+                              : ""
+                          }`}
                           onClick={() =>
                             toggleAssignee(
                               member,
@@ -708,10 +694,11 @@ export default function TaskModal({
                           </div>
 
                           <span
-                            className={`assignee-member-check ${isSelected
-                              ? "checked"
-                              : ""
-                              }`}
+                            className={`assignee-member-check ${
+                              isSelected
+                                ? "checked"
+                                : ""
+                            }`}
                           >
                             {isSelected
                               ? "✓"
@@ -775,13 +762,13 @@ export default function TaskModal({
                 {activities.length === 0 && <div style={{ color: "var(--text-secondary)", fontSize: "13px" }}>Henüz bir hareket bulunmuyor.</div>}
               </div>
               <div style={{ display: "flex", gap: "8px" }}>
-                <input
-                  type="text"
-                  className="form-input"
+                <input 
+                  type="text" 
+                  className="form-input" 
                   style={{ flex: 1 }}
-                  placeholder="Yorum yaz..."
-                  value={newActivity}
-                  onChange={(e) => setNewActivity(e.target.value)}
+                  placeholder="Yorum yaz..." 
+                  value={newActivity} 
+                  onChange={(e) => setNewActivity(e.target.value)} 
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && newActivity.trim()) {
                       e.preventDefault();
@@ -789,8 +776,8 @@ export default function TaskModal({
                     }
                   }}
                 />
-                <button
-                  type="button"
+                <button 
+                  type="button" 
                   style={{ padding: "0 12px", background: "var(--primary-color)", color: "white", borderRadius: "6px", fontSize: "13px", fontWeight: 500, border: "none", cursor: "pointer" }}
                   disabled={!newActivity.trim()}
                   onClick={() => {
