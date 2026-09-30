@@ -52,7 +52,7 @@ export default function ProjectTasksTab({ projectId, project, tasks, setTasks }:
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [deletingTask, setDeletingTask] = useState<Task | null>(null);
-  
+
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [taskModalStatus, setTaskModalStatus] = useState<TaskStatus>("todo");
 
@@ -100,7 +100,7 @@ export default function ProjectTasksTab({ projectId, project, tasks, setTasks }:
     const columnTasks = taskList
       .filter(
         (task) =>
-          (task.project?.id === project.id || task.project?.name === project.name) &&
+          (task.unit?.id === project.id || task.unit?.name === project.name) &&
           task.status === status
       )
       .sort((a, b) => a.order - b.order);
@@ -112,7 +112,7 @@ export default function ProjectTasksTab({ projectId, project, tasks, setTasks }:
 
     return taskList.map((task) => {
       if (
-        (task.project?.id !== project.id && task.project?.name !== project.name) ||
+        (task.unit?.id !== project.id && task.unit?.name !== project.name) ||
         task.status !== status
       ) {
         return task;
@@ -130,7 +130,7 @@ export default function ProjectTasksTab({ projectId, project, tasks, setTasks }:
     const targetTasks = withoutMovingTask
       .filter(
         (task) =>
-          (task.project?.id === project.id || task.project?.name === project.name) &&
+          (task.unit?.id === project.id || task.unit?.name === project.name) &&
           task.status === targetStatus
       )
       .sort((a, b) => a.order - b.order);
@@ -146,7 +146,7 @@ export default function ProjectTasksTab({ projectId, project, tasks, setTasks }:
 
     let result = withoutMovingTask.map((task) => {
       if (
-        (task.project?.id !== project.id && task.project?.name !== project.name) ||
+        (task.unit?.id !== project.id && task.unit?.name !== project.name) ||
         task.status !== targetStatus
       ) {
         return task;
@@ -181,7 +181,7 @@ export default function ProjectTasksTab({ projectId, project, tasks, setTasks }:
       const movingTask = previousTasks.find((task) => task.id === activeId);
       if (
         !movingTask ||
-        (movingTask.project?.id !== project.id && movingTask.project?.name !== project.name)
+        (movingTask.unit?.id !== project.id && movingTask.unit?.name !== project.name)
       ) {
         return previousTasks;
       }
@@ -210,7 +210,7 @@ export default function ProjectTasksTab({ projectId, project, tasks, setTasks }:
       const targetTasks = previousTasks
         .filter(
           (task) =>
-            (task.project?.id === project.id || task.project?.name === project.name) &&
+            (task.unit?.id === project.id || task.unit?.name === project.name) &&
             task.status === targetStatus &&
             task.id !== activeId
         )
@@ -267,7 +267,6 @@ export default function ProjectTasksTab({ projectId, project, tasks, setTasks }:
           updates: {
             status: movedTask.status,
             order: movedTask.order,
-            project: movedTask.project?.id || Number(projectId),
           },
         });
       }
@@ -304,6 +303,7 @@ export default function ProjectTasksTab({ projectId, project, tasks, setTasks }:
       priority: newTask.priority,
       unit: Number(projectId),
       assignees: newTask.assignees?.map((a: any) => a.id),
+      start_date: newTask.start_date || null,
       due_date: newTask.due_date,
     });
   }
@@ -318,6 +318,7 @@ export default function ProjectTasksTab({ projectId, project, tasks, setTasks }:
         priority: updatedTask.priority,
         unit: Number(projectId),
         assignees: updatedTask.assignees?.map((a: any) => a.id),
+        start_date: updatedTask.start_date || null,
         due_date: updatedTask.due_date,
       },
     });
