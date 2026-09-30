@@ -10,7 +10,6 @@ import {
   CheckCircle2,
   ChevronRight,
   CircleDashed,
-  Flag,
 } from "lucide-react";
 
 import {
@@ -191,65 +190,6 @@ export default function Dashboard() {
     );
   }, [activeTasks, today]);
 
-  const raceDate = useMemo(() => {
-    if (
-      !user?.organization?.race_date
-    ) {
-      return null;
-    }
-
-    const date =
-      new Date(
-        user.organization.race_date,
-      );
-
-    date.setHours(0, 0, 0, 0);
-
-    return date;
-  }, [user]);
-
-  const daysLeft =
-    raceDate !== null
-      ? Math.ceil(
-        (raceDate.getTime() -
-          today.getTime()) /
-        (1000 *
-          60 *
-          60 *
-          24),
-      )
-      : null;
-
-  const raceText =
-    daysLeft === null
-      ? "—"
-      : daysLeft > 0
-        ? `${daysLeft} GÜN`
-        : daysLeft === 0
-          ? "BUGÜN!"
-          : "TAMAMLANDI";
-
-  const raceDateText =
-    raceDate !== null
-      ? raceDate.toLocaleDateString(
-        "tr-TR",
-        {
-          day: "numeric",
-          month: "long",
-          year: "numeric",
-        },
-      )
-      : "Tarih belirtilmemiş";
-
-  const completionRate =
-    myTasks.length > 0
-      ? Math.round(
-        (completedTasks.length /
-          myTasks.length) *
-        100,
-      )
-      : 0;
-
   function scrollTo(
     ref: React.RefObject<
       HTMLDivElement | null
@@ -365,66 +305,6 @@ export default function Dashboard() {
               edebilirsin.
             </p>
           </div>
-
-          <div className="pd-race">
-
-            <div className="pd-race-left">
-
-              <div className="pd-race-icon">
-                <Flag size={21} />
-              </div>
-
-              <div>
-                <span className="pd-race-label">
-                  FORMULA STUDENT
-                </span>
-
-                <strong className="pd-race-days">
-                  {raceText}
-                </strong>
-
-                <span className="pd-race-caption">
-                  Yarışa kalan süre
-                </span>
-              </div>
-
-            </div>
-
-            <div className="pd-race-right">
-
-              <div className="pd-race-date">
-                <span>
-                  Hedef tarih
-                </span>
-
-                <strong>
-                  {raceDateText}
-                </strong>
-              </div>
-
-              <div className="pd-race-completion">
-                <strong>
-                  %{completionRate}
-                </strong>
-
-                <span>
-                  Tamamlanan görevler
-                </span>
-              </div>
-
-            </div>
-
-            <div className="pd-progress">
-              <div
-                className="pd-progress-value"
-                style={{
-                  width: `${completionRate}%`,
-                }}
-              />
-            </div>
-
-          </div>
-
         </section>
 
         {/* STATS */}

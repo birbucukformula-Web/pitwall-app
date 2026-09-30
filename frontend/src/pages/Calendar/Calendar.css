@@ -1,52 +1,44 @@
 .calendar-page {
-  padding: 30px 34px 40px;
+  width: 100%;
+  padding: 34px 48px 50px;
   color: var(--text);
 }
 
 .calendar-page-header {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
-
-  margin-bottom: 24px;
+  gap: 24px;
+  margin-bottom: 18px;
 }
 
-.calendar-page-header h2 {
+.calendar-page-description {
+  max-width: 650px;
   margin: 0;
-
-  color: var(--text);
-
-  font-size: 26px;
-  font-weight: 700;
-}
-
-.calendar-page-header p {
-  margin: 7px 0 0;
 
   color: var(--text-muted);
 
-  font-size: 13px;
+  font-size: 14px;
+  line-height: 1.55;
 }
 
 /* NEW TASK */
 
 .calendar-new-task {
-  height: 42px;
-
+  height: 38px;
   display: flex;
   align-items: center;
+  gap: 7px;
 
-  gap: 8px;
-
-  padding: 0 17px;
+  padding: 0 14px;
 
   background: var(--accent);
-  color: #ffffff;
+  color: #fff;
 
   border: 0;
   border-radius: 7px;
 
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
 
   cursor: pointer;

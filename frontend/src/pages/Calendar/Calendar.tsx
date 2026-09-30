@@ -164,11 +164,11 @@ function isSameDate(
 
   return (
     date.getFullYear() ===
-      taskDate.getFullYear() &&
+    taskDate.getFullYear() &&
     date.getMonth() ===
-      taskDate.getMonth() &&
+    taskDate.getMonth() &&
     date.getDate() ===
-      taskDate.getDate()
+    taskDate.getDate()
   );
 }
 
@@ -179,11 +179,11 @@ function isToday(
 
   return (
     date.getFullYear() ===
-      today.getFullYear() &&
+    today.getFullYear() &&
     date.getMonth() ===
-      today.getMonth() &&
+    today.getMonth() &&
     date.getDate() ===
-      today.getDate()
+    today.getDate()
   );
 }
 
@@ -329,6 +329,7 @@ export default function Calendar() {
       project: newTask.project?.id,
       unit: newTask.unit?.id,
       assignees: newTask.assignees?.map((a) => a.id),
+      start_date: newTask.start_date || null,
       due_date: newTask.due_date,
     });
   }
@@ -346,6 +347,7 @@ export default function Calendar() {
         project: updatedTask.project?.id,
         unit: updatedTask.unit?.id,
         assignees: updatedTask.assignees?.map((a) => a.id),
+        start_date: updatedTask.start_date || null,
         due_date: updatedTask.due_date,
       },
     });
@@ -355,32 +357,20 @@ export default function Calendar() {
     <>
       <section className="calendar-page">
         <div className="calendar-page-header">
-          <div>
-            <h2>
-              Takvim
-            </h2>
+          <p className="calendar-page-description">
+            Görevlerini ve teslim tarihlerini
+            takvim üzerinden takip et.
+          </p>
 
-            <p>
-              Görevlerini ve teslim
-              tarihlerini takvim
-              üzerinden takip et.
-            </p>
-          </div>
-
-          <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-            <button
-              className="calendar-new-task"
-              onClick={() =>
-                setShowTaskModal(
-                  true,
-                )
-              }
-            >
-              <Plus size={18} />
-
-              Yeni Görev
-            </button>
-          </div>
+          <button
+            className="calendar-new-task"
+            onClick={() =>
+              setShowTaskModal(true)
+            }
+          >
+            <Plus size={18} />
+            Yeni Görev
+          </button>
         </div>
 
         <div className="calendar-container">
@@ -422,7 +412,7 @@ export default function Calendar() {
               <h3>
                 {
                   MONTHS[
-                    currentDate.getMonth()
+                  currentDate.getMonth()
                   ]
                 }{" "}
                 {
@@ -493,11 +483,10 @@ export default function Calendar() {
 
                     return (
                       <div
-                        className={`calendar-day ${
-                          !isCurrentMonth
-                            ? "other-month"
-                            : ""
-                        }`}
+                        className={`calendar-day ${!isCurrentMonth
+                          ? "other-month"
+                          : ""
+                          }`}
                         key={
                           date.toISOString()
                         }
@@ -564,7 +553,7 @@ export default function Calendar() {
                     >
                       {
                         WEEK_DAYS[
-                          index
+                        index
                         ]
                       }{" "}
                       {
