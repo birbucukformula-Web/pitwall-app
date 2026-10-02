@@ -36,6 +36,23 @@ class Unit(models.Model):
             ids.extend(child.get_descendant_ids())
         return ids
 
+    def get_ancestor_ids(self):
+        """Kendisi dahil tüm üst birimlerin id'lerini döner (köke kadar)."""
+        ids = [self.pk]
+        if self.parent_id is not None:
+            ids.extend(self.parent.get_ancestor_ids())
+        return ids
+
+    def get_visible_unit_ids(self):
+        """
+        Bu birime bağlı bir kullanıcının görebileceği tüm birim id'lerini döner.
+        Kural: kendi yolu = ancestors (köke kadar) + kendi subtree'si.
+        Kardeş birimler dahil edilmez.
+        """
+        ancestor_ids = self.get_ancestor_ids()   # kendisi dahil, köke kadar
+        descendant_ids = self.get_descendant_ids()  # kendisi dahil, alta kadar
+        return list(set(ancestor_ids + descendant_ids))
+
     def clean(self):
         """parent olarak kendi alt ağacından bir birim seçilmesini engeller."""
         if self.parent_id is not None:

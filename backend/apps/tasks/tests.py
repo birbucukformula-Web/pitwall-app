@@ -10,15 +10,18 @@ class TaskAPITests(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.org = Organization.objects.create(name="1.5 Adana Racing", slug="1-5-adana")
+        self.unit = Unit.objects.create(name="Yazılım Ekibi", code="YZL", organization=self.org)
         self.user = User.objects.create_user(
             username="testuser",
             email="test@pitwall.app",
             password="pitwall123",
-            organization=self.org
+            organization=self.org,
+            role='captain',   # captain → yazma yetkisi var
+            unit=self.unit,
         )
         self.client.force_authenticate(user=self.user)
-        self.unit = Unit.objects.create(name="Yazılım Ekibi", code="YZL", organization=self.org)
         self.project = Project.objects.create(name="Telemetri Sistemi", organization=self.org)
+
 
     def test_create_and_list_task_with_priority(self):
         response = self.client.post('/api/v1/tasks/', {

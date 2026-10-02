@@ -6,55 +6,81 @@ from django.utils import timezone
 from rest_framework.decorators import action
 from .models import Task, TaskActivity
 from .serializers import TaskSerializer, TaskActivitySerializer
+from apps.accounts.permissions import (
+    IsAuthenticatedOrgMember,
+    get_visible_unit_ids,
+    get_write_unit_ids,
+    user_can_write_task,
+)
 
 class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrgMember]
 
     def get_queryset(self):
         user = self.request.user
-        # Organizasyon izolasyonu: Sadece kullanıcının organizasyonundaki görevler
-        if hasattr(user, 'organization') and user.organization:
-            queryset = Task.objects.filter(organization=user.organization)
-        else:
-            return Task.objects.none()
 
-        # Filtreler
+        # Organizasyon izolasyonu
+        queryset = Task.objects.filter(organization=user.organization)
+
+        # Birim görünürlük filtresi (Faz 2)
+        visible_ids = get_visible_unit_ids(user)
+        if visible_ids is not None:
+            # captain değil → sadece kendi yolundaki birimler
+            # unit=None olan görevler görünmez (captain'a özel genel görevler)
+            queryset = queryset.filter(unit_id__in=visible_ids)
+
+        # URL query filtreleri
         status_param = self.request.query_params.get('status')
         if status_param:
             queryset = queryset.filter(status=status_param)
-            
+
         unit_param = self.request.query_params.get('unit')
         if unit_param:
             queryset = queryset.filter(unit_id=unit_param)
-            
+
         project_param = self.request.query_params.get('project')
         if project_param:
             queryset = queryset.filter(project_id=project_param)
-            
+
         assignee_param = self.request.query_params.get('assignee')
         if assignee_param:
             queryset = queryset.filter(assigned_to__id=assignee_param)
-            
+
         overdue_param = self.request.query_params.get('overdue')
         if overdue_param and overdue_param.lower() == 'true':
             queryset = queryset.filter(
                 due_date__lt=timezone.now().date()
             ).exclude(status=Task.Status.DONE)
-            
+
         return queryset.distinct()
 
-    def perform_create(self, serializer):
-        # Görevi kullanıcının organizasyonuna zorla ata
+    def check_write_permission(self, task=None):
+        """Yazma yetkisi yoksa 403 döner."""
         user = self.request.user
-        if hasattr(user, 'organization') and user.organization:
-            task = serializer.save(organization=user.organization)
+        if task is not None:
+            # Mevcut görev üzerinde işlem (update/destroy)
+            if not user_can_write_task(user, task):
+                self.permission_denied(
+                    self.request,
+                    message="Bu görevi düzenleme veya silme yetkiniz yok."
+                )
         else:
-            task = serializer.save()
-            
+            # Yeni görev oluşturma
+            write_ids = get_write_unit_ids(user)
+            if write_ids is not None and len(write_ids) == 0:
+                self.permission_denied(
+                    self.request,
+                    message="Görev oluşturma yetkiniz yok."
+                )
+
+    def perform_create(self, serializer):
+        self.check_write_permission()  # member ise 403
+        user = self.request.user
+        task = serializer.save(organization=user.organization)
         TaskActivity.objects.create(
             task=task,
-            user=self.request.user,
+            user=user,
             activity_type=TaskActivity.ActivityType.OTHER,
             content="Görevi oluşturdu."
         )
@@ -62,14 +88,25 @@ class TaskViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         old_task = self.get_object()
         old_status = old_task.status
-        
+
+        # Member sadece status ve order alanlarını patch edebilir
+        user = self.request.user
+        if user.role == 'member':
+            allowed_fields = {'status', 'order'}
+            requested_fields = set(serializer.validated_data.keys())
+            if not requested_fields.issubset(allowed_fields):
+                self.permission_denied(
+                    self.request,
+                    message="Üyeler yalnızca görev durumunu değiştirebilir."
+                )
+        else:
+            self.check_write_permission(task=old_task)
+
         task = serializer.save()
-        
-        # Eğer status değiştiyse log at
+
         if old_status != task.status:
             status_display = dict(Task.Status.choices).get(task.status, task.status)
             old_status_display = dict(Task.Status.choices).get(old_status, old_status)
-            
             content = f"Görevin durumunu {old_status_display} -> {status_display} olarak değiştirdi."
             TaskActivity.objects.create(
                 task=task,
@@ -77,6 +114,10 @@ class TaskViewSet(viewsets.ModelViewSet):
                 activity_type=TaskActivity.ActivityType.STATUS_CHANGE,
                 content=content
             )
+
+    def perform_destroy(self, instance):
+        self.check_write_permission(task=instance)
+        instance.delete()
 
     @action(detail=True, methods=['get', 'post'])
     def activities(self, request, pk=None):
