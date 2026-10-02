@@ -34,12 +34,12 @@ export default function ProjectSettingsTab({ project }: Props) {
           </div>
           
           <div className="members-grid">
-            {project.members.slice(0, 1).map((member: any) => (
+            {project.members.filter((m: any) => m.teamRole === 'lead' || m.teamRole === 'captain').map((member: any) => (
               <div className="member-card admin-card" key={member.id}>
                 <div className="member-avatar">{member.initials}</div>
                 <div className="member-info">
                   <strong>{member.name}</strong>
-                  <span>Departman Lideri</span>
+                  <span>{member.teamRole === 'captain' ? 'Kaptan' : 'Departman Lideri'}</span>
                 </div>
                 <button className="icon-button"><Settings size={14}/></button>
               </div>
@@ -65,7 +65,7 @@ export default function ProjectSettingsTab({ project }: Props) {
           </div>
           
           <div className="members-grid">
-            {project.members.map((member: any) => (
+            {project.members.filter((m: any) => m.teamRole !== 'lead' && m.teamRole !== 'captain').map((member: any) => (
               <div className="member-card" key={member.id}>
                 <div className="member-avatar">{member.initials}</div>
                 <div className="member-info">
@@ -75,7 +75,7 @@ export default function ProjectSettingsTab({ project }: Props) {
                 <button className="icon-button"><Settings size={14}/></button>
               </div>
             ))}
-            {project.members.length === 0 && (
+            {project.members.filter((m: any) => m.teamRole !== 'lead' && m.teamRole !== 'captain').length === 0 && (
               <div className="empty-state" style={{ gridColumn: '1 / -1', padding: '20px' }}>
                 <Users size={32} style={{ opacity: 0.5, marginBottom: '10px' }} />
                 <p>Henüz üye bulunmuyor.</p>

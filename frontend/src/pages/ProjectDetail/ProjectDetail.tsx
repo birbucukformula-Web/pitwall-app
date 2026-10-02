@@ -66,24 +66,12 @@ export default function ProjectDetail() {
     return [...tasks].sort((a, b) => a.order - b.order);
   }, [tasks]);
 
-  const projectMembers = useMemo(() => {
-    const map = new Map<number, { id: number; name: string; initials: string }>();
-    projectTasks.forEach((t) => {
-      t.assignees?.forEach((a) => {
-        if (!map.has(a.id)) {
-          map.set(a.id, a);
-        }
-      });
-    });
-    return Array.from(map.values());
-  }, [projectTasks]);
-
   const project = rawProject
     ? {
         id: rawProject.id,
         name: rawProject.name,
         description: (rawProject as any).description || "Açıklama belirtilmemiş.",
-        members: projectMembers,
+        members: rawProject.unit_members || [],
       }
     : null;
 
