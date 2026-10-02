@@ -127,7 +127,7 @@ def seed():
     if not gomulu_lead_zuleyha.check_password("pitwall123"): gomulu_lead_zuleyha.set_password("pitwall123")
     gomulu_lead_zuleyha.save()
 
-    print("Gerçek takım üyeleri (Necdet, Rumeysa, Lidya, Yasemin, Süleyman, Mert, Züleyha) birimlere atandı.")
+    print("Gerçek takım üyeleri (Necdet, Rumeysa, Lidya, Yasemin, Süleyman, Mert, Nisa, Züleyha) birimlere atandı.")
 
     # 4. Projeler oluştur
     telemetri_proj, _ = Project.objects.get_or_create(name="Telemetri Sistemi", color="#10b981", organization=org)
