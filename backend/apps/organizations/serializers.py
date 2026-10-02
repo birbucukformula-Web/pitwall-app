@@ -3,10 +3,28 @@ from .models import Organization, Project, Unit
 
 
 class UnitSerializer(serializers.ModelSerializer):
+    parent_name = serializers.SerializerMethodField()
+    member_count = serializers.SerializerMethodField()
+    task_count = serializers.SerializerMethodField()
+
     class Meta:
         model = Unit
-        fields = '__all__'
+        fields = [
+            'id', 'name', 'code', 'color',
+            'parent', 'parent_name',
+            'member_count', 'task_count',
+            'organization',
+        ]
         read_only_fields = ['organization']
+
+    def get_parent_name(self, obj):
+        return obj.parent.name if obj.parent else None
+
+    def get_member_count(self, obj):
+        return obj.members.count()
+
+    def get_task_count(self, obj):
+        return obj.tasks.filter(status__in=['todo', 'in_progress', 'review']).count()
 
 
 class ProjectSerializer(serializers.ModelSerializer):
