@@ -17,7 +17,7 @@ def seed():
     org, _ = Organization.objects.get_or_create(
         slug="1-5-adana",
         defaults={
-            "name": "1.5 Adana Racing",
+            "name": "1.5 Adana Formula Student",
             "season": "2026",
             "race_date": "2026-09-22"
         }
@@ -87,7 +87,37 @@ def seed():
     if not web_member_yasemin.check_password("pitwall123"): web_member_yasemin.set_password("pitwall123")
     web_member_yasemin.save()
 
-    print("Gerçek kullanıcılar (Necdet, Rumeysa, Lidya, Yasemin) birimlere atandı.")
+    # Süleyman (Web Birim Üyesi)
+    web_member_suleyman, _ = User.objects.get_or_create(email="suleymankara600@gmail.com", defaults={"username": "suleyman_member"})
+    web_member_suleyman.first_name = "Süleyman"
+    web_member_suleyman.last_name = "Kara"
+    web_member_suleyman.organization = org
+    web_member_suleyman.role = 'member'
+    web_member_suleyman.unit = web_unit
+    if not web_member_suleyman.check_password("pitwall123"): web_member_suleyman.set_password("pitwall123")
+    web_member_suleyman.save()
+
+    # Mert (Oyun Birim Lideri)
+    oyun_lead_mert, _ = User.objects.get_or_create(email="mert.ozkara6363@gmail.com", defaults={"username": "mert_lead"})
+    oyun_lead_mert.first_name = "Mert"
+    oyun_lead_mert.last_name = "Özkara"
+    oyun_lead_mert.organization = org
+    oyun_lead_mert.role = 'lead'
+    oyun_lead_mert.unit = oyun_unit
+    if not oyun_lead_mert.check_password("pitwall123"): oyun_lead_mert.set_password("pitwall123")
+    oyun_lead_mert.save()
+
+    # Züleyha (Gömülü Birim Lideri)
+    gomulu_lead_zuleyha, _ = User.objects.get_or_create(email="gzuleyhanur@gmail.com", defaults={"username": "zuleyha_lead"})
+    gomulu_lead_zuleyha.first_name = "Züleyha Nur"
+    gomulu_lead_zuleyha.last_name = "Güleş"
+    gomulu_lead_zuleyha.organization = org
+    gomulu_lead_zuleyha.role = 'lead'
+    gomulu_lead_zuleyha.unit = gomulu_unit
+    if not gomulu_lead_zuleyha.check_password("pitwall123"): gomulu_lead_zuleyha.set_password("pitwall123")
+    gomulu_lead_zuleyha.save()
+
+    print("Gerçek takım üyeleri (Necdet, Rumeysa, Lidya, Yasemin, Süleyman, Mert, Züleyha) birimlere atandı.")
 
     # 4. Projeler oluştur
     telemetri_proj, _ = Project.objects.get_or_create(name="Telemetri Sistemi", color="#10b981", organization=org)
