@@ -120,7 +120,7 @@ def seed():
     # Züleyha (Gömülü Birim Lideri)
     gomulu_lead_zuleyha, _ = User.objects.get_or_create(email="gzuleyhanur@gmail.com", defaults={"username": "zuleyha_lead"})
     gomulu_lead_zuleyha.first_name = "Züleyha Nur"
-    gomulu_lead_zuleyha.last_name = "Güleş"
+    gomulu_lead_zuleyha.last_name = "Güneş"
     gomulu_lead_zuleyha.organization = org
     gomulu_lead_zuleyha.role = 'lead'
     gomulu_lead_zuleyha.unit = gomulu_unit
