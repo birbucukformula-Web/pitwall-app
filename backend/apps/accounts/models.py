@@ -20,6 +20,13 @@ class User(AbstractUser):
         choices=Role.choices,
         default=Role.MEMBER
     )
+    unit = models.ForeignKey(
+        'organizations.Unit',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='members'
+    )
     last_seen_at = models.DateTimeField(
         null=True,
         blank=True,
