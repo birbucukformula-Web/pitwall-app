@@ -21,6 +21,9 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     organization = OrganizationSerializer(read_only=True)
+    unit_id = serializers.IntegerField(source='unit.id', read_only=True)
+    unit_name = serializers.CharField(source='unit.name', read_only=True)
+
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'role', 'organization')
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'role', 'organization', 'unit_id', 'unit_name')

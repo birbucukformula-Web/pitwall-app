@@ -59,11 +59,12 @@ export default function Profile() {
       "Belirtilmemiş",
 
     teamRole:
-      currentUser.role === "captain"
+      (currentUser.unit_name ? `${currentUser.unit_name} - ` : "") +
+      (currentUser.role === "captain"
         ? "Kaptan"
         : currentUser.role === "lead"
           ? "Lider"
-          : "Üye",
+          : "Üye"),
 
     email: currentUser.email,
   };
