@@ -35,9 +35,13 @@ class UnitViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
 
-        # Faz 2: Organizasyon içindeki tüm birimleri ağaç yapısı için getir.
-        # (Yazma yetkisi Project/Task seviyesinde izinlerle kontrol ediliyor)
+        # Temel org izolasyonu
         queryset = Unit.objects.filter(organization=user.organization)
+
+        # Faz 2 görünürlük filtresi: Herkes sadece kendi dalını görür.
+        visible_ids = get_visible_unit_ids(user)
+        if visible_ids is not None:
+            queryset = queryset.filter(id__in=visible_ids)
 
         return queryset.select_related('parent').order_by('parent__id', 'name')
 
