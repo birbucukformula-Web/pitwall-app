@@ -107,6 +107,16 @@ def seed():
     if not oyun_lead_mert.check_password("pitwall123"): oyun_lead_mert.set_password("pitwall123")
     oyun_lead_mert.save()
 
+    # Nisa (Oyun Birim Üyesi)
+    oyun_member_nisa, _ = User.objects.get_or_create(email="nisaerdem3304@gmail.com", defaults={"username": "nisa_member"})
+    oyun_member_nisa.first_name = "Nisa"
+    oyun_member_nisa.last_name = "Erdem"
+    oyun_member_nisa.organization = org
+    oyun_member_nisa.role = 'member'
+    oyun_member_nisa.unit = oyun_unit
+    if not oyun_member_nisa.check_password("pitwall123"): oyun_member_nisa.set_password("pitwall123")
+    oyun_member_nisa.save()
+
     # Züleyha (Gömülü Birim Lideri)
     gomulu_lead_zuleyha, _ = User.objects.get_or_create(email="gzuleyhanur@gmail.com", defaults={"username": "zuleyha_lead"})
     gomulu_lead_zuleyha.first_name = "Züleyha Nur"
