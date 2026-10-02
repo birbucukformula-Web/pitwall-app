@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { authApi } from "../api/auth";
 import type { UserResponse } from "../api/auth";
 
@@ -16,6 +17,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     // Uygulama yüklendiğinde token var mı kontrol et, varsa kullanıcı bilgilerini çek
@@ -55,6 +57,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("access");
     localStorage.removeItem("refresh");
     setUser(null);
+    // Farklı hesaba geçildiğinde React Query önbelleğinde kalan eski profil verilerini temizle
+    queryClient.clear();
   };
 
   return (
