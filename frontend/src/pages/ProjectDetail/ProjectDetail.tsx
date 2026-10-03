@@ -62,16 +62,13 @@ export default function ProjectDetail() {
 
   const rawProject = apiUnits.find((u: any) => u.id === Number(projectId));
 
-  const projectTasks = useMemo(() => {
-    return [...tasks].sort((a, b) => a.order - b.order);
-  }, [tasks]);
 
   const project = rawProject
     ? {
         id: rawProject.id,
         name: rawProject.name,
         description: (rawProject as any).description || "Açıklama belirtilmemiş.",
-        members: rawProject.unit_members || [],
+        members: (rawProject as any).unit_members || [],
       }
     : null;
 

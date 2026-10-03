@@ -59,7 +59,7 @@ export default function Profile() {
       "Belirtilmemiş",
 
     teamRole:
-      (currentUser.unit_name ? `${currentUser.unit_name} - ` : "") +
+      ((currentUser as any).unit_name ? `${(currentUser as any).unit_name} - ` : "") +
       (currentUser.role === "captain"
         ? "Kaptan"
         : currentUser.role === "lead"
