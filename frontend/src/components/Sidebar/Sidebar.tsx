@@ -163,22 +163,6 @@ export default function Sidebar({
             </NavLink>
 
             <NavLink
-              to="/inbox"
-              onClick={handleNavigation}
-              className={({ isActive }) =>
-                `outer-nav-item ${
-                  isActive ? "active" : ""
-                }`
-              }
-              aria-label="Inbox"
-            >
-              <div className="outer-nav-icon">
-                <Inbox size={21} />
-              </div>
-              <span>Inbox</span>
-            </NavLink>
-
-            <NavLink
               to="/profile"
               onClick={handleNavigation}
               className={({ isActive }) =>
