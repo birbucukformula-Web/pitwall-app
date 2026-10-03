@@ -1,8 +1,4 @@
-import {
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useMemo, useState } from "react";
 
 import {
   AlertCircle,
@@ -45,15 +41,6 @@ export default function Dashboard() {
     previousStatuses,
     setPreviousStatuses,
   ] = useState<Record<number, TaskStatus>>({});
-
-  const activeSectionRef =
-    useRef<HTMLDivElement | null>(null);
-
-  const overdueSectionRef =
-    useRef<HTMLDivElement | null>(null);
-
-  const completedSectionRef =
-    useRef<HTMLDivElement | null>(null);
 
   const {
     data: allTasks = [],
@@ -190,17 +177,6 @@ export default function Dashboard() {
     );
   }, [activeTasks, today]);
 
-  function scrollTo(
-    ref: React.RefObject<
-      HTMLDivElement | null
-    >,
-  ) {
-    ref.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  }
-
   function formatDate(
     value?: string | null,
   ) {
@@ -271,10 +247,10 @@ export default function Dashboard() {
   }
 
   function canUndoCompletion(
-  task: Task,
-) {
-  return task.status === "done";
-}
+    task: Task,
+  ) {
+    return task.status === "done";
+  }
 
   if (isLoading) {
     return (
@@ -287,11 +263,9 @@ export default function Dashboard() {
   return (
     <>
       <section className="personal-dashboard">
-
         {/* HERO */}
 
         <section className="pd-hero">
-
           <div className="pd-welcome">
             <h2>
               Hoş Geldin,{" "}
@@ -310,20 +284,9 @@ export default function Dashboard() {
         {/* STATS */}
 
         <div className="pd-stats-grid">
-
-          <button
-            type="button"
-            className="pd-stat-card"
-            onClick={() =>
-              scrollTo(
-                activeSectionRef,
-              )
-            }
-          >
+          <div className="pd-stat-card">
             <div className="pd-stat-icon active">
-              <CircleDashed
-                size={20}
-              />
+              <CircleDashed size={20} />
             </div>
 
             <div className="pd-stat-info">
@@ -335,25 +298,11 @@ export default function Dashboard() {
                 {activeTasks.length}
               </strong>
             </div>
+          </div>
 
-            <ChevronRight
-              size={17}
-            />
-          </button>
-
-          <button
-            type="button"
-            className="pd-stat-card"
-            onClick={() =>
-              scrollTo(
-                overdueSectionRef,
-              )
-            }
-          >
+          <div className="pd-stat-card">
             <div className="pd-stat-icon overdue">
-              <AlertCircle
-                size={20}
-              />
+              <AlertCircle size={20} />
             </div>
 
             <div className="pd-stat-info">
@@ -365,25 +314,11 @@ export default function Dashboard() {
                 {overdueTasks.length}
               </strong>
             </div>
+          </div>
 
-            <ChevronRight
-              size={17}
-            />
-          </button>
-
-          <button
-            type="button"
-            className="pd-stat-card"
-            onClick={() =>
-              scrollTo(
-                completedSectionRef,
-              )
-            }
-          >
+          <div className="pd-stat-card">
             <div className="pd-stat-icon completed">
-              <CheckCircle2
-                size={20}
-              />
+              <CheckCircle2 size={20} />
             </div>
 
             <div className="pd-stat-info">
@@ -395,25 +330,14 @@ export default function Dashboard() {
                 {completedTasks.length}
               </strong>
             </div>
-
-            <ChevronRight
-              size={17}
-            />
-          </button>
-
+          </div>
         </div>
 
         {/* MAIN */}
 
         <div className="pd-main-grid">
-
-          <div
-            className="pd-panel"
-            ref={activeSectionRef}
-          >
-
+          <div className="pd-panel">
             <div className="pd-panel-header">
-
               <div>
                 <h3>
                   Bana Atanan Görevler
@@ -423,21 +347,16 @@ export default function Dashboard() {
               <span className="pd-count">
                 {activeTasks.length} Aktif
               </span>
-
             </div>
 
             <div className="pd-task-list">
-
               {activeTasks.length === 0 ? (
-
                 <div className="pd-empty">
                   Şu an için sana
                   atanmış aktif bir görev
                   bulunmuyor.
                 </div>
-
               ) : (
-
                 activeTasks.map(
                   (task) => {
                     const isOverdue =
@@ -450,17 +369,17 @@ export default function Dashboard() {
                       <button
                         type="button"
                         key={task.id}
-                        className={`pd-task-row ${isOverdue
+                        className={`pd-task-row ${
+                          isOverdue
                             ? "overdue"
                             : ""
-                          }`}
+                        }`}
                         onClick={() =>
                           setSelectedTask(
                             task,
                           )
                         }
                       >
-
                         <span
                           role="button"
                           tabIndex={0}
@@ -481,9 +400,9 @@ export default function Dashboard() {
                           ) => {
                             if (
                               event.key ===
-                              "Enter" ||
+                                "Enter" ||
                               event.key ===
-                              " "
+                                " "
                             ) {
                               event.preventDefault();
                               event.stopPropagation();
@@ -500,13 +419,11 @@ export default function Dashboard() {
                         </span>
 
                         <div className="pd-task-main">
-
                           <strong>
                             {task.title}
                           </strong>
 
                           <div className="pd-task-meta">
-
                             {task.project && (
                               <span>
                                 {
@@ -528,13 +445,10 @@ export default function Dashboard() {
                                 )}
                               </span>
                             )}
-
                           </div>
-
                         </div>
 
                         <div className="pd-task-priority">
-
                           <i
                             className={`priority-dot ${task.priority}`}
                           />
@@ -542,103 +456,80 @@ export default function Dashboard() {
                           {priorityText(
                             task.priority,
                           )}
-
                         </div>
 
                         <ChevronRight
                           size={15}
                           className="pd-row-arrow"
                         />
-
                       </button>
                     );
                   },
                 )
-
               )}
-
             </div>
-
           </div>
 
           <div className="pd-side-stack">
-
-            <div
-              ref={overdueSectionRef}
-            />
-
             {overdueTasks.length >
               0 && (
+              <div className="pd-panel">
+                <div className="pd-panel-header">
+                  <h3 className="pd-danger">
+                    Dikkat Gerektirenler
+                  </h3>
+                </div>
 
-                <div className="pd-panel">
+                <div className="pd-overdue-list">
+                  {overdueTasks.map(
+                    (task) => (
+                      <button
+                        type="button"
+                        key={task.id}
+                        className="pd-overdue-row"
+                        onClick={() =>
+                          setSelectedTask(
+                            task,
+                          )
+                        }
+                      >
+                        <AlertCircle
+                          size={15}
+                        />
 
-                  <div className="pd-panel-header">
-                    <h3 className="pd-danger">
-                      Dikkat Gerektirenler
-                    </h3>
-                  </div>
+                        <div>
+                          <strong>
+                            {task.title}
+                          </strong>
 
-                  <div className="pd-overdue-list">
-
-                    {overdueTasks.map(
-                      (task) => (
-
-                        <button
-                          type="button"
-                          key={task.id}
-                          className="pd-overdue-row"
-                          onClick={() =>
-                            setSelectedTask(
-                              task,
-                            )
-                          }
-                        >
-                          <AlertCircle
-                            size={15}
-                          />
-
-                          <div>
-                            <strong>
-                              {task.title}
-                            </strong>
-
-                            <span>
-                              Son Tarih:{" "}
-                              {task.due_date
-                                ? new Date(
+                          <span>
+                            Son Tarih:{" "}
+                            {task.due_date
+                              ? new Date(
                                   task.due_date,
                                 ).toLocaleDateString(
                                   "tr-TR",
                                 )
-                                : "-"}
-                            </span>
-                          </div>
-                        </button>
-
-                      ),
-                    )}
-
-                  </div>
-
+                              : "-"}
+                          </span>
+                        </div>
+                      </button>
+                    ),
+                  )}
                 </div>
+              </div>
+            )}
 
-              )}
-
-            <div
-              className="pd-panel"
-              ref={completedSectionRef}
-            >
-
+            <div className="pd-panel">
               <div className="pd-panel-header">
                 <h3>
                   Son Tamamlananlar
                 </h3>
               </div>
 
-              {completedTasks.length === 0 ? (
-
+              {completedTasks.length ===
+              0 ? (
                 <div className="pd-completed-empty">
-
                   <CheckCircle2
                     size={26}
                   />
@@ -647,15 +538,11 @@ export default function Dashboard() {
                     Henüz tamamlanan
                     görev yok.
                   </span>
-
                 </div>
-
               ) : (
-
                 completedTasks
                   .slice(0, 5)
                   .map((task) => {
-
                     const canUndo =
                       canUndoCompletion(
                         task,
@@ -672,7 +559,6 @@ export default function Dashboard() {
                           )
                         }
                       >
-
                         <span
                           role={
                             canUndo
@@ -684,10 +570,11 @@ export default function Dashboard() {
                               ? 0
                               : -1
                           }
-                          className={`pd-complete-toggle completed ${canUndo
+                          className={`pd-complete-toggle completed ${
+                            canUndo
                               ? "undoable"
                               : "locked"
-                            }`}
+                          }`}
                           title={
                             canUndo
                               ? "Tamamlanmayı geri al"
@@ -701,9 +588,7 @@ export default function Dashboard() {
                           onClick={(
                             event,
                           ) => {
-                            if (
-                              !canUndo
-                            ) {
+                            if (!canUndo) {
                               return;
                             }
 
@@ -716,17 +601,15 @@ export default function Dashboard() {
                           onKeyDown={(
                             event,
                           ) => {
-                            if (
-                              !canUndo
-                            ) {
+                            if (!canUndo) {
                               return;
                             }
 
                             if (
                               event.key ===
-                              "Enter" ||
+                                "Enter" ||
                               event.key ===
-                              " "
+                                " "
                             ) {
                               event.preventDefault();
                               event.stopPropagation();
@@ -751,19 +634,13 @@ export default function Dashboard() {
                         <ChevronRight
                           size={15}
                         />
-
                       </button>
                     );
                   })
-
               )}
-
             </div>
-
           </div>
-
         </div>
-
       </section>
 
       {selectedTask && (
@@ -772,14 +649,14 @@ export default function Dashboard() {
           onClose={() =>
             setSelectedTask(null)
           }
-          onEdit={() => { }}
-          onDelete={() => { }}
+          onEdit={() => {}}
+          onDelete={() => {}}
           onToggleComplete={
             handleToggleComplete
           }
           canUndoCompletion={
             selectedTask.status ===
-            "done" &&
+              "done" &&
             canUndoCompletion(
               selectedTask,
             )

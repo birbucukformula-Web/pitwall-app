@@ -77,14 +77,14 @@
    STATS
 ===================================== */
 
+/* =====================================
+   STATS
+===================================== */
+
 .pd-stats-grid {
   display: grid;
-
-  grid-template-columns:
-    repeat(3, 1fr);
-
+  grid-template-columns: repeat(3, 1fr);
   gap: 14px;
-
   margin-bottom: 18px;
 }
 
@@ -93,44 +93,20 @@
 
   display: flex;
   align-items: center;
-
   gap: 14px;
 
-  padding:
-    17px 18px;
+  padding: 17px 18px;
 
-  background:
-    var(--surface);
-
+  background: var(--surface);
   color: inherit;
 
-  border:
-    1px solid
-    var(--border);
-
+  border: 1px solid var(--border);
   border-radius: 10px;
 
   font-family: inherit;
-
   text-align: left;
 
-  cursor: pointer;
-
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease,
-    transform 0.15s ease;
-}
-
-.pd-stat-card:hover {
-  background:
-    var(--surface-hover);
-
-  border-color:
-    var(--text-muted);
-
-  transform:
-    translateY(-1px);
+  cursor: default;
 }
 
 .pd-stat-icon {
@@ -147,37 +123,18 @@
 }
 
 .pd-stat-icon.active {
-  background:
-    var(--accent-soft);
-
-  color:
-    var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .pd-stat-icon.overdue {
-  background:
-    rgba(
-      255,
-      77,
-      79,
-      0.1
-    );
-
-  color:
-    #ff4d4f;
+  background: rgba(255, 77, 79, 0.1);
+  color: #ff4d4f;
 }
 
 .pd-stat-icon.completed {
-  background:
-    rgba(
-      82,
-      196,
-      26,
-      0.1
-    );
-
-  color:
-    #52c41a;
+  background: rgba(82, 196, 26, 0.1);
+  color: #52c41a;
 }
 
 .pd-stat-info {
@@ -186,8 +143,7 @@
 }
 
 .pd-stat-info span {
-  color:
-    var(--text-muted);
+  color: var(--text-muted);
 
   font-size: 11px;
   font-weight: 400;
@@ -196,20 +152,10 @@
 .pd-stat-info strong {
   margin-top: 3px;
 
-  color:
-    var(--text);
+  color: var(--text);
 
   font-size: 24px;
   font-weight: 600;
-}
-
-.pd-stat-card > svg {
-  margin-left: auto;
-
-  color:
-    var(--text-muted);
-
-  opacity: 0.5;
 }
 
 /* =====================================
@@ -690,51 +636,147 @@ span:first-child {
 ===================================== */
 
 @media (max-width: 1150px) {
-
   .personal-dashboard {
-    padding:
-      28px 26px
-      42px;
+    padding: 28px 26px 42px;
+  }
+
+  .pd-main-grid {
+    grid-template-columns:
+      minmax(0, 1.55fr)
+      minmax(300px, 0.9fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .personal-dashboard {
+    padding: 24px 20px 36px;
   }
 
   .pd-hero {
-    grid-template-columns:
-      1fr 1fr;
-  }
-
-}
-
-
-@media (max-width: 760px) {
-
-  .pd-stats-grid {
-    grid-template-columns:
-      1fr;
-  }
-
-}
-
-@media (max-width: 600px) {
-
-  .personal-dashboard {
-    padding:
-      18px 14px
-      32px;
+    min-height: 150px;
+    grid-template-columns: 1fr;
   }
 
   .pd-welcome {
-    padding:
-      24px 18px;
+    padding: 28px 26px;
+  }
+
+  .pd-main-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .pd-side-stack {
+    width: 100%;
+  }
+}
+
+@media (max-width: 760px) {
+  .pd-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .pd-stat-card {
+    min-height: 76px;
+    padding: 14px 16px;
+  }
+}
+
+@media (max-width: 600px) {
+  .personal-dashboard {
+    width: 100%;
+    max-width: 100%;
+    padding: 18px 14px 32px;
+  }
+
+  .pd-hero {
+    min-height: 0;
+    margin-bottom: 14px;
+    border-radius: 10px;
+  }
+
+  .pd-welcome {
+    padding: 26px 20px;
   }
 
   .pd-welcome h2 {
     font-size: 23px;
+    line-height: 1.2;
   }
 
   .pd-welcome p {
+    max-width: 300px;
+    margin-top: 10px;
     font-size: 12px;
   }
+
+  .pd-stats-grid {
+    margin-bottom: 14px;
   }
+
+  .pd-stat-card {
+    min-height: 74px;
+    padding: 14px 16px;
+    border-radius: 9px;
+  }
+
+  .pd-stat-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .pd-stat-info strong {
+    font-size: 22px;
+  }
+
+  .pd-main-grid {
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .pd-panel,
+  .pd-side-stack {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .pd-panel-header {
+    min-height: 54px;
+    padding: 13px 14px;
+  }
+
+  .pd-panel-header h3 {
+    font-size: 13px;
+  }
+
+  .pd-task-row {
+    min-width: 0;
+    padding: 13px 14px;
+  }
+
+  .pd-task-main {
+    min-width: 0;
+  }
+
+  .pd-task-priority {
+    min-width: 0;
+    font-size: 0;
+  }
+
+  .pd-row-arrow {
+    display: none;
+  }
+
+  .pd-overdue-list {
+    padding: 10px;
+  }
+
+  .pd-completed-empty {
+    min-height: 125px;
+  }
+}
 
   .pd-race-right {
     justify-content:
