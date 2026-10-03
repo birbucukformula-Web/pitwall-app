@@ -61,18 +61,38 @@ export default function ProjectTasksTab({ projectId, project, tasks, setTasks }:
 
   const createTaskMutation = useMutation({
     mutationFn: (newTask: TaskPayload) => tasksApi.createTask(newTask),
-    onSuccess: () => {
+
+    onSuccess: (createdTask) => {
+      setTasks((previousTasks) => [...previousTasks, createdTask]);
+
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["stats"] });
+
       setShowTaskModal(false);
       setEditingTask(null);
     },
   });
 
   const updateTaskMutation = useMutation({
-    mutationFn: ({ id, updates }: { id: number; updates: TaskPayload }) =>
-      tasksApi.updateTask(id, updates),
-    onSuccess: () => {
+    mutationFn: ({
+      id,
+      updates,
+    }: {
+      id: number;
+      updates: TaskPayload;
+    }) => tasksApi.updateTask(id, updates),
+
+    onSuccess: (updatedTask) => {
+      setTasks((previousTasks) =>
+        previousTasks.map((task) =>
+          task.id === updatedTask.id ? updatedTask : task,
+        ),
+      );
+
+      setSelectedTask((currentTask) =>
+        currentTask?.id === updatedTask.id ? updatedTask : currentTask,
+      );
+
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["stats"] });
     },
@@ -80,9 +100,15 @@ export default function ProjectTasksTab({ projectId, project, tasks, setTasks }:
 
   const deleteTaskMutation = useMutation({
     mutationFn: (id: number) => tasksApi.deleteTask(id),
-    onSuccess: () => {
+
+    onSuccess: (_, deletedTaskId) => {
+      setTasks((previousTasks) =>
+        previousTasks.filter((task) => task.id !== deletedTaskId),
+      );
+
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["stats"] });
+
       setSelectedTask(null);
       setDeletingTask(null);
     },
@@ -331,8 +357,8 @@ export default function ProjectTasksTab({ projectId, project, tasks, setTasks }:
     deleteTaskMutation.mutate(taskToDelete.id);
   }
 
-  const projectTasks = tasks.sort((a, b) => a.order - b.order);
-
+  const projectTasks = [...tasks].sort((a, b) => a.order - b.order);
+  
   return (
     <div className="tab-pane active fade-in">
       <DndContext

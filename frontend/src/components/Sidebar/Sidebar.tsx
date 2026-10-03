@@ -3,7 +3,6 @@ import { useState } from "react";
 import {
   CalendarDays,
   FolderKanban,
-  Inbox,
   LayoutDashboard,
   LogOut,
   Megaphone,
