@@ -339,6 +339,26 @@
   line-height: 1.5;
 }
 
+.notification-item-footer {
+  display: flex;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.notification-link-text {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  transition: opacity 0.15s ease;
+}
+
+.notification-item:hover .notification-link-text {
+  text-decoration: underline;
+}
+
 .notification-empty {
   min-height: 152px;
   display: flex;

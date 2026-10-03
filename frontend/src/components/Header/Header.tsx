@@ -133,30 +133,24 @@ export default function Header({
       : [];
 
   function handleNotificationClick(
-    notification: NotificationItem,
-  ) {
-    setShowNotifications(false);
+  notification: NotificationItem,
+) {
+  setShowNotifications(false);
 
-    if (
-      notification.type ===
-      "announcement"
-    ) {
-      navigate("/announcements");
-      return;
-    }
+  if (notification.link) {
+    navigate(notification.link);
+  }
 
-    if (notification.taskId) {
-      const task = tasks.find(
-        (item) =>
-          item.id ===
-          notification.taskId,
-      );
+  if (notification.taskId) {
+    const task = tasks.find(
+      (item) => item.id === notification.taskId,
+    );
 
-      if (task) {
-        setSelectedTask(task);
-      }
+    if (task) {
+      setSelectedTask(task);
     }
   }
+}
 
   function handleSearchResultClick(
     task: Task,
