@@ -3,7 +3,6 @@ import { useState } from "react";
 import {
   CalendarDays,
   FolderKanban,
-  Inbox,
   LayoutDashboard,
   LogOut,
   Megaphone,
@@ -160,22 +159,6 @@ export default function Sidebar({
                 <Megaphone size={21} />
               </div>
               <span>Duyuru</span>
-            </NavLink>
-
-            <NavLink
-              to="/inbox"
-              onClick={handleNavigation}
-              className={({ isActive }) =>
-                `outer-nav-item ${
-                  isActive ? "active" : ""
-                }`
-              }
-              aria-label="Inbox"
-            >
-              <div className="outer-nav-icon">
-                <Inbox size={21} />
-              </div>
-              <span>Inbox</span>
             </NavLink>
 
             <NavLink

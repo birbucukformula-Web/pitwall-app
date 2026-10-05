@@ -121,13 +121,13 @@ export default function Projects() {
       <div className="projects-inner">
         <div className="projects-section-header">
           <div>
-            <h2>Organizasyon Yapısı</h2>
+            <h2>Departmanlar</h2>
             <p>
               Dahil olduğun takımların birimlerini ve alt kırılımlarını ağaç yapısında görebilir, dilediğin birimin panosuna gidebilirsin.
             </p>
           </div>
           <span className="projects-team-count">
-            {rootNodes.length} Kök Birim
+            {rootNodes.length} Birim
           </span>
         </div>
 
