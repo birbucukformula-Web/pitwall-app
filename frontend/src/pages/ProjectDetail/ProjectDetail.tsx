@@ -11,6 +11,7 @@ import {
   FolderOpen,
   BookOpen,
   CalendarDays,
+  ChartNoAxesGantt,
   Settings,
 } from "lucide-react";
 
@@ -19,11 +20,21 @@ import {
   useParams,
 } from "react-router-dom";
 
-import { useQuery } from "@tanstack/react-query";
-import { tasksApi } from "../../api/tasks";
-import { metadataApi } from "../../api/metadata";
+import {
+  useQuery,
+} from "@tanstack/react-query";
 
-import type { Task } from "../../types/task";
+import {
+  tasksApi,
+} from "../../api/tasks";
+
+import {
+  metadataApi,
+} from "../../api/metadata";
+
+import type {
+  Task,
+} from "../../types/task";
 
 import ProjectDashboardTab from "./tabs/ProjectDashboardTab";
 import ProjectTasksTab from "./tabs/ProjectTasksTab";
@@ -31,82 +42,94 @@ import ProjectMilestonesTab from "./tabs/ProjectMilestonesTab";
 import ProjectFilesTab from "./tabs/ProjectFilesTab";
 import ProjectWikiTab from "./tabs/ProjectWikiTab";
 import ProjectCalendarTab from "./tabs/ProjectCalendarTab";
+import ProjectMonthlyCalendarTab from "./tabs/ProjectMonthlyCalendarTab";
 import ProjectSettingsTab from "./tabs/ProjectSettingsTab";
 
 import "./ProjectDetail.css";
 
 export default function ProjectDetail() {
-  const navigate = useNavigate();
+  const navigate =
+    useNavigate();
 
   const { projectId } =
-    useParams<{ projectId: string }>();
+    useParams<{
+      projectId: string;
+    }>();
 
-  const [activeTab, setActiveTab] =
-    useState("tasks");
+  const [
+    activeTab,
+    setActiveTab,
+  ] = useState("tasks");
 
-  const [tasks, setTasks] =
-    useState<Task[]>([]);
+  const [
+    tasks,
+    setTasks,
+  ] = useState<Task[]>([]);
 
   const {
     data: apiUnits = [],
-    isLoading: isProjectsLoading,
+    isLoading:
+      isProjectsLoading,
   } = useQuery({
     queryKey: ["units"],
+
     queryFn: () =>
       metadataApi.getUnits(),
   });
 
   const {
     data: fetchedTasks,
+    isLoading:
+      isTasksLoading,
   } = useQuery({
     queryKey: [
       "tasks",
       {
-        unit: Number(projectId),
+        unit:
+          Number(projectId),
       },
     ],
 
     queryFn: () =>
       tasksApi.getTasks({
-        unit: Number(projectId),
+        unit:
+          Number(projectId),
       }),
 
     enabled: !!projectId,
   });
 
+  /*
+    Görev state'i yalnızca gerçek
+    API sonucuyla senkronize edilir.
+  */
   useEffect(() => {
-    if (fetchedTasks) {
-      setTasks(fetchedTasks);
+    if (!fetchedTasks) {
+      return;
     }
+
+    setTasks(fetchedTasks);
   }, [fetchedTasks]);
 
+  /*
+    URL'deki id ile eşleşen gerçek
+    birimi API listesinden buluyoruz.
+  */
   const rawProject =
     apiUnits.find(
       (unit: any) =>
         unit.id ===
-        Number(projectId)
+        Number(projectId),
     );
 
-  const project =
-    rawProject
-      ? {
-          id: rawProject.id,
-
-          name:
-            rawProject.name,
-
-          description:
-            (rawProject as any)
-              .description ||
-            "Açıklama belirtilmemiş.",
-
-          members:
-            (rawProject as any)
-              .unit_members || [],
-        }
-      : null;
-
-  if (isProjectsLoading) {
+  /*
+    API sorgusu tamamlanana kadar
+    loading ekranı gösterilir.
+  */
+  if (
+    isProjectsLoading ||
+    isTasksLoading
+  ) {
     return (
       <section className="project-detail-page">
         <div
@@ -122,35 +145,44 @@ export default function ProjectDetail() {
     );
   }
 
-  if (!project) {
+  /*
+    URL'deki birim API'de yoksa
+    sahte veri üretmek yerine
+    kullanıcıya gerçek durumu göster.
+  */
+  if (!rawProject) {
     return (
       <section className="project-detail-page">
-        <h2>
-          Proje bulunamadı.
-        </h2>
-
-        <p
+        <div
           style={{
-            marginTop: "12px",
+            padding: "40px",
+            color:
+              "var(--text-secondary)",
           }}
         >
-          <button
-            type="button"
-            className="project-back-button"
-            onClick={() =>
-              navigate("/projects")
-            }
-          >
-            <ArrowLeft
-              size={16}
-            />
-
-            Projelere Dön
-          </button>
-        </p>
+          Birim bulunamadı.
+        </div>
       </section>
     );
   }
+
+  const project = {
+    id:
+      rawProject.id,
+
+    name:
+      rawProject.name,
+
+    description:
+      (rawProject as any)
+        .description ||
+      "Açıklama belirtilmemiş.",
+
+    members:
+      (rawProject as any)
+        .unit_members ||
+      [],
+  };
 
   return (
     <section className="project-detail-page">
@@ -159,7 +191,9 @@ export default function ProjectDetail() {
           type="button"
           className="back-button"
           onClick={() =>
-            navigate("/projects")
+            navigate(
+              "/projects",
+            )
           }
         >
           <ArrowLeft
@@ -173,7 +207,10 @@ export default function ProjectDetail() {
           <div className="project-title-wrapper">
             <div className="project-avatar-placeholder">
               {project.name
-                .substring(0, 2)
+                .substring(
+                  0,
+                  2,
+                )
                 .toUpperCase()}
             </div>
 
@@ -194,146 +231,230 @@ export default function ProjectDetail() {
         <button
           type="button"
           className={`tab-btn ${
-            activeTab === "dashboard"
+            activeTab ===
+            "dashboard"
               ? "active"
               : ""
           }`}
           onClick={() =>
-            setActiveTab("dashboard")
+            setActiveTab(
+              "dashboard",
+            )
           }
         >
-          <LayoutDashboard size={16} />
+          <LayoutDashboard
+            size={16}
+          />
+
           Genel Bakış
         </button>
 
         <button
           type="button"
           className={`tab-btn ${
-            activeTab === "tasks"
+            activeTab ===
+            "tasks"
               ? "active"
               : ""
           }`}
           onClick={() =>
-            setActiveTab("tasks")
+            setActiveTab(
+              "tasks",
+            )
           }
         >
-          <CheckSquare size={16} />
+          <CheckSquare
+            size={16}
+          />
+
           Görevler
         </button>
 
         <button
           type="button"
           className={`tab-btn ${
-            activeTab === "milestones"
+            activeTab ===
+            "milestones"
               ? "active"
               : ""
           }`}
           onClick={() =>
-            setActiveTab("milestones")
+            setActiveTab(
+              "milestones",
+            )
           }
         >
-          <Flag size={16} />
+          <Flag
+            size={16}
+          />
+
           Hedefler
         </button>
 
         <button
           type="button"
           className={`tab-btn ${
-            activeTab === "files"
+            activeTab ===
+            "files"
               ? "active"
               : ""
           }`}
           onClick={() =>
-            setActiveTab("files")
+            setActiveTab(
+              "files",
+            )
           }
         >
-          <FolderOpen size={16} />
+          <FolderOpen
+            size={16}
+          />
+
           Dosyalar
         </button>
 
         <button
           type="button"
           className={`tab-btn ${
-            activeTab === "wiki"
+            activeTab ===
+            "wiki"
               ? "active"
               : ""
           }`}
           onClick={() =>
-            setActiveTab("wiki")
+            setActiveTab(
+              "wiki",
+            )
           }
         >
-          <BookOpen size={16} />
+          <BookOpen
+            size={16}
+          />
+
           Wiki
         </button>
 
         <button
           type="button"
           className={`tab-btn ${
-            activeTab === "calendar"
+            activeTab ===
+            "gantt"
               ? "active"
               : ""
           }`}
           onClick={() =>
-            setActiveTab("calendar")
+            setActiveTab(
+              "gantt",
+            )
           }
         >
-          <CalendarDays size={16} />
+          <ChartNoAxesGantt
+            size={16}
+          />
+
+          Gantt
+        </button>
+
+        <button
+          type="button"
+          className={`tab-btn ${
+            activeTab ===
+            "calendar"
+              ? "active"
+              : ""
+          }`}
+          onClick={() =>
+            setActiveTab(
+              "calendar",
+            )
+          }
+        >
+          <CalendarDays
+            size={16}
+          />
+
           Takvim
         </button>
 
         <button
           type="button"
           className={`tab-btn ${
-            activeTab === "settings"
+            activeTab ===
+            "settings"
               ? "active"
               : ""
           }`}
           onClick={() =>
-            setActiveTab("settings")
+            setActiveTab(
+              "settings",
+            )
           }
         >
-          <Settings size={16} />
+          <Settings
+            size={16}
+          />
+
           Ayarlar
         </button>
       </div>
 
       <div className="project-tab-content-area">
-        {activeTab === "dashboard" && (
+        {activeTab ===
+          "dashboard" && (
           <ProjectDashboardTab
             project={project}
             tasks={tasks}
           />
         )}
 
-        {activeTab === "tasks" && (
+        {activeTab ===
+          "tasks" && (
           <ProjectTasksTab
-            projectId={Number(projectId)}
+            projectId={
+              Number(
+                projectId,
+              )
+            }
             project={project}
             tasks={tasks}
-            setTasks={setTasks}
+            setTasks={
+              setTasks
+            }
           />
         )}
 
-        {activeTab === "milestones" && (
+        {activeTab ===
+          "milestones" && (
           <ProjectMilestonesTab />
         )}
 
-        {activeTab === "files" && (
+        {activeTab ===
+          "files" && (
           <ProjectFilesTab />
         )}
 
-        {activeTab === "wiki" && (
+        {activeTab ===
+          "wiki" && (
           <ProjectWikiTab />
         )}
 
-        {activeTab === "calendar" && (
+        {activeTab ===
+          "gantt" && (
           <ProjectCalendarTab
             project={project}
             tasks={tasks}
           />
         )}
 
-        {activeTab === "settings" && (
+        {activeTab ===
+          "calendar" && (
+          <ProjectMonthlyCalendarTab
+            project={project}
+            tasks={tasks}
+          />
+        )}
+
+        {activeTab ===
+          "settings" && (
           <ProjectSettingsTab
             project={project}
           />
