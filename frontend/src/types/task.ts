@@ -20,6 +20,11 @@ export type Unit = {
   name: string;
   code?: string;
   color?: string;
+
+  parent?: number | null;
+  task_count?: number;
+  member_count?: number;
+  description?: string;
 };
 
 export type Project = {

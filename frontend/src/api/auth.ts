@@ -5,12 +5,20 @@ export interface LoginResponse {
   refresh: string;
 }
 
+export type UserRole =
+  | "captain"
+  | "lead"
+  | "member";
+
 export interface UserResponse {
   id: number;
   email: string;
   first_name: string;
   last_name: string;
-  role: string;
+  role: UserRole;
+
+  accessible_unit_ids?: number[];
+
   organization: {
     id: number;
     name: string;

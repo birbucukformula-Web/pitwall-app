@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+
 import {
   DndContext,
   DragOverlay,
@@ -12,9 +13,14 @@ import {
   type DragOverEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+
 import { tasksApi, type TaskPayload } from "../../../api/tasks";
 import type { Task, TaskStatus } from "../../../types/task";
+
+import { useAuth } from "../../../contexts/AuthContext";
+import { getPermissions } from "../../../utils/permissions";
 
 import KanbanColumn from "../../../components/KanbanColumn/KanbanColumn";
 import TaskDrawer from "../../../components/TaskDrawer/TaskDrawer";
@@ -22,19 +28,29 @@ import TaskModal from "../../../components/TaskModal/TaskModal";
 import DeleteTaskModal from "../../../components/DeleteTaskModal/DeleteTaskModal";
 import TaskCard from "../../../components/TaskCard/TaskCard";
 
-const VALID_STATUSES: TaskStatus[] = ["todo", "in_progress", "review", "done"];
+const VALID_STATUSES: TaskStatus[] = [
+  "todo",
+  "in_progress",
+  "review",
+  "done",
+];
 
 const kanbanCollisionDetection: CollisionDetection = (args) => {
   const pointerCollisions = pointerWithin(args);
+
   if (pointerCollisions.length > 0) {
     const taskCollisions = pointerCollisions.filter(
-      (collision) => !String(collision.id).startsWith("column:")
+      (collision) =>
+        !String(collision.id).startsWith("column:")
     );
+
     if (taskCollisions.length > 0) {
       return taskCollisions;
     }
+
     return pointerCollisions;
   }
+
   return closestCenter(args);
 };
 
@@ -45,28 +61,70 @@ interface Props {
   setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
 }
 
-export default function ProjectTasksTab({ projectId, project, tasks, setTasks }: Props) {
+export default function ProjectTasksTab({
+  projectId,
+  project,
+  tasks,
+  setTasks,
+}: Props) {
   const queryClient = useQueryClient();
 
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [activeTask, setActiveTask] = useState<Task | null>(null);
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [deletingTask, setDeletingTask] = useState<Task | null>(null);
+  const { user } = useAuth();
+  const permissions = getPermissions(user);
 
-  const [showTaskModal, setShowTaskModal] = useState(false);
-  const [taskModalStatus, setTaskModalStatus] = useState<TaskStatus>("todo");
+  const canManageProjectTasks =
+    permissions.canAccessUnit(projectId);
+
+  const canCreateTask =
+    permissions.canCreateTask &&
+    canManageProjectTasks;
+
+  const canEditTask =
+    permissions.canEditTask &&
+    canManageProjectTasks;
+
+  const canDeleteTask =
+    permissions.canDeleteTask &&
+    canManageProjectTasks;
+
+  const [selectedTask, setSelectedTask] =
+    useState<Task | null>(null);
+
+  const [activeTask, setActiveTask] =
+    useState<Task | null>(null);
+
+  const [editingTask, setEditingTask] =
+    useState<Task | null>(null);
+
+  const [deletingTask, setDeletingTask] =
+    useState<Task | null>(null);
+
+  const [showTaskModal, setShowTaskModal] =
+    useState(false);
+
+  const [taskModalStatus, setTaskModalStatus] =
+    useState<TaskStatus>("todo");
 
   const lastOverId = useRef<string | null>(null);
   const dragSnapshot = useRef<Task[] | null>(null);
 
   const createTaskMutation = useMutation({
-    mutationFn: (newTask: TaskPayload) => tasksApi.createTask(newTask),
+    mutationFn: (newTask: TaskPayload) =>
+      tasksApi.createTask(newTask),
 
     onSuccess: (createdTask) => {
-      setTasks((previousTasks) => [...previousTasks, createdTask]);
+      setTasks((previousTasks) => [
+        ...previousTasks,
+        createdTask,
+      ]);
 
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      queryClient.invalidateQueries({ queryKey: ["stats"] });
+      queryClient.invalidateQueries({
+        queryKey: ["tasks"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["stats"],
+      });
 
       setShowTaskModal(false);
       setEditingTask(null);
@@ -80,34 +138,52 @@ export default function ProjectTasksTab({ projectId, project, tasks, setTasks }:
     }: {
       id: number;
       updates: TaskPayload;
-    }) => tasksApi.updateTask(id, updates),
+    }) =>
+      tasksApi.updateTask(id, updates),
 
     onSuccess: (updatedTask) => {
       setTasks((previousTasks) =>
         previousTasks.map((task) =>
-          task.id === updatedTask.id ? updatedTask : task,
-        ),
+          task.id === updatedTask.id
+            ? updatedTask
+            : task
+        )
       );
 
       setSelectedTask((currentTask) =>
-        currentTask?.id === updatedTask.id ? updatedTask : currentTask,
+        currentTask?.id === updatedTask.id
+          ? updatedTask
+          : currentTask
       );
 
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      queryClient.invalidateQueries({ queryKey: ["stats"] });
+      queryClient.invalidateQueries({
+        queryKey: ["tasks"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["stats"],
+      });
     },
   });
 
   const deleteTaskMutation = useMutation({
-    mutationFn: (id: number) => tasksApi.deleteTask(id),
+    mutationFn: (id: number) =>
+      tasksApi.deleteTask(id),
 
     onSuccess: (_, deletedTaskId) => {
       setTasks((previousTasks) =>
-        previousTasks.filter((task) => task.id !== deletedTaskId),
+        previousTasks.filter(
+          (task) => task.id !== deletedTaskId
+        )
       );
 
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      queryClient.invalidateQueries({ queryKey: ["stats"] });
+      queryClient.invalidateQueries({
+        queryKey: ["tasks"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["stats"],
+      });
 
       setSelectedTask(null);
       setDeletingTask(null);
@@ -122,180 +198,385 @@ export default function ProjectTasksTab({ projectId, project, tasks, setTasks }:
     })
   );
 
-  function normalizeColumnOrders(taskList: Task[], status: TaskStatus) {
+  function normalizeColumnOrders(
+    taskList: Task[],
+    status: TaskStatus
+  ) {
     const columnTasks = taskList
       .filter(
         (task) =>
-          (task.unit?.id === project.id || task.unit?.name === project.name) &&
+          (task.unit?.id === project.id ||
+            task.unit?.name === project.name) &&
           task.status === status
       )
       .sort((a, b) => a.order - b.order);
 
     const orderMap = new Map<number, number>();
+
     columnTasks.forEach((task, index) => {
       orderMap.set(task.id, index + 1);
     });
 
     return taskList.map((task) => {
       if (
-        (task.unit?.id !== project.id && task.unit?.name !== project.name) ||
+        (task.unit?.id !== project.id &&
+          task.unit?.name !== project.name) ||
         task.status !== status
       ) {
         return task;
       }
-      return { ...task, order: orderMap.get(task.id) ?? task.order };
+
+      return {
+        ...task,
+        order:
+          orderMap.get(task.id) ??
+          task.order,
+      };
     });
   }
 
-  function moveTaskToColumn(taskList: Task[], taskId: number, targetStatus: TaskStatus, targetIndex: number) {
-    const movingTask = taskList.find((task) => task.id === taskId);
-    if (!movingTask) return taskList;
+  function moveTaskToColumn(
+    taskList: Task[],
+    taskId: number,
+    targetStatus: TaskStatus,
+    targetIndex: number
+  ) {
+    const movingTask = taskList.find(
+      (task) => task.id === taskId
+    );
+
+    if (!movingTask) {
+      return taskList;
+    }
 
     const sourceStatus = movingTask.status;
-    const withoutMovingTask = taskList.filter((task) => task.id !== taskId);
+
+    const withoutMovingTask = taskList.filter(
+      (task) => task.id !== taskId
+    );
+
     const targetTasks = withoutMovingTask
       .filter(
         (task) =>
-          (task.unit?.id === project.id || task.unit?.name === project.name) &&
+          (task.unit?.id === project.id ||
+            task.unit?.name === project.name) &&
           task.status === targetStatus
       )
       .sort((a, b) => a.order - b.order);
 
-    const safeIndex = Math.max(0, Math.min(targetIndex, targetTasks.length));
-    const movedTask: Task = { ...movingTask, status: targetStatus };
-    targetTasks.splice(safeIndex, 0, movedTask);
+    const safeIndex = Math.max(
+      0,
+      Math.min(
+        targetIndex,
+        targetTasks.length
+      )
+    );
 
-    const orderMap = new Map<number, number>();
-    targetTasks.forEach((task, index) => {
-      orderMap.set(task.id, index + 1);
-    });
+    const movedTask: Task = {
+      ...movingTask,
+      status: targetStatus,
+    };
 
-    let result = withoutMovingTask.map((task) => {
-      if (
-        (task.unit?.id !== project.id && task.unit?.name !== project.name) ||
-        task.status !== targetStatus
-      ) {
-        return task;
+    targetTasks.splice(
+      safeIndex,
+      0,
+      movedTask
+    );
+
+    const orderMap =
+      new Map<number, number>();
+
+    targetTasks.forEach(
+      (task, index) => {
+        orderMap.set(
+          task.id,
+          index + 1
+        );
       }
-      return { ...task, order: orderMap.get(task.id) ?? task.order };
+    );
+
+    let result =
+      withoutMovingTask.map((task) => {
+        if (
+          (task.unit?.id !== project.id &&
+            task.unit?.name !== project.name) ||
+          task.status !== targetStatus
+        ) {
+          return task;
+        }
+
+        return {
+          ...task,
+          order:
+            orderMap.get(task.id) ??
+            task.order,
+        };
+      });
+
+    result.push({
+      ...movedTask,
+      order:
+        orderMap.get(movedTask.id) ?? 1,
     });
 
-    result.push({ ...movedTask, order: orderMap.get(movedTask.id) ?? 1 });
-
-    if (sourceStatus !== targetStatus) {
-      result = normalizeColumnOrders(result, sourceStatus);
+    if (
+      sourceStatus !== targetStatus
+    ) {
+      result =
+        normalizeColumnOrders(
+          result,
+          sourceStatus
+        );
     }
-    return normalizeColumnOrders(result, targetStatus);
+
+    return normalizeColumnOrders(
+      result,
+      targetStatus
+    );
   }
 
-  function handleDragStart(event: DragStartEvent) {
-    dragSnapshot.current = tasks.map((task) => ({ ...task }));
+  function handleDragStart(
+    event: DragStartEvent
+  ) {
+    dragSnapshot.current =
+      tasks.map((task) => ({
+        ...task,
+      }));
+
     lastOverId.current = null;
-    const taskId = Number(event.active.id);
-    const task = tasks.find((item) => item.id === taskId) ?? null;
+
+    const taskId =
+      Number(event.active.id);
+
+    const task =
+      tasks.find(
+        (item) =>
+          item.id === taskId
+      ) ?? null;
+
     setActiveTask(task);
   }
 
-  function handleDragOver(event: DragOverEvent) {
+  function handleDragOver(
+    event: DragOverEvent
+  ) {
     const { active, over } = event;
+
     if (!over) return;
 
-    const activeId = Number(active.id);
-    const overId = String(over.id);
+    const activeId =
+      Number(active.id);
+
+    const overId =
+      String(over.id);
 
     setTasks((previousTasks) => {
-      const movingTask = previousTasks.find((task) => task.id === activeId);
+      const movingTask =
+        previousTasks.find(
+          (task) =>
+            task.id === activeId
+        );
+
       if (
         !movingTask ||
-        (movingTask.unit?.id !== project.id && movingTask.unit?.name !== project.name)
+        (movingTask.unit?.id !== project.id &&
+          movingTask.unit?.name !==
+          project.name)
       ) {
         return previousTasks;
       }
 
-      let targetStatus: TaskStatus | null = null;
-      if (overId.startsWith("column:")) {
-        targetStatus = overId.replace("column:", "") as TaskStatus;
+      let targetStatus:
+        | TaskStatus
+        | null = null;
+
+      if (
+        overId.startsWith(
+          "column:"
+        )
+      ) {
+        targetStatus =
+          overId.replace(
+            "column:",
+            ""
+          ) as TaskStatus;
       } else {
-        const overTask = previousTasks.find((task) => task.id === Number(over.id));
+        const overTask =
+          previousTasks.find(
+            (task) =>
+              task.id ===
+              Number(over.id)
+          );
+
         if (!overTask) {
           return previousTasks;
         }
-        if (overTask.unit?.id !== project.id && overTask.unit?.name !== project.name) {
+
+        if (
+          overTask.unit?.id !==
+          project.id &&
+          overTask.unit?.name !==
+          project.name
+        ) {
           return previousTasks;
         }
-        targetStatus = overTask.status;
+
+        targetStatus =
+          overTask.status;
       }
 
-      if (!targetStatus || !VALID_STATUSES.includes(targetStatus)) {
-        return previousTasks;
-      }
-      if (movingTask.status === targetStatus) {
-        return previousTasks;
-      }
-
-      const targetTasks = previousTasks
-        .filter(
-          (task) =>
-            (task.unit?.id === project.id || task.unit?.name === project.name) &&
-            task.status === targetStatus &&
-            task.id !== activeId
+      if (
+        !targetStatus ||
+        !VALID_STATUSES.includes(
+          targetStatus
         )
-        .sort((a, b) => a.order - b.order);
+      ) {
+        return previousTasks;
+      }
 
-      let targetIndex = targetTasks.length;
+      if (
+        movingTask.status ===
+        targetStatus
+      ) {
+        return previousTasks;
+      }
 
-      if (!overId.startsWith("column:")) {
-        const overIndex = targetTasks.findIndex((task) => task.id === Number(over.id));
+      const targetTasks =
+        previousTasks
+          .filter(
+            (task) =>
+              (task.unit?.id ===
+                project.id ||
+                task.unit?.name ===
+                project.name) &&
+              task.status ===
+              targetStatus &&
+              task.id !== activeId
+          )
+          .sort(
+            (a, b) =>
+              a.order - b.order
+          );
+
+      let targetIndex =
+        targetTasks.length;
+
+      if (
+        !overId.startsWith(
+          "column:"
+        )
+      ) {
+        const overIndex =
+          targetTasks.findIndex(
+            (task) =>
+              task.id ===
+              Number(over.id)
+          );
+
         if (overIndex !== -1) {
-          const translated = active.rect.current.translated;
-          const isBelow = translated
-            ? translated.top + translated.height / 2 > over.rect.top + over.rect.height / 2
-            : false;
-          targetIndex = overIndex + (isBelow ? 1 : 0);
+          const translated =
+            active.rect.current
+              .translated;
+
+          const isBelow =
+            translated
+              ? translated.top +
+              translated.height /
+              2 >
+              over.rect.top +
+              over.rect.height /
+              2
+              : false;
+
+          targetIndex =
+            overIndex +
+            (isBelow ? 1 : 0);
         }
       }
 
-      return moveTaskToColumn(previousTasks, activeId, targetStatus, targetIndex);
+      return moveTaskToColumn(
+        previousTasks,
+        activeId,
+        targetStatus,
+        targetIndex
+      );
     });
   }
 
-  function handleDragEnd(event: DragEndEvent) {
-    const { over, active } = event;
+  function handleDragEnd(
+    event: DragEndEvent
+  ) {
+    const { over, active } =
+      event;
+
     setActiveTask(null);
     lastOverId.current = null;
 
     if (!over) {
-      if (dragSnapshot.current) {
-        setTasks(dragSnapshot.current);
+      if (
+        dragSnapshot.current
+      ) {
+        setTasks(
+          dragSnapshot.current
+        );
       }
-      dragSnapshot.current = null;
+
+      dragSnapshot.current =
+        null;
+
       return;
     }
 
-    const activeId = Number(active.id);
-    setTasks((previousTasks) => {
-      let result = previousTasks;
-      VALID_STATUSES.forEach((status) => {
-        result = normalizeColumnOrders(result, status);
-      });
+    const activeId =
+      Number(active.id);
 
-      const movedTask = result.find((task: Task) => task.id === activeId);
-      const originalTask = dragSnapshot.current?.find((task: Task) => task.id === activeId);
+    setTasks((previousTasks) => {
+      let result =
+        previousTasks;
+
+      VALID_STATUSES.forEach(
+        (status) => {
+          result =
+            normalizeColumnOrders(
+              result,
+              status
+            );
+        }
+      );
+
+      const movedTask =
+        result.find(
+          (task: Task) =>
+            task.id === activeId
+        );
+
+      const originalTask =
+        dragSnapshot.current?.find(
+          (task: Task) =>
+            task.id === activeId
+        );
 
       if (
         movedTask &&
         (!originalTask ||
-          originalTask.status !== movedTask.status ||
-          originalTask.order !== movedTask.order)
+          originalTask.status !==
+          movedTask.status ||
+          originalTask.order !==
+          movedTask.order)
       ) {
         updateTaskMutation.mutate({
           id: movedTask.id,
+
           updates: {
-            status: movedTask.status,
-            order: movedTask.order,
+            status:
+              movedTask.status,
+
+            order:
+              movedTask.order,
           },
         });
       }
+
       return result;
     });
 
@@ -304,70 +585,150 @@ export default function ProjectTasksTab({ projectId, project, tasks, setTasks }:
 
   function handleDragCancel() {
     setActiveTask(null);
-    if (dragSnapshot.current) {
-      setTasks(dragSnapshot.current);
+
+    if (
+      dragSnapshot.current
+    ) {
+      setTasks(
+        dragSnapshot.current
+      );
     }
+
     dragSnapshot.current = null;
   }
 
-  function openTaskModal(status: TaskStatus) {
+  function openTaskModal(
+    status: TaskStatus
+  ) {
+    if (!canCreateTask) {
+      return;
+    }
+
     setEditingTask(null);
     setTaskModalStatus(status);
     setShowTaskModal(true);
   }
 
-  function openEditTaskModal(task: Task) {
+  function openEditTaskModal(
+    task: Task
+  ) {
+    if (!canEditTask) {
+      return;
+    }
+
     setEditingTask(task);
     setShowTaskModal(true);
   }
 
-  function handleCreateTask(newTask: Task) {
+  function handleCreateTask(
+    newTask: Task
+  ) {
+    if (!canCreateTask) {
+      return;
+    }
+
     createTaskMutation.mutate({
       title: newTask.title,
-      description: newTask.description,
-      status: taskModalStatus,
-      priority: newTask.priority,
-      unit: Number(projectId),
-      assignees: newTask.assignees?.map((a: any) => a.id),
-      start_date: newTask.start_date || null,
-      due_date: newTask.due_date,
+      description:
+        newTask.description,
+      status:
+        taskModalStatus,
+      priority:
+        newTask.priority,
+      unit:
+        Number(projectId),
+      assignees:
+        newTask.assignees?.map(
+          (assignee: any) =>
+            assignee.id
+        ),
+      start_date:
+        newTask.start_date ||
+        null,
+      due_date:
+        newTask.due_date,
     });
   }
 
-  function handleUpdateTask(updatedTask: Task) {
+  function handleUpdateTask(
+    updatedTask: Task
+  ) {
+    if (!canEditTask) {
+      return;
+    }
+
     updateTaskMutation.mutate({
       id: updatedTask.id,
+
       updates: {
-        title: updatedTask.title,
-        description: updatedTask.description,
-        status: updatedTask.status,
-        priority: updatedTask.priority,
-        unit: Number(projectId),
-        assignees: updatedTask.assignees?.map((a: any) => a.id),
-        start_date: updatedTask.start_date || null,
-        due_date: updatedTask.due_date,
+        title:
+          updatedTask.title,
+        description:
+          updatedTask.description,
+        status:
+          updatedTask.status,
+        priority:
+          updatedTask.priority,
+        unit:
+          Number(projectId),
+        assignees:
+          updatedTask.assignees?.map(
+            (assignee: any) =>
+              assignee.id
+          ),
+        start_date:
+          updatedTask.start_date ||
+          null,
+        due_date:
+          updatedTask.due_date,
       },
     });
-    setSelectedTask(updatedTask);
+
+    setSelectedTask(
+      updatedTask
+    );
+
     setEditingTask(null);
     setShowTaskModal(false);
   }
 
-  function handleDeleteTask(taskToDelete: Task) {
-    deleteTaskMutation.mutate(taskToDelete.id);
+  function handleDeleteTask(
+    taskToDelete: Task
+  ) {
+    if (!canDeleteTask) {
+      return;
+    }
+
+    deleteTaskMutation.mutate(
+      taskToDelete.id
+    );
   }
 
-  const projectTasks = [...tasks].sort((a, b) => a.order - b.order);
-  
+  const projectTasks =
+    [...tasks].sort(
+      (a, b) =>
+        a.order - b.order
+    );
+
   return (
     <div className="tab-pane active fade-in">
       <DndContext
         sensors={sensors}
-        collisionDetection={kanbanCollisionDetection}
-        onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragEnd={handleDragEnd}
-        onDragCancel={handleDragCancel}
+        collisionDetection={
+          kanbanCollisionDetection
+        }
+        onDragStart={
+          handleDragStart
+        }
+        onDragOver={
+          handleDragOver
+        }
+        onDragEnd={
+          handleDragEnd
+        }
+        onDragCancel={
+          handleDragCancel
+        }
       >
         <div className="kanban">
           <KanbanColumn
@@ -375,35 +736,79 @@ export default function ProjectTasksTab({ projectId, project, tasks, setTasks }:
             status="todo"
             tasks={projectTasks}
             onTaskClick={setSelectedTask}
-            onAddTask={() => openTaskModal("todo")}
+            onAddTask={
+              canCreateTask
+                ? () => openTaskModal("todo")
+                : undefined
+            }
+            onDeleteTask={
+              canDeleteTask
+                ? (task) => setDeletingTask(task)
+                : undefined
+            }
           />
+
           <KanbanColumn
             title="Devam Ediyor"
             status="in_progress"
             tasks={projectTasks}
             onTaskClick={setSelectedTask}
-            onAddTask={() => openTaskModal("in_progress")}
+            onAddTask={
+              canCreateTask
+                ? () => openTaskModal("in_progress")
+                : undefined
+            }
+            onDeleteTask={
+              canDeleteTask
+                ? (task) => setDeletingTask(task)
+                : undefined
+            }
           />
+
           <KanbanColumn
             title="İncelemede"
             status="review"
             tasks={projectTasks}
             onTaskClick={setSelectedTask}
-            onAddTask={() => openTaskModal("review")}
+            onAddTask={
+              canCreateTask
+                ? () => openTaskModal("review")
+                : undefined
+            }
+            onDeleteTask={
+              canDeleteTask
+                ? (task) => setDeletingTask(task)
+                : undefined
+            }
           />
+
           <KanbanColumn
             title="Tamamlandı"
             status="done"
             tasks={projectTasks}
             onTaskClick={setSelectedTask}
-            onAddTask={() => openTaskModal("done")}
+            onAddTask={
+              canCreateTask
+                ? () => openTaskModal("done")
+                : undefined
+            }
+            onDeleteTask={
+              canDeleteTask
+                ? (task) => setDeletingTask(task)
+                : undefined
+            }
           />
         </div>
 
-        <DragOverlay dropAnimation={null}>
+        <DragOverlay
+          dropAnimation={null}
+        >
           {activeTask ? (
             <div className="drag-overlay-wrapper">
-              <TaskCard task={activeTask} isOverlay />
+              <TaskCard
+                task={activeTask}
+                isOverlay
+              />
             </div>
           ) : null}
         </DragOverlay>
@@ -411,33 +816,68 @@ export default function ProjectTasksTab({ projectId, project, tasks, setTasks }:
 
       <TaskDrawer
         task={selectedTask}
-        onClose={() => setSelectedTask(null)}
-        onEdit={(task) => {
-          setSelectedTask(null);
-          openEditTaskModal(task);
-        }}
-        onDelete={(task) => {
-          setSelectedTask(null);
-          setDeletingTask(task);
-        }}
+        onClose={() =>
+          setSelectedTask(null)
+        }
+        onEdit={
+          canEditTask
+            ? (task) => {
+              setSelectedTask(
+                null
+              );
+
+              openEditTaskModal(
+                task
+              );
+            }
+            : undefined
+        }
+        onDelete={
+          canDeleteTask
+            ? (task) => {
+              setSelectedTask(
+                null
+              );
+
+              setDeletingTask(
+                task
+              );
+            }
+            : undefined
+        }
       />
 
       <DeleteTaskModal
         task={deletingTask}
-        onClose={() => setDeletingTask(null)}
-        onConfirm={handleDeleteTask}
+        onClose={() =>
+          setDeletingTask(null)
+        }
+        onConfirm={
+          handleDeleteTask
+        }
       />
 
       <TaskModal
         isOpen={showTaskModal}
         onClose={() => {
-          setShowTaskModal(false);
+          setShowTaskModal(
+            false
+          );
+
           setEditingTask(null);
         }}
-        onCreate={handleCreateTask}
-        onUpdate={handleUpdateTask}
-        defaultStatus={taskModalStatus}
-        editingTask={editingTask}
+        onCreate={
+          handleCreateTask
+        }
+        onUpdate={
+          handleUpdateTask
+        }
+        defaultStatus={
+          taskModalStatus
+        }
+        editingTask={
+          editingTask
+        }
       />
     </div>
   );

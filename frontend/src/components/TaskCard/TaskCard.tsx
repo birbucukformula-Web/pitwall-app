@@ -123,41 +123,40 @@ export default function TaskCard({
             </span>
           )}
 
-          <div className="task-more-wrapper">
-            <button
-              type="button"
-              className="task-more-button"
-              onPointerDown={(event) =>
-                event.stopPropagation()
-              }
-              onClick={(event) => {
-                event.stopPropagation();
-                setShowMenu(!showMenu);
-              }}
-              aria-label="Görev seçenekleri"
-            >
-              <MoreHorizontal size={18} />
-            </button>
+          {onDelete && !isOverlay && (
+            <div className="task-more-wrapper">
+              <button
+                type="button"
+                className="task-more-button"
+                onPointerDown={(event) => {
+                  event.stopPropagation();
+                }}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setShowMenu(!showMenu);
+                }}
+                aria-label="Görev seçenekleri"
+              >
+                <MoreHorizontal size={18} />
+              </button>
 
-            {showMenu && !isOverlay && (
-              <div className="task-dropdown-menu">
-                <button
-                  type="button"
-                  className="task-dropdown-item delete-item"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    setShowMenu(false);
-
-                    if (onDelete) {
+              {showMenu && (
+                <div className="task-dropdown-menu">
+                  <button
+                    type="button"
+                    className="task-dropdown-item delete-item"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setShowMenu(false);
                       onDelete();
-                    }
-                  }}
-                >
-                  Sil
-                </button>
-              </div>
-            )}
-          </div>
+                    }}
+                  >
+                    Sil
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

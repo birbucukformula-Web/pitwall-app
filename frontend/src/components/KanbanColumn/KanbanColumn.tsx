@@ -27,7 +27,7 @@ type KanbanColumnProps = {
     task: Task,
   ) => void;
 
-  onAddTask: () => void;
+  onAddTask?: () => void;
   onDeleteTask?: (task: Task) => void;
 };
 
@@ -69,11 +69,10 @@ export default function KanbanColumn({
 
   return (
     <div
-      className={`kanban-column ${
-        isOver
-          ? "drag-over"
-          : ""
-      }`}
+      className={`kanban-column ${isOver
+        ? "drag-over"
+        : ""
+        }`}
     >
       <div className="column-header">
         <div>
@@ -90,14 +89,16 @@ export default function KanbanColumn({
           </span>
         </div>
 
-        <button
-          type="button"
-          className="column-add-button"
-          onClick={onAddTask}
-          aria-label={`${title} kolonuna görev ekle`}
-        >
-          <Plus size={18} />
-        </button>
+        {onAddTask && (
+          <button
+            type="button"
+            className="column-add-button"
+            onClick={onAddTask}
+            aria-label={`${title} kolonuna görev ekle`}
+          >
+            <Plus size={18} />
+          </button>
+        )}
       </div>
 
       <SortableContext
@@ -110,29 +111,31 @@ export default function KanbanColumn({
           ref={setNodeRef}
           className="task-list"
         >
-          {filteredTasks.map(
-            (task) => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                onClick={() =>
-                  onTaskClick(task)
-                }
-                onDelete={() => {
-                  if (onDeleteTask) onDeleteTask(task);
-                }}
-              />
-            ),
-          )}
+          {filteredTasks.map((task) => (
+            <TaskCard
+              key={task.id}
+              task={task}
+              onClick={() =>
+                onTaskClick(task)
+              }
+              onDelete={
+                onDeleteTask
+                  ? () => onDeleteTask(task)
+                  : undefined
+              }
+            />
+          ))}
 
-          <button
-            type="button"
-            className="add-card-button"
-            onClick={onAddTask}
-          >
-            <Plus size={17} />
-            Görev ekle
-          </button>
+          {onAddTask && (
+            <button
+              type="button"
+              className="add-card-button"
+              onClick={onAddTask}
+            >
+              <Plus size={17} />
+              Görev ekle
+            </button>
+          )}
         </div>
       </SortableContext>
     </div>
