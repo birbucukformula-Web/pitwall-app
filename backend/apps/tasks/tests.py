@@ -64,3 +64,63 @@ class TaskAPITests(TestCase):
         self.assertEqual(response.data['total'], 1)
         self.assertEqual(response.data['todo'], 1)
 
+class RoleBasedAccessTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.org = Organization.objects.create(name="1.5 Adana Racing", slug="1-5-adana")
+        
+        # 3 seviyeli ağaç
+        self.yazilim = Unit.objects.create(organization=self.org, name="Yazılım", parent=None)
+        self.gomulu = Unit.objects.create(organization=self.org, name="Gömülü", parent=self.yazilim)
+        self.teknofest = Unit.objects.create(organization=self.org, name="Gömülü_teknofest", parent=self.gomulu)
+        
+        # Farklı bir ağaç dalı
+        self.web = Unit.objects.create(organization=self.org, name="Web", parent=self.yazilim)
+
+        # Kullanıcılar
+        self.lead_gomulu = User.objects.create_user(
+            username="lead_gomulu", email="lead@pitwall.app", password="pitwall123",
+            organization=self.org, role="lead", unit=self.gomulu
+        )
+        self.member_gomulu = User.objects.create_user(
+            username="member_gomulu", email="member@pitwall.app", password="pitwall123",
+            organization=self.org, role="member", unit=self.gomulu
+        )
+
+        # Görevler
+        self.task_yazilim = Task.objects.create(organization=self.org, unit=self.yazilim, title="Yazılım Görevi", status=Task.Status.TODO, priority=Task.Priority.MEDIUM)
+        self.task_gomulu = Task.objects.create(organization=self.org, unit=self.gomulu, title="Gömülü Görevi", status=Task.Status.TODO, priority=Task.Priority.MEDIUM)
+        self.task_teknofest = Task.objects.create(organization=self.org, unit=self.teknofest, title="Teknofest Görevi", status=Task.Status.TODO, priority=Task.Priority.MEDIUM)
+        self.task_web = Task.objects.create(organization=self.org, unit=self.web, title="Web Görevi", status=Task.Status.TODO, priority=Task.Priority.MEDIUM)
+
+    def test_lead_visibility(self):
+        """Lead sadece kendi birimini, alt birimlerini ve üst birimlerini (ancestors + subtree) görebilir."""
+        self.client.force_authenticate(user=self.lead_gomulu)
+        response = self.client.get('/api/v1/tasks/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Gömülü Lead'in görebilecekleri: Gömülü (kendi), Gömülü_teknofest (alt), Yazılım (üst)
+        # Web (kardeş) GÖREMEZ
+        task_titles = [t['title'] for t in response.data]
+        self.assertIn("Yazılım Görevi", task_titles)
+        self.assertIn("Gömülü Görevi", task_titles)
+        self.assertIn("Teknofest Görevi", task_titles)
+        self.assertNotIn("Web Görevi", task_titles)
+        
+    def test_member_edit_restrictions(self):
+        """Member görev başlığını değiştiremez (403), ancak status değiştirebilir."""
+        self.client.force_authenticate(user=self.member_gomulu)
+        
+        # Başlık değiştirme denemesi
+        response = self.client.patch(f'/api/v1/tasks/{self.task_gomulu.id}/', {
+            'title': 'Başlık Değişti'
+        })
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        
+        # Sadece durum (status) değiştirme denemesi
+        response2 = self.client.patch(f'/api/v1/tasks/{self.task_gomulu.id}/', {
+            'status': 'in_progress'
+        })
+        self.assertEqual(response2.status_code, status.HTTP_200_OK)
+        self.task_gomulu.refresh_from_db()
+        self.assertEqual(self.task_gomulu.status, 'in_progress')

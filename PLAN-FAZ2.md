@@ -27,6 +27,8 @@ Faz 2'nin **neden**i README'nin *Kararlar* bölümüne eklenecek aşağıdaki me
 
 ---
 
+
+
 ## Veri Modeli Değişiklikleri
 
 ```
@@ -54,8 +56,8 @@ apps/accounts/models.py -> User
 
 ### F2-Adım 1 — Kararı dondur
 
-- [ ] Yukarıdaki blok `README.md → Kararlar`'a eklenir.
-- [ ] Ekip okur ve onaylar (özellikle kapsam sınırı: sadece Yazılım Departmanı).
+- [x] Yukarıdaki blok `README.md → Kararlar`'a eklenir.
+- [x] Ekip okur ve onaylar (özellikle kapsam sınırı: sadece Yazılım Departmanı).
 
 **Bitti sayılır:** README'de Faz 2 kararı yayında, itiraz yok.
 
@@ -63,12 +65,12 @@ apps/accounts/models.py -> User
 
 ### F2-Adım 2 — Modeller ve Migration'lar (`Unit.parent` ve `User.unit`)
 
-- [ ] `apps/organizations/models.py` içinde `Unit` modeline `parent = models.ForeignKey("self", null=True, blank=True, on_delete=models.SET_NULL, related_name="children")` eklenir.
-- [ ] `apps/accounts/models.py` içinde `User` modeline `unit = models.ForeignKey('organizations.Unit', null=True, blank=True, on_delete=models.SET_NULL, related_name='members')` eklenir.
-- [ ] Migration'lar alınır (`python manage.py makemigrations` ve `migrate`). Mevcut Unit'lere (departman seviyesi) `parent=None` kalır.
-- [ ] Yazılım Departmanı altındaki gerçek alt birim ağacı admin panelinden girilir (Gömülü → Gömülü_teknofest, Gömülü_FSAE dahil) ve mevcut kullanıcılara ilgili `unit`'ler atanır.
-- [ ] `apps/organizations/models.py` içinde `Unit` modeline `get_descendant_ids(self)` metodu yazılır. (Özyinelemeli olarak kendisi dahil alt birimlerin id'lerini dönecek).
-- [ ] Basit birim testi: 3 seviyeli sahte ağaçta doğru id kümesi dönüyor mu (`apps/organizations/tests.py` içinde).
+- [x] `apps/organizations/models.py` içinde `Unit` modeline `parent = models.ForeignKey("self", null=True, blank=True, on_delete=models.SET_NULL, related_name="children")` eklenir.
+- [x] `apps/accounts/models.py` içinde `User` modeline `unit = models.ForeignKey('organizations.Unit', null=True, blank=True, on_delete=models.SET_NULL, related_name='members')` eklenir.
+- [x] Migration'lar alınır (`python manage.py makemigrations` ve `migrate`). Mevcut Unit'lere (departman seviyesi) `parent=None` kalır.
+- [x] Yazılım Departmanı altındaki gerçek alt birim ağacı admin panelinden girilir (Gömülü → Gömülü_teknofest, Gömülü_FSAE dahil) ve mevcut kullanıcılara ilgili `unit`'ler atanır.
+- [x] `apps/organizations/models.py` içinde `Unit` modeline `get_descendant_ids(self)` metodu yazılır. (Özyinelemeli olarak kendisi dahil alt birimlerin id'lerini dönecek).
+- [x] Basit birim testi: 3 seviyeli sahte ağaçta doğru id kümesi dönüyor mu (`apps/organizations/tests.py` içinde).
 
 **Bitti sayılır:** Admin'den kurulan gerçek ağaçta `get_descendant_ids` doğru sonucu veriyor ve `User` artık bir birime bağlı.
 
@@ -76,15 +78,15 @@ apps/accounts/models.py -> User
 
 ### F2-Adım 3 — Yetki Katmanı (Backend Permissions)
 
-- [ ] `apps/accounts/permissions.py` oluşturulup özel BasePermission sınıfları yazılır.
-- [ ] `get_authorized_unit_ids(membership)` adında tek bir ortak yardımcı fonksiyon yazılır:
+- [x] `apps/accounts/permissions.py` oluşturulup özel BasePermission sınıfları yazılır.
+- [x] `get_authorized_unit_ids(membership)` adında tek bir ortak yardımcı fonksiyon yazılır:
   - `captain` → Kısıt yok (tüm organizasyon).
   - `lead` → `subtree ∪ ancestors` (kendi alt ağacı ve bağlı olduğu üst birimler).
   - `member` → Boş liste (yazma izni yok, sadece yorum endpoint'i ayrı kontrol edilecek).
-- [ ] Görünürlük (Read) işlemleri: Ayrı bir `get_visible_unit_ids` fonksiyonuna gerek yok. `lead` için görünürlük ve yetki aynı. `member` ise bu birimlerdeki görevleri sadece görebilir (görebiliyor ama yazamıyor).
-- [ ] `TaskViewSet.get_queryset()` bu görünürlük kurallarına göre filtrelenir.
-- [ ] Yazma izinleri: `TaskViewSet`'te `create` / `update` / `destroy` işlemleri sadece `captain` ve yetkili `lead` için açık hale getirilir. `member` sadece durum değiştirme (`PATCH {status, order}`) ve yorum yapabilir.
-- [ ] Üye yönetimi (`MemberListView` vb.): Üye ekleme endpoint'i (`POST`) `role == 'captain'` dışındaki herkese 403 döner. Üye listesi okuma (GET) ise herkese açık (read-only) kalır.
+- [x] Görünürlük (Read) işlemleri: Ayrı bir `get_visible_unit_ids` fonksiyonuna gerek yok. `lead` için görünürlük ve yetki aynı. `member` ise bu birimlerdeki görevleri sadece görebilir (görebiliyor ama yazamıyor).
+- [x] `TaskViewSet.get_queryset()` bu görünürlük kurallarına göre filtrelenir.
+- [x] Yazma izinleri: `TaskViewSet`'te `create` / `update` / `destroy` işlemleri sadece `captain` ve yetkili `lead` için açık hale getirilir. `member` sadece durum değiştirme (`PATCH {status, order}`) ve yorum yapabilir.
+- [x] Üye yönetimi (`MemberListView` vb.): Üye ekleme endpoint'i (`POST`) `role == 'captain'` dışındaki herkese 403 döner. Üye listesi okuma (GET) ise herkese açık (read-only) kalır.
 
 **Bitti sayılır:** Farklı roller ve birimlerle API istekleri yapılıp her birinin gördüğü/yapabildiği şey rol matrisiyle birebir örtüşüyor.
 
@@ -92,8 +94,8 @@ apps/accounts/models.py -> User
 
 ### F2-Adım 4 — Sözleşme ve Dokümantasyon Güncellemesi
 
-- [ ] `docs/API.md`'ye rol sütunu eklenir.
-- [ ] `apps/accounts/serializers.py` içindeki `/auth/me/` (ör. `UserSerializer`) yanıtına, erişilebilir Unit id listesi (`accessible_unit_ids`) eklenir (frontend'in buton/görünürlük mantığı bunu kullanacak).
+- [x] `docs/API.md`'ye rol sütunu eklenir.
+- [x] `apps/accounts/serializers.py` içindeki `/auth/me/` (ör. `UserSerializer`) yanıtına, erişilebilir Unit id listesi (`accessible_unit_ids`) eklenir (frontend'in buton/görünürlük mantığı bunu kullanacak).
 
 **Bitti sayılır:** Güncel sözleşme yayında, ekip onaylıyor.
 
@@ -101,9 +103,9 @@ apps/accounts/models.py -> User
 
 ### F2-Adım 5 — Backend Testleri
 
-- [ ] Hiyerarşi testleri (`apps/tasks/tests.py` vb.): 3 seviyeli ağaçta `lead` görünürlüğü doğru filtreliyor mu?
-- [ ] Rol testleri: `member` görev başlığı değiştirmeyi denediğinde 403 veya `ReadOnly` engeli alıyor mu?
-- [ ] Sınır durumu: `parent` döngüsü (`unit.parent = unit.children.first()`) engelleniyor mu? (Bunu `Unit.clean()` metodunda doğrulamak iyi bir pratik olabilir).
+- [x] Hiyerarşi testleri (`apps/tasks/tests.py` vb.): 3 seviyeli ağaçta `lead` görünürlüğü doğru filtreliyor mu?
+- [x] Rol testleri: `member` görev başlığı değiştirmeyi denediğinde 403 veya `ReadOnly` engeli alıyor mu?
+- [x] Sınır durumu: `parent` döngüsü (`unit.parent = unit.children.first()`) engelleniyor mu? (Bunu `Unit.clean()` metodunda doğrulamak iyi bir pratik olabilir).
 
 **Bitti sayılır:** Yeni testler yeşil, mevcut testler (Faz 1'den kalanlar) hâlâ geçiyor.
 

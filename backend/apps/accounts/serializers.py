@@ -23,7 +23,12 @@ class UserSerializer(serializers.ModelSerializer):
     organization = OrganizationSerializer(read_only=True)
     unit_id = serializers.IntegerField(source='unit.id', read_only=True)
     unit_name = serializers.CharField(source='unit.name', read_only=True)
+    accessible_unit_ids = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'role', 'organization', 'unit_id', 'unit_name')
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'role', 'organization', 'unit_id', 'unit_name', 'accessible_unit_ids')
+
+    def get_accessible_unit_ids(self, obj):
+        from apps.accounts.permissions import get_visible_unit_ids
+        return get_visible_unit_ids(obj)
