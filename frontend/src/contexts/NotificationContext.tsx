@@ -24,47 +24,7 @@ export type NotificationItem = {
   taskId?: number;
 };
 
-const initialNotifications: NotificationItem[] = [
-  {
-    id: 1,
-    type: "task_assigned",
-    title: "Yeni görev atandı",
-    message: "Telemetri dashboard frontend görevine dahil edildin.",
-    createdAt: "2 dk önce",
-    isRead: false,
-    link: "/projects",
-    taskId: 1,
-  },
-  {
-    id: 2,
-    type: "comment",
-    title: "Yeni yorum",
-    message: "Furkan, Araç veri API bağlantısı görevine yorum yaptı.",
-    createdAt: "18 dk önce",
-    isRead: false,
-    link: "/projects",
-    taskId: 3,
-  },
-  {
-    id: 3,
-    type: "task_updated",
-    title: "Görev durumu değişti",
-    message: "Görev takip ekranı tasarımı İncelemede durumuna alındı.",
-    createdAt: "1 sa önce",
-    isRead: true,
-    link: "/projects",
-    taskId: 5,
-  },
-  {
-    id: 4,
-    type: "announcement",
-    title: "Yeni duyuru",
-    message: "Web ekibi toplantısı duyurusu yayınlandı.",
-    createdAt: "2 sa önce",
-    isRead: true,
-    link: "/announcements",
-  },
-];
+const initialNotifications: NotificationItem[] = [];
 
 type NotificationContextValue = {
   notifications: NotificationItem[];

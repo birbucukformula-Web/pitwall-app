@@ -51,6 +51,18 @@ Faz 3'te captain uygulamadan e-posta ile davet gönderebilmeli.
 
 ---
 
+### Gerçek Zamanlı Bildirim Sistemi
+
+Şu an arayüzde statik (sahte) bildirim verileri kullanılıyor. Faz 3 kapsamında bu sistem gerçeğe dönüştürülecek.
+
+- [ ] Backend'de `Notification` modeli kurulacak.
+- [ ] Görev atamalarında, durum değişikliklerinde ve yorumlarda sinyal (Django signals) yakalanıp bildirim oluşturulacak.
+- [ ] Kullanıcı için `/notifications/` GET ve PUT (okundu işaretleme) endpoint'leri yazılacak.
+- [ ] (Opsiyonel) WebSocket entegrasyonu ile sayfa yenilenmeden bildirim düşmesi sağlanacak.
+- [ ] Frontend'deki `NotificationContext.tsx` gerçek API ile bağlanacak.
+
+---
+
 ## Bağlam
 
 - Faz 1 kararları: `README.md → Kararlar`
