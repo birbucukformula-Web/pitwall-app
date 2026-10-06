@@ -113,9 +113,9 @@ apps/accounts/models.py -> User
 
 ### F2-Adım 6 — Frontend: Rol Tabanlı Arayüz
 
-- [ ] `apiClient` veya context üzerinden alınan yetkilere göre Pano (Dashboard) filtre seçenekleri daraltılır.
-- [ ] `member` yetkisindeki kullanıcılar için görev oluştur, düzenle (başlık/açıklama) ve sil butonları gizlenir. Sadece durum sürükleme ve yorum alanı açık kalır.
-- [ ] Ayarlar / Üye listesi ekranı: Herkese açık (read-only) olarak listelenir, ancak üye ekle/düzenle/sil (edit/add/remove) butonları **sadece `captain` rolüne sahip kullanıcılarda** görünür.
+- [x] `apiClient` veya context üzerinden alınan yetkilere göre Pano (Dashboard) filtre seçenekleri daraltılır.
+- [x] `member` yetkisindeki kullanıcılar için görev oluştur, düzenle (başlık/açıklama) ve sil butonları gizlenir. Sadece durum sürükleme ve yorum alanı açık kalır.
+- [x] Ayarlar / Üye listesi ekranı: Herkese açık (read-only) olarak listelenir, ancak üye ekle/düzenle/sil (edit/add/remove) butonları **sadece `captain` rolüne sahip kullanıcılarda** görünür.
 
 **Bitti sayılır:** Üç farklı rolle giriş yapılıp arayüzde sadece izinli aksiyonlar görünüyor; backend engellemesi olsa bile arayüz temiz ve anlaşılır şekilde sınırlı.
 

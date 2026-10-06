@@ -649,8 +649,6 @@ export default function Dashboard() {
           onClose={() =>
             setSelectedTask(null)
           }
-          onEdit={() => {}}
-          onDelete={() => {}}
           onToggleComplete={
             handleToggleComplete
           }
