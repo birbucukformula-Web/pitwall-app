@@ -832,27 +832,223 @@
   padding-left: 8px;
   margin-top: 4px;
 }
- @ m e d i a   ( m a x - w i d t h :   6 5 0 p x )   { 
-     . t r e e - n o d e   { 
-         f l e x - w r a p :   w r a p ; 
-         g a p :   1 2 p x ; 
-         p a d d i n g :   1 2 p x ; 
-     } 
-     
-     . t r e e - n o d e - l e f t   { 
-         w i d t h :   1 0 0 % ; 
-     } 
- 
-     . t r e e - n o d e - s t a t s   { 
-         w i d t h :   1 0 0 % ; 
-         j u s t i f y - c o n t e n t :   f l e x - e n d ; 
-         p a d d i n g - l e f t :   1 2 p x ; 
-     } 
-     
-     . t r e e - n a v - b t n   { 
-         p a d d i n g :   6 p x   1 0 p x ; 
-         f o n t - s i z e :   1 1 p x ; 
-     } 
- } 
-  
- 
+
+@media (max-width: 650px) {
+  .projects-page {
+    padding: 26px 20px 40px;
+  }
+
+  .projects-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .projects-section-header h2 {
+    font-size: 22px;
+  }
+
+  .projects-section-header p {
+    margin-top: 8px;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  .projects-team-count {
+    padding: 7px 11px;
+    font-size: 11px;
+  }
+
+  .tree-view-container {
+    padding: 12px;
+    gap: 10px;
+    border-radius: 12px;
+  }
+
+  .tree-node-wrapper {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .tree-node {
+    width: 100%;
+    min-width: 0;
+
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+
+    padding: 12px;
+
+    border-radius: 9px;
+  }
+
+  .tree-node-root {
+    margin-bottom: 6px;
+  }
+
+  .tree-node-left {
+    width: 100%;
+    min-width: 0;
+
+    display: grid;
+    grid-template-columns: 26px 34px minmax(0, 1fr);
+    align-items: center;
+    gap: 9px;
+  }
+
+  .tree-expand-btn {
+    width: 26px;
+    height: 26px;
+    padding: 0;
+  }
+
+  .tree-expand-spacer {
+    width: 26px;
+    height: 26px;
+  }
+
+  .tree-node-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+  }
+
+  .tree-node-info {
+    min-width: 0;
+  }
+
+  .tree-node-info h4 {
+    font-size: 14px;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+  }
+
+  .tree-node-info span {
+    margin-top: 2px;
+    font-size: 10.5px;
+  }
+
+  .tree-node-stats {
+    width: 100%;
+    min-width: 0;
+
+    display: grid;
+    grid-template-columns: auto auto minmax(112px, auto);
+    align-items: center;
+    justify-content: end;
+
+    gap: 12px;
+
+    padding: 9px 0 0 69px;
+
+    border-top: 1px solid var(--border);
+  }
+
+  .tree-stat {
+    gap: 5px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .tree-stat svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .tree-nav-btn {
+    min-height: 36px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 6px;
+
+    padding: 7px 10px;
+
+    font-size: 11px;
+    line-height: 1;
+    white-space: nowrap;
+
+    border-radius: 7px;
+  }
+
+  .tree-nav-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  .tree-node-children {
+    width: 100%;
+
+    padding-left: 0;
+    margin-top: 5px;
+  }
+
+  /*
+   * JSX'te alt birimlere inline marginLeft veriliyor.
+   * Mobilde masaüstü girintisini küçültüyoruz.
+   */
+  .tree-node-children > .tree-node-wrapper {
+    margin-left: 14px !important;
+    width: calc(100% - 14px);
+  }
+
+  .tree-node-children .tree-node {
+    padding: 10px 10px 10px 8px;
+  }
+
+  .tree-node-children .tree-node-left {
+    grid-template-columns: 26px 32px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .tree-node-children .tree-node-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .tree-node-children .tree-node-stats {
+    padding-left: 66px;
+  }
+}
+
+@media (max-width: 420px) {
+  .projects-page {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .tree-view-container {
+    padding: 9px;
+  }
+
+  .tree-node {
+    padding: 10px;
+  }
+
+  .tree-node-stats {
+    grid-template-columns: auto auto 1fr;
+
+    gap: 9px;
+
+    padding-left: 0;
+  }
+
+  .tree-nav-btn {
+    justify-self: end;
+    min-width: 104px;
+  }
+
+  .tree-node-children > .tree-node-wrapper {
+    margin-left: 10px !important;
+    width: calc(100% - 10px);
+  }
+
+  .tree-node-children .tree-node-stats {
+    padding-left: 0;
+  }
+}
