@@ -1,7 +1,7 @@
 from rest_framework import generics, permissions
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.contrib.auth import get_user_model
-from .serializers import CustomTokenObtainPairSerializer, UserSerializer
+from .serializers import CustomTokenObtainPairSerializer, UserSerializer, UserRegistrationSerializer
 
 User = get_user_model()
 
@@ -27,3 +27,8 @@ class MemberListView(generics.ListAPIView):
         if hasattr(user, 'organization') and user.organization:
             return User.objects.filter(organization=user.organization)
         return User.objects.none()
+
+class RegisterView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    permission_classes = [permissions.AllowAny]
+    serializer_class = UserRegistrationSerializer

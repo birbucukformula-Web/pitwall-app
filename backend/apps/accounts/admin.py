@@ -24,7 +24,7 @@ class CustomUserCreationForm(UserCreationForm):
 class CustomUserAdmin(UserAdmin):
     add_form = CustomUserCreationForm
 
-    list_display = ('email', 'first_name', 'last_name', 'role', 'organization', 'is_staff')
+    list_display = ('email', 'first_name', 'last_name', 'role', 'organization', 'unit', 'is_staff')
     list_filter = ('role', 'organization', 'is_staff', 'is_active')
     search_fields = ('email', 'first_name', 'last_name')
     ordering = ('email',)
@@ -32,7 +32,7 @@ class CustomUserAdmin(UserAdmin):
     fieldsets = (
         (None, {'fields': ('email', 'username', 'password')}),
         ('Kişisel Bilgiler', {'fields': ('first_name', 'last_name')}),
-        ('PitWall Özel Alanlar', {'fields': ('role', 'organization')}),
+        ('PitWall Özel Alanlar', {'fields': ('role', 'organization', 'unit')}),
         ('İzinler & Durum', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ('Önemli Tarihler', {'fields': ('last_login', 'date_joined')}),
     )
@@ -40,6 +40,6 @@ class CustomUserAdmin(UserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'password1', 'password2', 'role', 'organization', 'is_staff', 'is_active'),
+            'fields': ('email', 'password1', 'password2', 'role', 'organization', 'unit', 'is_staff', 'is_active'),
         }),
     )

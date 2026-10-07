@@ -37,6 +37,14 @@ export const authApi = {
     }) as Promise<LoginResponse>;
   },
 
+  register: (data: Record<string, string>) => {
+    return fetchApi("/auth/register/", {
+      method: "POST",
+      body: JSON.stringify(data),
+      requireAuth: false,
+    });
+  },
+
   getMe: () => {
     return fetchApi("/auth/me/", {
       method: "GET",

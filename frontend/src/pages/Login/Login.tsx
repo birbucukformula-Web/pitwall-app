@@ -268,8 +268,8 @@ export default function Login() {
           <div className="login-contact">
             Hesabın yok mu?
 
-            <button type="button">
-              Takım yöneticinle iletişime geç.
+            <button type="button" onClick={() => navigate("/register")}>
+              Kayıt ol.
             </button>
           </div>
         </div>

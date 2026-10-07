@@ -18,6 +18,7 @@ import { AvatarProvider } from "./contexts/AvatarContext";
 import "./App.css";
 
 import Login from "./pages/Login/Login";
+import Register from "./pages/Register/Register";
 
 const Dashboard = lazy(() => import("./pages/Dashboard/Dashboard"));
 const Calendar = lazy(() => import("./pages/Calendar/Calendar"));
@@ -179,6 +180,20 @@ function App() {
               />
             ) : (
               <Login />
+            )
+          }
+        />
+
+        <Route
+          path="/register"
+          element={
+            isAuthenticated ? (
+              <Navigate
+                to="/dashboard"
+                replace
+              />
+            ) : (
+              <Register />
             )
           }
         />
