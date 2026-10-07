@@ -5,7 +5,7 @@ export default function Game() {
     const wrapper = document.getElementById('f1-game-wrapper');
     const canvas = document.getElementById('f1-canvas') as HTMLCanvasElement;
     if (!wrapper || !canvas) return;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d')!;
     const scoreElement = document.getElementById('f1-score');
     const startScreen = document.getElementById('f1-start-screen');
     
@@ -251,7 +251,7 @@ export default function Game() {
         }
     }
 
-    const clickHandler = (e: MouseEvent) => {
+    const clickHandler = (_e: MouseEvent) => {
         handleInput();
     };
 
