@@ -456,10 +456,10 @@
   position: relative;
   z-index: 2;
 
-  width: max-content;
-  max-width: none;
+  width: 100%;
+  min-width: 0;
 
-  overflow: visible;
+  overflow: hidden;
 
   color: inherit;
 
@@ -469,7 +469,7 @@
 
   text-align: center;
 
-  text-overflow: clip;
+  text-overflow: ellipsis;
   white-space: nowrap;
 
   pointer-events: none;
@@ -1140,103 +1140,490 @@
     rgba(255, 255, 255, 0.07);
 }
 
-/* =========================
-   TABLET
-========================= */
+/* =========================================================
+   RESPONSIVE MOBILE GANTT
+   DESKTOP GANTT'A DOKUNMAZ
+   ========================================================= */
 
-@media (max-width: 1000px) {
-  .project-calendar-tab {
-    padding: 20px 18px;
-  }
-
-  .gantt-table {
-    --gantt-task-column: 220px;
-
-    min-width: 1100px;
-  }
-
-  .gantt-legend {
-    gap: 20px;
-  }
+.mobile-gantt {
+  display: none;
 }
 
-/* =========================
-   MOBILE
-========================= */
-
 @media (max-width: 760px) {
-  .project-calendar-tab {
-    padding: 18px 14px;
+  .gantt-desktop {
+    display: none;
+  }
 
-    border-radius: 10px;
+  .mobile-gantt {
+    display: block;
+  }
+
+  .project-calendar-tab {
+    padding: 14px 12px 18px;
+    border-radius: 12px;
   }
 
   .project-calendar-header {
-    margin-bottom: 22px;
+    margin-bottom: 14px;
   }
 
   .project-calendar-header h3 {
-    font-size: 20px;
+    font-size: 19px;
   }
 
   .project-calendar-header p {
-    font-size: 12px;
+    font-size: 11px;
   }
 
-  .gantt-toolbar {
-    min-height: 50px;
+  .mobile-schedule {
+    width: 100%;
+    overflow: hidden;
+
+    background: var(--surface);
+
+    border: 1px solid var(--border);
+    border-radius: 18px;
+  }
+
+  .mobile-schedule-top {
+    padding: 16px 14px 12px;
+
+    border-bottom:
+      1px solid
+      var(--border-soft);
+  }
+
+  .mobile-schedule-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 
     gap: 12px;
 
-    padding-bottom: 10px;
+    margin-bottom: 16px;
   }
 
-  .gantt-month {
+  .mobile-schedule-title {
+    color: var(--text);
+
     font-size: 17px;
+    font-weight: 700;
+
+    text-transform: capitalize;
   }
 
-  .gantt-task-count {
-    padding: 6px 9px;
+  .mobile-schedule-subtitle {
+    margin-top: 3px;
+
+    color: var(--text-muted);
 
     font-size: 10px;
   }
 
-  .gantt-table {
-    --gantt-task-column: 170px;
+  .mobile-schedule-actions {
+    display: flex;
 
-    min-width: 1080px;
+    gap: 7px;
   }
 
-  .gantt-status-dot {
-    width: 10px;
-    height: 10px;
+  .mobile-schedule-actions button {
+    width: 34px;
+    height: 34px;
 
-    flex-basis: 10px;
+    display: grid;
+    place-items: center;
+
+    padding: 0;
+
+    background:
+      var(--surface-soft);
+
+    color: var(--text);
+
+    border:
+      1px solid
+      var(--border-soft);
+
+    border-radius: 10px;
+
+    cursor: pointer;
   }
 
-  .gantt-task-info strong {
+  .mobile-schedule-week {
+    display: grid;
+
+    grid-template-columns:
+      repeat(
+        7,
+        minmax(0, 1fr)
+      );
+
+    gap: 3px;
+  }
+
+  .mobile-schedule-day {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    gap: 6px;
+
+    padding: 5px 0;
+
+    color: var(--text-muted);
+  }
+
+  .mobile-schedule-day-name {
+    font-size: 9px;
+    font-weight: 600;
+
+    text-transform: uppercase;
+  }
+
+  .mobile-schedule-day-number {
+    width: 31px;
+    height: 31px;
+
+    display: grid;
+    place-items: center;
+
+    color: var(--text);
+
+    border-radius: 50%;
+
     font-size: 12px;
+    font-weight: 650;
   }
 
-  .gantt-task-info span {
-    font-size: 10px;
+  .mobile-schedule-day.today
+    .mobile-schedule-day-number {
+    background: var(--accent);
+
+    color: #ffffff;
   }
 
-  .gantt-bar {
-    padding: 0 4px;
+  .mobile-schedule-timeline {
+    padding: 10px 12px 4px;
   }
 
-  .gantt-bar-label {
+  .mobile-schedule-slot {
+    min-height: 76px;
+
+    display: grid;
+
+    grid-template-columns:
+      28px minmax(0, 1fr);
+
+    gap: 8px;
+  }
+
+  .mobile-schedule-index {
+    padding-top: 13px;
+
+    color: var(--text-muted);
+
+    font-size: 9px;
+    font-weight: 650;
+  }
+
+  .mobile-schedule-slot-content {
+    position: relative;
+
+    min-width: 0;
+
+    padding-bottom: 9px;
+  }
+
+  .mobile-schedule-slot-content::before {
+    content: "";
+
+    position: absolute;
+
+    left: -22px;
+    top: 0;
+    bottom: 0;
+
+    width: 1px;
+
+    background:
+      var(--border-soft);
+  }
+
+  .mobile-schedule-task {
+    min-height: 64px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 8px;
+
+    padding: 11px 12px;
+
+    border: 1px solid;
+
+    border-radius: 15px;
+  }
+
+  .mobile-schedule-task.position-b {
+    margin-left: 8px;
+  }
+
+  .mobile-schedule-task.position-c {
+    margin-right: 7px;
+  }
+
+  .mobile-schedule-task.position-d {
+    margin-left: 4px;
+    margin-right: 3px;
+  }
+
+  .mobile-schedule-task.todo {
+    background:
+      rgba(
+        92,
+        145,
+        239,
+        0.13
+      );
+
+    border-color:
+      rgba(
+        92,
+        145,
+        239,
+        0.32
+      );
+  }
+
+  .mobile-schedule-task.in_progress {
+    background:
+      rgba(
+        255,
+        184,
+        46,
+        0.14
+      );
+
+    border-color:
+      rgba(
+        255,
+        184,
+        46,
+        0.35
+      );
+  }
+
+  .mobile-schedule-task.review {
+    background:
+      rgba(
+        163,
+        75,
+        239,
+        0.12
+      );
+
+    border-color:
+      rgba(
+        163,
+        75,
+        239,
+        0.30
+      );
+  }
+
+  .mobile-schedule-task.done {
+    background:
+      rgba(
+        73,
+        191,
+        138,
+        0.13
+      );
+
+    border-color:
+      rgba(
+        73,
+        191,
+        138,
+        0.30
+      );
+  }
+
+  .mobile-schedule-task-main {
+    min-width: 0;
+
+    display: flex;
+    align-items: center;
+
+    gap: 9px;
+  }
+
+  .mobile-schedule-task-main > div {
+    min-width: 0;
+  }
+
+  .mobile-schedule-task-main strong {
+    display: block;
+
+    overflow: hidden;
+
+    color: var(--text);
+
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.25;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-schedule-task-main
+    span:not(.gantt-status-dot) {
+    display: block;
+
+    margin-top: 4px;
+
+    color: var(--text-muted);
+
     font-size: 9px;
   }
 
-  .gantt-legend {
-    gap: 14px 20px;
+  .mobile-schedule-task-date {
+    flex: 0 0 auto;
 
-    padding-top: 16px;
+    color: var(--text-muted);
+
+    font-size: 9px;
+
+    white-space: nowrap;
   }
 
-  .gantt-legend-item {
+  .mobile-schedule-empty {
+    min-height: 160px;
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 9px;
+
+    color: var(--text-muted);
+
     font-size: 11px;
+
+    text-align: center;
+  }
+
+  .mobile-schedule-legend {
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: 9px 14px;
+
+    padding:
+      11px
+      14px
+      14px
+      50px;
+
+    border-top:
+      1px solid
+      var(--border-soft);
+  }
+
+  .mobile-schedule-legend-item {
+    display: flex;
+    align-items: center;
+
+    gap: 5px;
+
+    color: var(--text-muted);
+
+    font-size: 9px;
+  }
+
+  .mobile-schedule-legend-dot {
+    width: 7px;
+    height: 7px;
+
+    border-radius: 50%;
+  }
+
+  .mobile-schedule-legend-dot.todo {
+    background: #5c91ef;
+  }
+
+  .mobile-schedule-legend-dot.in_progress {
+    background: #ffb82e;
+  }
+
+  .mobile-schedule-legend-dot.review {
+    background: #a34bef;
+  }
+
+  .mobile-schedule-legend-dot.done {
+    background: #49bf8a;
+  }
+
+  [data-theme="dark"]
+    .mobile-schedule {
+    background: #18181a;
+
+    border-color:
+      rgba(
+        255,
+        255,
+        255,
+        0.09
+      );
+  }
+
+  [data-theme="dark"]
+    .mobile-schedule-top,
+  [data-theme="dark"]
+    .mobile-schedule-legend {
+    border-color:
+      rgba(
+        255,
+        255,
+        255,
+        0.07
+      );
+  }
+
+  [data-theme="dark"]
+    .mobile-schedule-actions
+    button {
+    background:
+      rgba(
+        255,
+        255,
+        255,
+        0.04
+      );
+
+    border-color:
+      rgba(
+        255,
+        255,
+        255,
+        0.08
+      );
+  }
+
+  [data-theme="dark"]
+    .mobile-schedule-slot-content::before {
+    background:
+      rgba(
+        255,
+        255,
+        255,
+        0.06
+      );
   }
 }

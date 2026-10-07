@@ -701,42 +701,374 @@
   }
 }
 
-/* MOBILE */
+/* =========================================
+   MOBILE — iOS AGENDA VIEW
+========================================= */
+
+.mobile-gantt-agenda {
+  display: none;
+}
 
 @media (max-width: 760px) {
-  .monthly-calendar-tab {
-    padding: 18px 14px;
-
-    overflow-x: auto;
+  .project-calendar-tab {
+    padding: 18px 14px 22px;
 
     border-radius: 10px;
   }
 
-  .monthly-calendar-header {
-    margin-bottom: 20px;
+  .project-calendar-header {
+    margin-bottom: 18px;
   }
 
-  .monthly-calendar-header h3 {
+  .project-calendar-header h3 {
     font-size: 20px;
+    line-height: 1.25;
   }
 
-  .monthly-calendar-header p {
+  .project-calendar-header p {
+    margin-top: 5px;
+
     font-size: 12px;
+    line-height: 1.45;
+  }
   }
 
-  .monthly-calendar-summary {
-    display: none;
+  /*
+   * iOS benzeri mobil agenda.
+   */
+  .mobile-gantt-agenda {
+    display: block;
+
+    width: 100%;
+    min-width: 0;
   }
 
-  .monthly-calendar-toolbar {
-    min-width: 760px;
+  /* MONTH HEADER */
+
+  .mobile-gantt-month-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    margin-bottom: 12px;
   }
 
-  .monthly-calendar {
-    min-width: 760px;
+  .mobile-gantt-month {
+    color: var(--accent);
+
+    font-size: 16px;
+    font-weight: 650;
+
+    text-transform: capitalize;
   }
 
-  .calendar-day-cell {
-    min-height: 100px;
+  .mobile-gantt-count {
+    color: var(--text-muted);
+
+    font-size: 11px;
+    font-weight: 550;
+  }
+
+  /* WEEK STRIP */
+
+  .mobile-gantt-week {
+    display: grid;
+    grid-template-columns:
+      repeat(7, minmax(0, 1fr));
+
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+
+    border-bottom:
+      1px solid var(--border-soft);
+  }
+
+  .mobile-gantt-week-day {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    gap: 7px;
+
+    color: var(--text-muted);
+  }
+
+  .mobile-gantt-week-label {
+    font-size: 9px;
+    font-weight: 600;
+  }
+
+  .mobile-gantt-week-number {
+    width: 31px;
+    height: 31px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: var(--text);
+
+    border-radius: 50%;
+
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .mobile-gantt-week-day.active
+    .mobile-gantt-week-number {
+    background: var(--accent);
+    color: #ffffff;
+  }
+
+  /* AGENDA */
+
+  .mobile-gantt-list {
+    position: relative;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 0;
+  }
+
+  .mobile-gantt-item {
+    position: relative;
+
+    display: grid;
+    grid-template-columns: 54px minmax(0, 1fr);
+
+    min-height: 78px;
+
+    border-bottom:
+      1px solid var(--border-soft);
+  }
+
+  .mobile-gantt-date {
+    padding: 14px 10px 12px 0;
+
+    color: var(--text-muted);
+
+    font-size: 10px;
+    font-weight: 600;
+
+    text-align: right;
+  }
+
+  .mobile-gantt-task-area {
+    position: relative;
+
+    padding: 9px 0 9px 12px;
+
+    border-left:
+      1px solid var(--border-soft);
+  }
+
+  .mobile-gantt-task-card {
+    width: 100%;
+    min-height: 58px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    gap: 4px;
+
+    padding: 9px 11px;
+
+    border-radius: 5px;
+
+    text-align: left;
+  }
+
+  .mobile-gantt-task-card strong {
+    overflow: hidden;
+
+    font-size: 12px;
+    font-weight: 650;
+    line-height: 1.25;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-gantt-task-card span {
+    font-size: 10px;
+    font-weight: 500;
+  }
+
+  /* STATUS */
+
+  .mobile-gantt-task-card.todo {
+    background:
+      rgba(92, 145, 239, 0.18);
+
+    color: #285eaf;
+
+    border-left:
+      3px solid #5c91ef;
+  }
+
+  .mobile-gantt-task-card.in_progress {
+    background:
+      rgba(255, 184, 46, 0.2);
+
+    color: #805300;
+
+    border-left:
+      3px solid #ffb82e;
+  }
+
+  .mobile-gantt-task-card.review {
+    background:
+      rgba(163, 75, 239, 0.17);
+
+    color: #7228ab;
+
+    border-left:
+      3px solid #a34bef;
+  }
+
+  .mobile-gantt-task-card.done {
+    background:
+      rgba(73, 191, 138, 0.18);
+
+    color: #217c52;
+
+    border-left:
+      3px solid #49bf8a;
+  }
+
+  /* LEGEND */
+
+  .mobile-gantt-legend {
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: 10px 16px;
+
+    margin-top: 16px;
+  }
+
+  .mobile-gantt-legend-item {
+    display: flex;
+    align-items: center;
+
+    gap: 5px;
+
+    color: var(--text-muted);
+
+    font-size: 9px;
+  }
+
+  .mobile-gantt-legend-dot {
+    width: 7px;
+    height: 7px;
+
+    border-radius: 50%;
+  }
+
+  .mobile-gantt-legend-dot.todo {
+    background: #5c91ef;
+  }
+
+  .mobile-gantt-legend-dot.in_progress {
+    background: #ffb82e;
+  }
+
+  .mobile-gantt-legend-dot.review {
+    background: #a34bef;
+  }
+
+  .mobile-gantt-legend-dot.done {
+    background: #49bf8a;
+  }
+
+
+/* =========================================
+   MOBILE GANTT — DARK MODE
+========================================= */
+
+@media (max-width: 760px) {
+  [data-theme="dark"]
+    .mobile-gantt-week {
+    border-bottom-color:
+      rgba(255, 255, 255, 0.08);
+  }
+
+  [data-theme="dark"]
+    .mobile-gantt-week-number {
+    color:
+      rgba(255, 255, 255, 0.86);
+  }
+
+  [data-theme="dark"]
+    .mobile-gantt-item {
+    border-bottom-color:
+      rgba(255, 255, 255, 0.07);
+  }
+
+  [data-theme="dark"]
+    .mobile-gantt-task-area {
+    border-left-color:
+      rgba(255, 255, 255, 0.08);
+  }
+
+  [data-theme="dark"]
+    .mobile-gantt-task-card.todo {
+    background:
+      rgba(92, 145, 239, 0.18);
+
+    color: #8bb4ff;
+  }
+
+  [data-theme="dark"]
+    .mobile-gantt-task-card.in_progress {
+    background:
+      rgba(244, 177, 50, 0.18);
+
+    color: #f6c45f;
+  }
+
+  [data-theme="dark"]
+    .mobile-gantt-task-card.review {
+    background:
+      rgba(163, 75, 239, 0.18);
+
+    color: #c88bff;
+  }
+
+  [data-theme="dark"]
+    .mobile-gantt-task-card.done {
+    background:
+      rgba(73, 191, 138, 0.17);
+
+    color: #79d6a8;
+  }
+}
+
+@media (max-width: 420px) {
+  .project-calendar-tab {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .mobile-gantt-item {
+    grid-template-columns:
+      48px minmax(0, 1fr);
+  }
+
+  .mobile-gantt-task-area {
+    padding-left: 9px;
+  }
+
+  .mobile-gantt-week-number {
+    width: 29px;
+    height: 29px;
+
+    font-size: 11px;
   }
 }
