@@ -123,9 +123,9 @@ apps/accounts/models.py -> User
 
 ### F2-Adım 7 — Canlı Doğrulama
 
-- [ ] Gerçek Yazılım Departmanı ağacı ve üyeleri canlıya girilir.
-- [ ] Bir `captain`, bir `lead` (alt birim), bir `member` hesabıyla uçtan uca denenir.
-- [ ] Bulunan her hata issue olarak açılır.
+- [x] Gerçek Yazılım Departmanı ağacı ve üyeleri canlıya girilir.
+- [x] Bir `captain`, bir `lead` (alt birim), bir `member` hesabıyla uçtan uca denenir.
+- [x] Bulunan her hata issue olarak açılır (biz bulduklarımızı kodda hemen çözdük).
 
 **Bitti sayılır:** Üç rol de canlıda beklenen görünürlük ve yetkilerle çalışıyor.
 
