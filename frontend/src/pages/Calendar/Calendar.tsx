@@ -150,26 +150,55 @@ function getWeekDays(
   );
 }
 
-function isSameDate(
+function isDateBetween(
   date: Date,
-  dateString: string,
+  startStr: string | null,
+  dueStr: string,
 ) {
-  if (!dateString) {
-    return false;
+  if (!dueStr) return false;
+
+  const current = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+  
+  const getMidnight = (ds: string) => {
+    const datePart = ds.split('T')[0];
+    const [year, month, day] = datePart.split('-');
+    return new Date(Number(year), Number(month) - 1, Number(day)).getTime();
+  };
+
+  const end = getMidnight(dueStr);
+  const start = startStr ? getMidnight(startStr) : end;
+
+  return current >= start && current <= end;
+}
+
+function getTaskSpanInfo(date: Date, startStr: string | null, dueStr: string) {
+  if (!dueStr) return { classes: "", showContent: true };
+  
+  const current = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+  const getMidnight = (ds: string) => {
+    const [year, month, day] = ds.split('T')[0].split('-');
+    return new Date(Number(year), Number(month) - 1, Number(day)).getTime();
+  };
+  const end = getMidnight(dueStr);
+  const start = startStr ? getMidnight(startStr) : end;
+
+  // JS getDay() -> 0: Sun, 1: Mon, ..., 6: Sat
+  const dayOfWeek = date.getDay();
+  
+  let classes = "";
+  // Eğer bu gün başlangıç değilse ve Pazartesi değilse, soldan bağla
+  if (current > start && dayOfWeek !== 1) {
+    classes += " task-span-left ";
+  }
+  // Eğer bu gün bitiş değilse ve Pazar değilse, sağdan bağla
+  if (current < end && dayOfWeek !== 0) {
+    classes += " task-span-right ";
   }
 
-  const datePart = dateString.split('T')[0];
-  const [year, month, day] = datePart.split('-');
-  const taskDate = new Date(Number(year), Number(month) - 1, Number(day));
+  // İçeriği sadece ilk gününde veya pazartesi günlerinde (satır başı) göster
+  const showContent = current === start || dayOfWeek === 1;
 
-  return (
-    date.getFullYear() ===
-    taskDate.getFullYear() &&
-    date.getMonth() ===
-    taskDate.getMonth() &&
-    date.getDate() ===
-    taskDate.getDate()
-  );
+  return { classes, showContent };
 }
 
 function isToday(
@@ -475,11 +504,12 @@ export default function Calendar() {
                     const dayTasks =
                       tasks.filter(
                         (task) =>
-                          isSameDate(
+                          isDateBetween(
                             date,
+                            task.start_date,
                             task.due_date,
                           ),
-                      );
+                      ).sort((a, b) => a.id - b.id);
 
                     return (
                       <div
@@ -509,27 +539,36 @@ export default function Calendar() {
 
                         <div className="day-tasks">
                           {dayTasks.map(
-                            (task) => (
-                              <button
-                                className={`calendar-task calendar-task-${task.status}`}
-                                key={
-                                  task.id
-                                }
-                                onClick={() =>
-                                  setSelectedTask(
-                                    task,
-                                  )
-                                }
-                              >
-                                <span className="calendar-task-dot" />
-
-                                <span className="calendar-task-title">
-                                  {
-                                    task.title
+                            (task) => {
+                              const spanInfo = getTaskSpanInfo(date, task.start_date, task.due_date);
+                              return (
+                                <button
+                                  className={`calendar-task calendar-task-${task.status} ${spanInfo.classes}`}
+                                  key={
+                                    task.id
                                   }
-                                </span>
-                              </button>
-                            ),
+                                  onClick={() =>
+                                    setSelectedTask(
+                                      task,
+                                    )
+                                  }
+                                  title={task.title}
+                                >
+                                  {spanInfo.showContent ? (
+                                    <>
+                                      <span className="calendar-task-dot" />
+                                      <span className="calendar-task-title">
+                                        {
+                                          task.title
+                                        }
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <span className="calendar-task-title" style={{ opacity: 0 }}>_</span>
+                                  )}
+                                </button>
+                              );
+                            },
                           )}
                         </div>
                       </div>
@@ -570,11 +609,12 @@ export default function Calendar() {
                     const dayTasks =
                       tasks.filter(
                         (task) =>
-                          isSameDate(
+                          isDateBetween(
                             date,
+                            task.start_date,
                             task.due_date,
                           ),
-                      );
+                      ).sort((a, b) => a.id - b.id);
 
                     return (
                       <div
@@ -601,27 +641,36 @@ export default function Calendar() {
 
                         <div className="day-tasks">
                           {dayTasks.map(
-                            (task) => (
-                              <button
-                                className={`calendar-task calendar-task-${task.status}`}
-                                key={
-                                  task.id
-                                }
-                                onClick={() =>
-                                  setSelectedTask(
-                                    task,
-                                  )
-                                }
-                              >
-                                <span className="calendar-task-dot" />
-
-                                <span className="calendar-task-title">
-                                  {
-                                    task.title
+                            (task) => {
+                              const spanInfo = getTaskSpanInfo(date, task.start_date, task.due_date);
+                              return (
+                                <button
+                                  className={`calendar-task calendar-task-${task.status} ${spanInfo.classes}`}
+                                  key={
+                                    task.id
                                   }
-                                </span>
-                              </button>
-                            ),
+                                  onClick={() =>
+                                    setSelectedTask(
+                                      task,
+                                    )
+                                  }
+                                  title={task.title}
+                                >
+                                  {spanInfo.showContent ? (
+                                    <>
+                                      <span className="calendar-task-dot" />
+                                      <span className="calendar-task-title">
+                                        {
+                                          task.title
+                                        }
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <span className="calendar-task-title" style={{ opacity: 0 }}>_</span>
+                                  )}
+                                </button>
+                              );
+                            },
                           )}
                         </div>
                       </div>
