@@ -31,6 +31,7 @@ const Announcements = lazy(
 const Inbox = lazy(() => import("./pages/Inbox/Inbox"));
 const Profile = lazy(() => import("./pages/Profile/Profile"));
 const Settings = lazy(() => import("./pages/Settings/Settings"));
+const Game = lazy(() => import("./pages/Game/Game"));
 
 function AppLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -121,6 +122,11 @@ function AppLayout() {
               <Route
                 path="/settings"
                 element={<Settings />}
+              />
+
+              <Route
+                path="/game"
+                element={<Game />}
               />
             </Routes>
           </Suspense>

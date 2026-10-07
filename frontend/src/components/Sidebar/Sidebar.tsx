@@ -87,6 +87,8 @@ export default function Sidebar({
           <div
             className="outer-brand"
             aria-label="Pitwall"
+            onClick={() => handleProfileNavigation("/game")}
+            style={{ cursor: "pointer" }}
           >
             <div className="outer-brand-glow" />
 
