@@ -1,5 +1,6 @@
+
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
 import {
   useMutation,
   useQuery,
@@ -16,165 +17,112 @@ import "./Calendar.css";
 const WEEK_DAYS = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"];
 
 const MONTHS = [
-  "Ocak",
-  "Şubat",
-  "Mart",
-  "Nisan",
-  "Mayıs",
-  "Haziran",
-  "Temmuz",
-  "Ağustos",
-  "Eylül",
-  "Ekim",
-  "Kasım",
-  "Aralık",
+  "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
+  "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık",
 ];
+
+type CalendarView = "month" | "week";
 
 type CalendarDay = {
   date: Date;
   isCurrentMonth: boolean;
 };
 
-function createCalendarDays(year: number, month: number): CalendarDay[] {
-  const firstDay = new Date(year, month, 1);
-  const lastDay = new Date(year, month + 1, 0);
+const STATUS_LABELS: Record<string, string> = {
+  todo: "Yapılacak",
+  in_progress: "Devam Ediyor",
+  review: "İncelemede",
+  done: "Tamamlandı",
+};
 
-  const firstDayIndex = (firstDay.getDay() + 6) % 7;
-
-  const days: CalendarDay[] = [];
-
-  const previousMonthLastDay = new Date(year, month, 0).getDate();
-
-  for (let i = firstDayIndex - 1; i >= 0; i--) {
-    days.push({
-      date: new Date(year, month - 1, previousMonthLastDay - i),
-      isCurrentMonth: false,
-    });
-  }
-
-  for (let day = 1; day <= lastDay.getDate(); day++) {
-    days.push({
-      date: new Date(year, month, day),
-      isCurrentMonth: true,
-    });
-  }
-
-  let nextMonthDay = 1;
-
-  while (days.length < 42) {
-    days.push({
-      date: new Date(year, month + 1, nextMonthDay),
-      isCurrentMonth: false,
-    });
-
-    nextMonthDay++;
-  }
-
-  return days;
+function getDateKey(date: Date): string {
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("-");
 }
 
-function getWeekDays(date: Date) {
-  const currentDay = (date.getDay() + 6) % 7;
+function parseTaskDate(value: string | null | undefined): Date | null {
+  if (!value) return null;
 
+  const [year, month, day] = value
+    .split("T")[0]
+    .split("-")
+    .map(Number);
+
+  if (!year || !month || !day) return null;
+
+  const date = new Date(year, month - 1, day);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function createCalendarDays(year: number, month: number): CalendarDay[] {
+  const firstDay = new Date(year, month, 1);
+  const firstDayIndex = (firstDay.getDay() + 6) % 7;
+  const start = new Date(year, month, 1 - firstDayIndex);
+
+  return Array.from({ length: 42 }, (_, index) => {
+    const date = new Date(start);
+    date.setDate(start.getDate() + index);
+
+    return {
+      date,
+      isCurrentMonth: date.getMonth() === month,
+    };
+  });
+}
+
+function getWeekDays(date: Date): Date[] {
+  const currentDay = (date.getDay() + 6) % 7;
   const monday = new Date(date);
   monday.setDate(date.getDate() - currentDay);
 
   return Array.from({ length: 7 }, (_, index) => {
     const day = new Date(monday);
     day.setDate(monday.getDate() + index);
-
     return day;
   });
-}
-
-function getMidnight(dateString: string) {
-  const datePart = dateString.split("T")[0];
-  const [year, month, day] = datePart.split("-");
-
-  return new Date(
-    Number(year),
-    Number(month) - 1,
-    Number(day),
-  ).getTime();
 }
 
 function isDateBetween(
   date: Date,
   startStr: string | null | undefined,
-  dueStr: string,
-) {
-  if (!dueStr) return false;
+  dueStr: string | null | undefined
+): boolean {
+  const end = parseTaskDate(dueStr);
+  if (!end) return false;
+
+  const start = parseTaskDate(startStr) ?? end;
 
   const current = new Date(
     date.getFullYear(),
     date.getMonth(),
-    date.getDate(),
-  ).getTime();
-
-  const end = getMidnight(dueStr);
-  const start = startStr ? getMidnight(startStr) : end;
+    date.getDate()
+  );
 
   return current >= start && current <= end;
 }
 
-function getTaskSpanInfo(
-  date: Date,
-  startStr: string | null | undefined,
-  dueStr: string,
-) {
-  if (!dueStr) {
-    return {
-      classes: "",
-      showContent: true,
-    };
-  }
-
-  const current = new Date(
-    date.getFullYear(),
-    date.getMonth(),
-    date.getDate(),
-  ).getTime();
-
-  const end = getMidnight(dueStr);
-  const start = startStr ? getMidnight(startStr) : end;
-
-  const dayOfWeek = date.getDay();
-
-  let classes = "";
-
-  if (current > start && dayOfWeek !== 1) {
-    classes += " task-span-left";
-  }
-
-  if (current < end && dayOfWeek !== 0) {
-    classes += " task-span-right";
-  }
-
-  const showContent = current === start || dayOfWeek === 1;
-
-  return {
-    classes,
-    showContent,
-  };
+function isToday(date: Date): boolean {
+  return getDateKey(date) === getDateKey(new Date());
 }
 
-function isToday(date: Date) {
-  const today = new Date();
-
-  return (
-    date.getFullYear() === today.getFullYear() &&
-    date.getMonth() === today.getMonth() &&
-    date.getDate() === today.getDate()
-  );
+function formatSelectedDate(date: Date): string {
+  return new Intl.DateTimeFormat("tr-TR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(date);
 }
 
 export default function Calendar() {
-  const today = new Date();
-
-  const [currentDate, setCurrentDate] = useState(today);
-  const [view, setView] = useState<"month" | "week">("month");
-
+  const [currentDate, setCurrentDate] = useState(() => new Date());
+  const [view, setView] = useState<CalendarView>("month");
+  const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [expandedDay, setExpandedDay] = useState<Date | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [showTaskModal, setShowTaskModal] = useState(false);
 
@@ -187,16 +135,9 @@ export default function Calendar() {
 
   const createTaskMutation = useMutation({
     mutationFn: (newTask: TaskPayload) => tasksApi.createTask(newTask),
-
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["tasks"],
-      });
-
-      queryClient.invalidateQueries({
-        queryKey: ["stats"],
-      });
-
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["stats"] });
       setShowTaskModal(false);
       setEditingTask(null);
     },
@@ -210,16 +151,9 @@ export default function Calendar() {
       id: number;
       updates: TaskPayload;
     }) => tasksApi.updateTask(id, updates),
-
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["tasks"],
-      });
-
-      queryClient.invalidateQueries({
-        queryKey: ["stats"],
-      });
-
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["stats"] });
       setShowTaskModal(false);
       setEditingTask(null);
     },
@@ -227,16 +161,9 @@ export default function Calendar() {
 
   const deleteTaskMutation = useMutation({
     mutationFn: (id: number) => tasksApi.deleteTask(id),
-
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["tasks"],
-      });
-
-      queryClient.invalidateQueries({
-        queryKey: ["stats"],
-      });
-
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["stats"] });
       setSelectedTask(null);
     },
   });
@@ -245,46 +172,78 @@ export default function Calendar() {
     () =>
       createCalendarDays(
         currentDate.getFullYear(),
-        currentDate.getMonth(),
+        currentDate.getMonth()
       ),
-    [currentDate],
+    [currentDate]
   );
 
   const weekDays = useMemo(
     () => getWeekDays(currentDate),
-    [currentDate],
+    [currentDate]
   );
+
+
+  const expandedDayTasks = useMemo(() => {
+    if (!expandedDay) return [];
+
+    return tasks
+      .filter((task) =>
+        isDateBetween(
+          expandedDay,
+          task.start_date,
+          task.due_date
+        )
+      )
+      .sort((a, b) => a.id - b.id);
+  }, [expandedDay, tasks]);
+
 
   function previousPeriod() {
     setCurrentDate((date) => {
-      const newDate = new Date(date);
-
       if (view === "month") {
-        newDate.setMonth(newDate.getMonth() - 1);
-      } else {
-        newDate.setDate(newDate.getDate() - 7);
+        return new Date(
+          date.getFullYear(),
+          date.getMonth() - 1,
+          1
+        );
       }
 
-      return newDate;
+      const next = new Date(date);
+      next.setDate(next.getDate() - 7);
+      return next;
     });
   }
 
   function nextPeriod() {
     setCurrentDate((date) => {
-      const newDate = new Date(date);
-
       if (view === "month") {
-        newDate.setMonth(newDate.getMonth() + 1);
-      } else {
-        newDate.setDate(newDate.getDate() + 7);
+        return new Date(
+          date.getFullYear(),
+          date.getMonth() + 1,
+          1
+        );
       }
 
-      return newDate;
+      const next = new Date(date);
+      next.setDate(next.getDate() + 7);
+      return next;
     });
   }
 
   function goToToday() {
-    setCurrentDate(new Date());
+    const today = new Date();
+    setCurrentDate(today);
+    setSelectedDate(today);
+  }
+
+  function selectDay(date: Date) {
+    setSelectedDate(date);
+    setCurrentDate(date);
+  }
+
+  function openTask(task: Task) {
+    setExpandedDay(null);
+    setSelectedTask(task);
   }
 
   function handleCreateTask(newTask: Task) {
@@ -295,9 +254,7 @@ export default function Calendar() {
       priority: newTask.priority,
       project: newTask.project?.id,
       unit: newTask.unit?.id,
-      assignees: newTask.assignees?.map(
-        (assignee) => assignee.id,
-      ),
+      assignees: newTask.assignees?.map((assignee) => assignee.id),
       start_date: newTask.start_date || null,
       due_date: newTask.due_date,
     });
@@ -306,7 +263,6 @@ export default function Calendar() {
   function handleUpdateTask(updatedTask: Task) {
     updateTaskMutation.mutate({
       id: updatedTask.id,
-
       updates: {
         title: updatedTask.title,
         description: updatedTask.description,
@@ -315,12 +271,104 @@ export default function Calendar() {
         project: updatedTask.project?.id,
         unit: updatedTask.unit?.id,
         assignees: updatedTask.assignees?.map(
-          (assignee) => assignee.id,
+          (assignee) => assignee.id
         ),
         start_date: updatedTask.start_date || null,
         due_date: updatedTask.due_date,
       },
     });
+  }
+
+  function renderCalendarDay(
+    date: Date,
+    isCurrentMonth: boolean,
+    isWeekView: boolean
+  ) {
+    const dayTasks = tasks
+      .filter((task) =>
+        isDateBetween(date, task.start_date, task.due_date)
+      )
+      .sort((a, b) => a.id - b.id);
+
+    const selected =
+      getDateKey(date) === getDateKey(selectedDate);
+
+    const visibleTasks = dayTasks.slice(0, 2);
+    const remainingCount = dayTasks.length - 2;
+
+    return (
+      <div
+        key={getDateKey(date)}
+        className={[
+          isWeekView ? "week-day" : "calendar-day",
+          !isCurrentMonth ? "other-month" : "",
+          selected ? "selected-day" : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
+      >
+        <button
+          type="button"
+          className={
+            isWeekView
+              ? "calendar-day-select week-day-header"
+              : "calendar-day-select day-number-row"
+          }
+          onClick={() => selectDay(date)}
+          aria-label={`${formatSelectedDate(date)}, ${dayTasks.length} görev`}
+          aria-pressed={selected}
+        >
+          <span
+            className={[
+              isWeekView ? "week-day-number" : "day-number",
+              isToday(date) ? "today" : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
+          >
+            {date.getDate()}
+          </span>
+        </button>
+
+        <div className="day-tasks">
+          {visibleTasks.map((task) => (
+            <button
+              type="button"
+              key={task.id}
+              className={`calendar-task calendar-task-${task.status}`}
+              title={task.title}
+              onClick={() => {
+                setSelectedDate(date);
+                openTask(task);
+              }}
+            >
+              <span
+                className="calendar-task-dot"
+                aria-hidden="true"
+              />
+
+              <span className="calendar-task-title">
+                {task.title}
+              </span>
+            </button>
+          ))}
+
+          {remainingCount > 0 && (
+            <button
+              type="button"
+              className="calendar-more-tasks"
+              onClick={() => {
+                setSelectedDate(date);
+                setExpandedDay(date);
+              }}
+              title={`${remainingCount} görev daha`}
+            >
+              +{remainingCount} görev
+            </button>
+          )}
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -398,167 +446,35 @@ export default function Calendar() {
             </div>
           </div>
 
+          <div className="calendar-weekdays">
+            {view === "month"
+              ? WEEK_DAYS.map((day) => (
+                <div key={day}>{day}</div>
+              ))
+              : weekDays.map((date, index) => (
+                <div key={getDateKey(date)}>
+                  {WEEK_DAYS[index]} {date.getDate()}
+                </div>
+              ))}
+          </div>
+
           {view === "month" ? (
-            <>
-              <div className="calendar-weekdays">
-                {WEEK_DAYS.map((day) => (
-                  <div key={day}>{day}</div>
-                ))}
-              </div>
-
-              <div className="calendar-grid">
-                {calendarDays.map(({ date, isCurrentMonth }) => {
-                  const dayTasks = tasks
-                    .filter((task) =>
-                      isDateBetween(
-                        date,
-                        task.start_date,
-                        task.due_date,
-                      ),
-                    )
-                    .sort((a, b) => a.id - b.id);
-
-                  return (
-                    <div
-                      className={`calendar-day ${!isCurrentMonth ? "other-month" : ""
-                        }`}
-                      key={date.toISOString()}
-                    >
-                      <div className="day-number-row">
-                        <span
-                          className={
-                            isToday(date)
-                              ? "day-number today"
-                              : "day-number"
-                          }
-                        >
-                          {date.getDate()}
-                        </span>
-                      </div>
-
-                      <div className="day-tasks">
-                        {dayTasks.map((task) => {
-                          const spanInfo = getTaskSpanInfo(
-                            date,
-                            task.start_date,
-                            task.due_date,
-                          );
-
-                          return (
-                            <button
-                              type="button"
-                              className={`calendar-task calendar-task-${task.status}${spanInfo.classes}`}
-                              key={task.id}
-                              onClick={() => setSelectedTask(task)}
-                              title={task.title}
-                              aria-label={task.title}
-                            >
-                              {spanInfo.showContent ? (
-                                <>
-                                  <span className="calendar-task-dot" />
-
-                                  <span className="calendar-task-title">
-                                    {task.title}
-                                  </span>
-                                </>
-                              ) : (
-                                <span
-                                  className="calendar-task-title"
-                                  style={{ opacity: 0 }}
-                                >
-                                  _
-                                </span>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </>
+            <div className="calendar-grid">
+              {calendarDays.map(
+                ({ date, isCurrentMonth }) =>
+                  renderCalendarDay(
+                    date,
+                    isCurrentMonth,
+                    false
+                  )
+              )}
+            </div>
           ) : (
-            <>
-              <div className="calendar-weekdays">
-                {weekDays.map((date, index) => (
-                  <div key={date.toISOString()}>
-                    {WEEK_DAYS[index]} {date.getDate()}
-                  </div>
-                ))}
-              </div>
-
-              <div className="week-grid">
-                {weekDays.map((date) => {
-                  const dayTasks = tasks
-                    .filter((task) =>
-                      isDateBetween(
-                        date,
-                        task.start_date,
-                        task.due_date,
-                      ),
-                    )
-                    .sort((a, b) => a.id - b.id);
-
-                  return (
-                    <div
-                      className="week-day"
-                      key={date.toISOString()}
-                    >
-                      <div className="week-day-header">
-                        <span
-                          className={
-                            isToday(date)
-                              ? "week-day-number today"
-                              : "week-day-number"
-                          }
-                        >
-                          {date.getDate()}
-                        </span>
-                      </div>
-
-                      <div className="day-tasks">
-                        {dayTasks.map((task) => {
-                          const spanInfo = getTaskSpanInfo(
-                            date,
-                            task.start_date,
-                            task.due_date,
-                          );
-
-                          return (
-                            <button
-                              type="button"
-                              className={`calendar-task calendar-task-${task.status}${spanInfo.classes}`}
-                              key={task.id}
-                              onClick={() => setSelectedTask(task)}
-                              title={task.title}
-                              aria-label={task.title}
-                            >
-                              {spanInfo.showContent ? (
-                                <>
-                                  <span className="calendar-task-dot" />
-
-                                  <span className="calendar-task-title">
-                                    {task.title}
-                                  </span>
-                                </>
-                              ) : (
-                                <span
-                                  className="calendar-task-title"
-                                  style={{ opacity: 0 }}
-                                >
-                                  _
-                                </span>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </>
+            <div className="week-grid">
+              {weekDays.map((date) =>
+                renderCalendarDay(date, true, true)
+              )}
+            </div>
           )}
         </div>
       </section>
@@ -587,6 +503,73 @@ export default function Calendar() {
         editingTask={editingTask}
         defaultStatus="todo"
       />
+
+
+      {expandedDay && (
+        <div
+          className="calendar-day-list-overlay"
+          onClick={() => setExpandedDay(null)}
+        >
+          <section
+            className="calendar-day-list-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${formatSelectedDate(expandedDay)} görevleri`}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="calendar-day-list-header">
+              <div className="calendar-day-list-heading">
+                <span className="calendar-day-list-eyebrow">
+                  Seçilen gün
+                </span>
+
+                <h3>{formatSelectedDate(expandedDay)}</h3>
+              </div>
+
+              <div className="calendar-day-list-header-actions">
+                <span className="calendar-day-list-count">
+                  {expandedDayTasks.length} görev
+                </span>
+
+                <button
+                  type="button"
+                  className="calendar-day-list-close"
+                  aria-label="Kapat"
+                  onClick={() => setExpandedDay(null)}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+
+            <div className="calendar-day-list-items">
+              {expandedDayTasks.map((task) => (
+                <button
+                  type="button"
+                  key={task.id}
+                  className={`calendar-day-list-item calendar-day-list-${task.status}`}
+                  onClick={() => openTask(task)}
+                >
+                  <div className="calendar-day-list-task-info">
+                    <span className="calendar-day-list-task-title">
+                      {task.title}
+                    </span>
+
+                    <span className="calendar-day-list-task-project">
+                      {task.project?.name || "Proje belirtilmemiş"}
+                    </span>
+                  </div>
+
+                  <span className="calendar-day-list-task-status">
+                    {STATUS_LABELS[task.status] ?? task.status}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </section>
+        </div>
+      )}
+
     </>
   );
 }

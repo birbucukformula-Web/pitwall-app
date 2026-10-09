@@ -1627,3 +1627,140 @@
       );
   }
 }
+
+
+/* TIKLANABİLİR GANTT GÖREVLERİ */
+
+.gantt-bar {
+  cursor: pointer;
+  border: none;
+  text-align: left;
+  font: inherit;
+}
+
+.mobile-schedule-task {
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.gantt-bar:focus-visible,
+.mobile-schedule-task:focus-visible {
+  outline: 2px solid var(--accent, #dc2626);
+  outline-offset: 3px;
+}
+
+/* GÖREV DETAY PENCERESİ */
+
+.gantt-detail-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.48);
+}
+
+.gantt-detail-dialog {
+  width: min(100%, 480px);
+  max-height: 85dvh;
+  overflow-y: auto;
+  padding: 24px;
+  background: var(--surface, #fff);
+  color: var(--text, #171717);
+  border: 1px solid var(--border, #e5e5e5);
+  border-radius: 16px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.2);
+}
+
+.gantt-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.gantt-detail-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 11px;
+  border-radius: 8px;
+  background: var(--surface-soft, #f5f5f5);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.gantt-detail-close {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-soft, #f5f5f5);
+  color: var(--text, #171717);
+  border: 1px solid var(--border, #e5e5e5);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.gantt-detail-dialog h3 {
+  margin: 0 0 14px;
+  font-size: 21px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.gantt-detail-description {
+  margin: 0 0 20px;
+  color: var(--text-secondary, #666);
+  font-size: 14px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.gantt-detail-info {
+  display: grid;
+  border-top: 1px solid var(--border, #e5e5e5);
+}
+
+.gantt-detail-info > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border, #e5e5e5);
+  font-size: 13px;
+}
+
+.gantt-detail-info > div > span {
+  color: var(--text-muted, #888);
+}
+
+.gantt-detail-info > div > strong {
+  color: var(--text, #171717);
+  font-weight: 600;
+  text-align: right;
+}
+
+@media (max-width: 600px) {
+  .gantt-detail-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .gantt-detail-dialog {
+    width: 100%;
+    max-height: 85dvh;
+    padding: 22px 20px
+      calc(28px + env(safe-area-inset-bottom));
+    border-radius: 20px 20px 0 0;
+  }
+}

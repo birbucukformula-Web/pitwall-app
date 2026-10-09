@@ -1,39 +1,25 @@
-import {
-  useMemo,
-  useState,
-} from "react";
 
+import { useEffect, useMemo, useState } from "react";
 import {
+  CalendarDays,
   ChevronLeft,
   ChevronRight,
-  CalendarDays,
+  X,
 } from "lucide-react";
 
-import type {
-  Task,
-  TaskStatus,
-} from "../../../types/task";
+import TaskDrawer from "../../../components/TaskDrawer/TaskDrawer";
+import type { Task, TaskStatus } from "../../../types/task";
 
 import "./ProjectMonthlyCalendarTab.css";
 
 interface Props {
-  project: any;
+  project: {
+    name: string;
+  };
   tasks: Task[];
 }
 
-type CalendarView =
-  | "month"
-  | "week";
-
-const STATUS_LABELS: Record<
-  TaskStatus,
-  string
-> = {
-  todo: "Yapılacak",
-  in_progress: "Devam Ediyor",
-  review: "İncelemede",
-  done: "Tamamlandı",
-};
+type CalendarView = "month" | "week";
 
 const WEEK_DAYS = [
   "Pzt",
@@ -45,534 +31,323 @@ const WEEK_DAYS = [
   "Paz",
 ];
 
+const STATUS_LABELS: Record<TaskStatus, string> = {
+  todo: "Yapılacak",
+  in_progress: "Devam Ediyor",
+  review: "İncelemede",
+  done: "Tamamlandı",
+};
 
-function normalizeDate(
-  date: Date,
-) {
+// Masaüstü ve mobil: en fazla 2 görev
+const VISIBLE_TASK_LIMIT = 2;
+
+function normalizeDate(date: Date): Date {
   return new Date(
     date.getFullYear(),
     date.getMonth(),
-    date.getDate(),
+    date.getDate()
   );
 }
 
-function isSameDay(
-  first: Date,
-  second: Date,
-) {
-  return (
-    first.getFullYear() ===
-      second.getFullYear() &&
-    first.getMonth() ===
-      second.getMonth() &&
-    first.getDate() ===
-      second.getDate()
-  );
-}
+function parseDate(
+  value: string | null | undefined
+): Date | null {
+  if (!value) return null;
 
-function getMonday(
-  date: Date,
-) {
-  const result =
-    normalizeDate(date);
-
-  const day =
-    result.getDay();
-
-  const difference =
-    day === 0
-      ? -6
-      : 1 - day;
-
-  result.setDate(
-    result.getDate() +
-      difference,
+  const datePart = value.split("T")[0];
+  const match = datePart.match(
+    /^(\d{4})-(\d{2})-(\d{2})$/
   );
 
-  return result;
-}
+  if (match) {
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    const day = Number(match[3]);
 
-function formatTaskDate(
-  value:
-    | string
-    | null
-    | undefined,
-) {
-  if (!value) {
-    return "";
+    const date = new Date(year, month - 1, day);
+
+    if (
+      date.getFullYear() === year &&
+      date.getMonth() === month - 1 &&
+      date.getDate() === day
+    ) {
+      return date;
+    }
+
+    return null;
   }
 
-  const date =
-    new Date(value);
+  const parsed = new Date(value);
 
-  return new Intl.DateTimeFormat(
-    "tr-TR",
-    {
-      day: "numeric",
-      month: "short",
-    },
-  ).format(date);
+  return Number.isNaN(parsed.getTime())
+    ? null
+    : normalizeDate(parsed);
+}
+
+function dateKey(date: Date): string {
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("-");
+}
+
+function isSameDay(a: Date, b: Date): boolean {
+  return dateKey(a) === dateKey(b);
+}
+
+function getMonday(date: Date): Date {
+  const monday = normalizeDate(date);
+  const dayIndex = (monday.getDay() + 6) % 7;
+
+  monday.setDate(monday.getDate() - dayIndex);
+
+  return monday;
+}
+
+function addDays(date: Date, amount: number): Date {
+  const next = new Date(date);
+  next.setDate(next.getDate() + amount);
+  return next;
+}
+
+function taskOccursOnDay(
+  task: Task,
+  date: Date
+): boolean {
+  const end = parseDate(task.due_date);
+  if (!end) return false;
+
+  const start = parseDate(task.start_date) ?? end;
+  const current = normalizeDate(date);
+
+  return current >= start && current <= end;
+}
+
+function taskOverlapsPeriod(
+  task: Task,
+  startDate: Date,
+  endDate: Date
+): boolean {
+  const end = parseDate(task.due_date);
+  if (!end) return false;
+
+  const start = parseDate(task.start_date) ?? end;
+
+  return end >= startDate && start <= endDate;
+}
+
+function formatSelectedDate(date: Date): string {
+  return new Intl.DateTimeFormat("tr-TR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    weekday: "long",
+  }).format(date);
 }
 
 export default function ProjectMonthlyCalendarTab({
   project,
   tasks,
 }: Props) {
-  const today =
-    normalizeDate(new Date());
+  const [currentDate, setCurrentDate] = useState(
+    () => new Date()
+  );
 
+  const [calendarView, setCalendarView] =
+    useState<CalendarView>("month");
 
+  const [selectedDate, setSelectedDate] =
+    useState<Date | null>(null);
 
-  const displayTasks: Task[] =
-    tasks;
+  const [selectedTaskId, setSelectedTaskId] =
+    useState<number | null>(null);
 
-  const initialDate =
-    useMemo(() => {
-      const firstTask =
-        displayTasks.find(
-          (task) =>
-            task.start_date ||
-            task.due_date,
-        );
+  const today = useMemo(
+    () => normalizeDate(new Date()),
+    []
+  );
 
-      const value =
-        firstTask?.start_date ||
-        firstTask?.due_date;
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
 
-      if (!value) {
-        return today;
-      }
+  const monthDays = useMemo(() => {
+    const firstDay = new Date(year, month, 1);
+    const offset = (firstDay.getDay() + 6) % 7;
 
-      const date =
-        new Date(value);
-
-      if (
-        Number.isNaN(
-          date.getTime(),
-        )
-      ) {
-        return today;
-      }
-
-      return normalizeDate(
-        date,
-      );
-    }, [displayTasks]);
-
-  const [
-    currentDate,
-    setCurrentDate,
-  ] = useState(initialDate);
-
-  const [
-    calendarView,
-    setCalendarView,
-  ] =
-    useState<CalendarView>(
-      "month",
+    const start = new Date(
+      year,
+      month,
+      1 - offset
     );
 
-  const [
-    selectedTaskId,
-    setSelectedTaskId,
-  ] = useState<
-    number | null
-  >(null);
-
-  const year =
-    currentDate.getFullYear();
-
-  const month =
-    currentDate.getMonth();
-
-  const monthLabel =
-    new Intl.DateTimeFormat(
-      "tr-TR",
-      {
-        month: "long",
-        year: "numeric",
-      },
-    ).format(
-      currentDate,
+    return Array.from(
+      { length: 42 },
+      (_, index) => addDays(start, index)
     );
+  }, [year, month]);
 
-  /*
-   * AY GÖRÜNÜMÜ
-   * 6 hafta / 42 gün.
-   */
+  const weekDays = useMemo(() => {
+    const monday = getMonday(currentDate);
 
-  const monthDays =
-    useMemo(() => {
-      const firstDay =
-        new Date(
-          year,
-          month,
-          1,
-        );
-
-      const mondayIndex =
-        (firstDay.getDay() +
-          6) %
-        7;
-
-      const calendarStart =
-        new Date(
-          year,
-          month,
-          1 - mondayIndex,
-        );
-
-      return Array.from(
-        {
-          length: 42,
-        },
-        (_, index) => {
-          const date =
-            new Date(
-              calendarStart,
-            );
-
-          date.setDate(
-            calendarStart.getDate() +
-              index,
-          );
-
-          return date;
-        },
-      );
-    }, [year, month]);
-
-  /*
-   * HAFTA GÖRÜNÜMÜ
-   * currentDate'in bulunduğu
-   * Pazartesi-Pazar aralığı.
-   */
-
-  const weekDays =
-    useMemo(() => {
-      const monday =
-        getMonday(
-          currentDate,
-        );
-
-      return Array.from(
-        {
-          length: 7,
-        },
-        (_, index) => {
-          const date =
-            new Date(monday);
-
-          date.setDate(
-            monday.getDate() +
-              index,
-          );
-
-          return date;
-        },
-      );
-    }, [currentDate]);
+    return Array.from(
+      { length: 7 },
+      (_, index) => addDays(monday, index)
+    );
+  }, [currentDate]);
 
   const visibleDays =
     calendarView === "month"
       ? monthDays
       : weekDays;
 
-  /*
-   * Hafta görünümündeki
-   * başlık.
-   */
-
-  const weekLabel =
-    useMemo(() => {
-      const start =
-        weekDays[0];
-
-      const end =
-        weekDays[6];
-
-      const startMonth =
-        new Intl.DateTimeFormat(
-          "tr-TR",
-          {
-            month: "short",
-          },
-        ).format(start);
-
-      const endMonth =
-        new Intl.DateTimeFormat(
-          "tr-TR",
-          {
-            month: "short",
-          },
-        ).format(end);
-
-      if (
-        start.getFullYear() !==
-        end.getFullYear()
-      ) {
-        return `${start.getDate()} ${startMonth} ${start.getFullYear()} – ${end.getDate()} ${endMonth} ${end.getFullYear()}`;
-      }
-
-      if (
-        start.getMonth() !==
-        end.getMonth()
-      ) {
-        return `${start.getDate()} ${startMonth} – ${end.getDate()} ${endMonth} ${end.getFullYear()}`;
-      }
-
-      return `${start.getDate()}–${end.getDate()} ${endMonth} ${end.getFullYear()}`;
-    }, [weekDays]);
-
-  const toolbarLabel =
-    calendarView === "month"
-      ? monthLabel
-      : weekLabel;
-
-  function previousPeriod() {
-    if (
-      calendarView ===
-      "month"
-    ) {
-      setCurrentDate(
-        new Date(
-          year,
-          month - 1,
-          1,
-        ),
-      );
-    } else {
-      const date =
-        new Date(
-          currentDate,
-        );
-
-      date.setDate(
-        date.getDate() - 7,
-      );
-
-      setCurrentDate(date);
+  const toolbarLabel = useMemo(() => {
+    if (calendarView === "month") {
+      return new Intl.DateTimeFormat("tr-TR", {
+        month: "long",
+        year: "numeric",
+      }).format(currentDate);
     }
 
-    setSelectedTaskId(null);
-  }
+    const formatter = new Intl.DateTimeFormat(
+      "tr-TR",
+      {
+        day: "numeric",
+        month: "short",
+      }
+    );
 
-  function nextPeriod() {
-    if (
-      calendarView ===
-      "month"
-    ) {
-      setCurrentDate(
-        new Date(
-          year,
-          month + 1,
-          1,
-        ),
-      );
-    } else {
-      const date =
-        new Date(
-          currentDate,
+    return `${formatter.format(
+      weekDays[0]
+    )} – ${formatter.format(weekDays[6])}`;
+  }, [calendarView, currentDate, weekDays]);
+
+  const visibleTaskCount = useMemo(() => {
+    const periodStart =
+      calendarView === "month"
+        ? new Date(year, month, 1)
+        : weekDays[0];
+
+    const periodEnd =
+      calendarView === "month"
+        ? new Date(year, month + 1, 0)
+        : weekDays[6];
+
+    return tasks.filter((task) =>
+      taskOverlapsPeriod(
+        task,
+        periodStart,
+        periodEnd
+      )
+    ).length;
+  }, [
+    tasks,
+    calendarView,
+    year,
+    month,
+    weekDays,
+  ]);
+
+  const selectedDayTasks = useMemo(() => {
+    if (!selectedDate) return [];
+
+    return tasks
+      .filter((task) =>
+        taskOccursOnDay(task, selectedDate)
+      )
+      .sort((a, b) => a.id - b.id);
+  }, [tasks, selectedDate]);
+
+  const selectedTask =
+    tasks.find(
+      (task) => task.id === selectedTaskId
+    ) ?? null;
+
+  function changePeriod(direction: -1 | 1) {
+    setCurrentDate((previous) => {
+      if (calendarView === "month") {
+        return new Date(
+          previous.getFullYear(),
+          previous.getMonth() + direction,
+          1
         );
+      }
 
-      date.setDate(
-        date.getDate() + 7,
-      );
+      return addDays(previous, direction * 7);
+    });
 
-      setCurrentDate(date);
-    }
-
+    setSelectedDate(null);
     setSelectedTaskId(null);
   }
 
   function goToToday() {
-    setCurrentDate(today);
-
+    setCurrentDate(new Date());
+    setSelectedDate(null);
     setSelectedTaskId(null);
   }
 
-  function changeView(
-    view: CalendarView,
-  ) {
+  function changeView(view: CalendarView) {
     setCalendarView(view);
-
+    setSelectedDate(null);
     setSelectedTaskId(null);
   }
 
-  function toggleTask(
-    taskId: number,
-  ) {
-    setSelectedTaskId(
-      (current) =>
-        current === taskId
-          ? null
-          : taskId,
-    );
+  function selectDay(date: Date) {
+    setSelectedDate(date);
   }
 
-  function getTasksForDay(
-    date: Date,
-  ) {
-    return displayTasks.filter(
-      (task) => {
-        if (!task.due_date) {
-          return false;
-        }
-
-        const end =
-          normalizeDate(
-            new Date(
-              task.due_date,
-            ),
-          );
-
-        const start =
-          task.start_date
-            ? normalizeDate(
-                new Date(
-                  task.start_date,
-                ),
-              )
-            : end;
-
-        return (
-          date >= start &&
-          date <= end
-        );
-      },
-    );
+  function openTask(taskId: number) {
+    setSelectedDate(null);
+    setSelectedTaskId(taskId);
   }
 
-  const tasksThisMonth =
-    displayTasks.filter(
-      (task) => {
-        if (!task.due_date) {
-          return false;
-        }
+  function closeTask() {
+    setSelectedTaskId(null);
+  }
 
-        const end =
-          new Date(
-            task.due_date,
-          );
+  useEffect(() => {
+    if (!selectedDate) return;
 
-        const start =
-          task.start_date
-            ? new Date(
-                task.start_date,
-              )
-            : end;
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setSelectedDate(null);
+      }
+    }
 
-        const monthStart =
-          new Date(
-            year,
-            month,
-            1,
-          );
-
-        const monthEnd =
-          new Date(
-            year,
-            month + 1,
-            0,
-            23,
-            59,
-            59,
-          );
-
-        return (
-          end >=
-            monthStart &&
-          start <=
-            monthEnd
-        );
-      },
+    document.addEventListener(
+      "keydown",
+      handleEscape
     );
 
-  const tasksThisWeek =
-    displayTasks.filter(
-      (task) => {
-        if (!task.due_date) {
-          return false;
-        }
-
-        const taskEnd =
-          normalizeDate(
-            new Date(
-              task.due_date,
-            ),
-          );
-
-        const taskStart =
-          task.start_date
-            ? normalizeDate(
-                new Date(
-                  task.start_date,
-                ),
-              )
-            : taskEnd;
-
-        const weekStart =
-          normalizeDate(
-            weekDays[0],
-          );
-
-        const weekEnd =
-          normalizeDate(
-            weekDays[6],
-          );
-
-        return (
-          taskEnd >=
-            weekStart &&
-          taskStart <=
-            weekEnd
-        );
-      },
-    );
-
-  const visibleTaskCount =
-    calendarView === "month"
-      ? tasksThisMonth.length
-      : tasksThisWeek.length;
+    return () => {
+      document.removeEventListener(
+        "keydown",
+        handleEscape
+      );
+    };
+  }, [selectedDate]);
 
   return (
     <div
       className={`monthly-calendar-tab tab-pane active fade-in ${
-        calendarView ===
-        "week"
+        calendarView === "week"
           ? "week-view"
           : "month-view"
       }`}
-      onClick={() =>
-        setSelectedTaskId(
-          null,
-        )
-      }
     >
       <div className="monthly-calendar-header">
         <div>
-          <h3>
-            {project.name}{" "}
-            Takvimi
-          </h3>
+          <h3>{project.name} Takvimi</h3>
 
           <p>
-            Birimin görevlerini
-            aylık ve haftalık
-            takvim üzerinde
-            görüntüle.
+            Birimin görevlerini aylık ve haftalık
+            takvim üzerinde görüntüle.
           </p>
         </div>
 
         <div className="monthly-calendar-summary">
-          <CalendarDays
-            size={15}
-          />
-
-          <span>
-            {visibleTaskCount}{" "}
-            görev
-          </span>
+          <CalendarDays size={15} />
+          <span>{visibleTaskCount} görev</span>
         </div>
       </div>
 
@@ -582,9 +357,7 @@ export default function ProjectMonthlyCalendarTab({
             <button
               type="button"
               className="calendar-today-button"
-              onClick={
-                goToToday
-              }
+              onClick={goToToday}
             >
               Bugün
             </button>
@@ -593,67 +366,35 @@ export default function ProjectMonthlyCalendarTab({
               <button
                 type="button"
                 className="calendar-nav-button"
-                aria-label={
-                  calendarView ===
-                  "month"
-                    ? "Önceki ay"
-                    : "Önceki hafta"
-                }
-                onClick={
-                  previousPeriod
-                }
+                onClick={() => changePeriod(-1)}
+                aria-label="Önceki dönem"
               >
-                <ChevronLeft
-                  size={18}
-                />
+                <ChevronLeft size={18} />
               </button>
 
               <button
                 type="button"
                 className="calendar-nav-button"
-                aria-label={
-                  calendarView ===
-                  "month"
-                    ? "Sonraki ay"
-                    : "Sonraki hafta"
-                }
-                onClick={
-                  nextPeriod
-                }
+                onClick={() => changePeriod(1)}
+                aria-label="Sonraki dönem"
               >
-                <ChevronRight
-                  size={18}
-                />
+                <ChevronRight size={18} />
               </button>
             </div>
           </div>
 
           <div className="monthly-calendar-toolbar-right">
-            <h4>
-              {toolbarLabel}
-            </h4>
+            <h4>{toolbarLabel}</h4>
 
-            <div
-              className="calendar-view-switch"
-              aria-label="Takvim görünümü"
-            >
+            <div className="calendar-view-switch">
               <button
                 type="button"
                 className={
-                  calendarView ===
-                  "month"
+                  calendarView === "month"
                     ? "active"
                     : ""
                 }
-                aria-pressed={
-                  calendarView ===
-                  "month"
-                }
-                onClick={() =>
-                  changeView(
-                    "month",
-                  )
-                }
+                onClick={() => changeView("month")}
               >
                 Ay
               </button>
@@ -661,20 +402,11 @@ export default function ProjectMonthlyCalendarTab({
               <button
                 type="button"
                 className={
-                  calendarView ===
-                  "week"
+                  calendarView === "week"
                     ? "active"
                     : ""
                 }
-                aria-pressed={
-                  calendarView ===
-                  "week"
-                }
-                onClick={() =>
-                  changeView(
-                    "week",
-                  )
-                }
+                onClick={() => changeView("week")}
               >
                 Hafta
               </button>
@@ -684,186 +416,233 @@ export default function ProjectMonthlyCalendarTab({
 
         <div className="monthly-calendar">
           <div className="monthly-calendar-weekdays">
-            {WEEK_DAYS.map(
-              (
-                day,
-                index,
-              ) => (
-                <div
-                  key={day}
-                  className={`calendar-weekday ${
-                    index >= 5
-                      ? "weekend"
-                      : ""
-                  }`}
-                >
-                  {day}
-                </div>
-              ),
-            )}
+            {WEEK_DAYS.map((day) => (
+              <div
+                key={day}
+                className="calendar-weekday"
+              >
+                {day}
+              </div>
+            ))}
           </div>
 
           <div className="monthly-calendar-grid">
-            {visibleDays.map(
-              (date) => {
-                const dayTasks =
-                  getTasksForDay(
-                    date,
-                  );
+            {visibleDays.map((date) => {
+              const dayTasks = tasks
+                .filter((task) =>
+                  taskOccursOnDay(task, date)
+                )
+                .sort((a, b) => a.id - b.id);
 
-                const isOutside =
-                  calendarView ===
-                    "month" &&
-                  date.getMonth() !==
-                    month;
+              // Hem web hem mobil: ilk 2 görev
+              const displayedTasks = dayTasks.slice(
+                0,
+                VISIBLE_TASK_LIMIT
+              );
 
-                const isToday =
-                  isSameDay(
-                    date,
-                    today,
-                  );
+              // Kalan görev sayısı
+              const remainingCount = Math.max(
+                0,
+                dayTasks.length - VISIBLE_TASK_LIMIT
+              );
 
-                const dayOfWeek =
-                  date.getDay();
+              const isOutside =
+                calendarView === "month" &&
+                date.getMonth() !== month;
 
-                const isWeekend =
-                  dayOfWeek ===
-                    0 ||
-                  dayOfWeek ===
-                    6;
+              const isToday = isSameDay(date, today);
 
-                return (
-                  <div
-                    key={
-                      date.toISOString()
-                    }
-                    className={[
-                      "calendar-day-cell",
+              const isSelected =
+                selectedDate !== null &&
+                isSameDay(date, selectedDate);
 
-                      isOutside
-                        ? "outside-month"
-                        : "",
-
-                      isWeekend
-                        ? "weekend"
-                        : "",
-
-                      isToday
-                        ? "today"
-                        : "",
-                    ]
-                      .filter(
-                        Boolean,
-                      )
-                      .join(
-                        " ",
-                      )}
-                  >
-                    <div className="calendar-day-header">
-                      <span className="calendar-day-number">
-                        {date.getDate()}
-                      </span>
-                    </div>
-
-                    <div className="calendar-day-tasks">
-                      {dayTasks.map(
-                        (task) => {
-                          const isSelected =
-                            selectedTaskId ===
-                            task.id;
-
-                          return (
-                            <div
-                              key={
-                                task.id
-                              }
-                              className="calendar-task-wrapper"
-                            >
-                              <button
-                                type="button"
-                                className={`calendar-task ${task.status}`}
-                                onClick={(
-                                  event,
-                                ) => {
-                                  event.stopPropagation();
-
-                                  toggleTask(
-                                    task.id,
-                                  );
-                                }}
-                              >
-                                <span className="calendar-task-dot" />
-
-                                <span className="calendar-task-title">
-                                  {
-                                    task.title
-                                  }
-                                </span>
-                              </button>
-
-                              {isSelected && (
-                                <div
-                                  className="calendar-task-popover"
-                                  onClick={(
-                                    event,
-                                  ) =>
-                                    event.stopPropagation()
-                                  }
-                                >
-                                  <strong>
-                                    {
-                                      task.title
-                                    }
-                                  </strong>
-
-                                  <span className="calendar-popover-status">
-                                    {
-                                      STATUS_LABELS[
-                                        task
-                                          .status
-                                      ]
-                                    }
-                                  </span>
-
-                                  <div className="calendar-popover-date">
-                                    {formatTaskDate(
-                                      task.start_date ||
-                                        task.due_date,
-                                    )}
-
-                                    {
-                                      " – "
-                                    }
-
-                                    {formatTaskDate(
-                                      task.due_date,
-                                    )}
-                                  </div>
-
-                                  <div className="calendar-popover-priority">
-                                    Öncelik:{" "}
-                                    {task.priority ===
-                                    "high"
-                                      ? "Yüksek"
-                                      : task.priority ===
-                                          "medium"
-                                        ? "Orta"
-                                        : "Düşük"}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        },
-                      )}
-                    </div>
+              return (
+                <div
+                  key={dateKey(date)}
+                  className={[
+                    "calendar-day-cell",
+                    isOutside ? "outside-month" : "",
+                    isToday ? "today" : "",
+                    isSelected ? "selected" : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                  onClick={() => selectDay(date)}
+                >
+                  <div className="calendar-day-header">
+                    <button
+                      type="button"
+                      className="calendar-day-number"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        selectDay(date);
+                      }}
+                      aria-label={`${formatSelectedDate(
+                        date
+                      )} gününü seç`}
+                    >
+                      {date.getDate()}
+                    </button>
                   </div>
-                );
-              },
-            )}
+
+                  {/* MASAÜSTÜ GÖREVLER */}
+
+                  <div className="calendar-day-tasks desktop-day-tasks">
+                    {displayedTasks.map((task) => (
+                      <div
+                        key={task.id}
+                        className="calendar-task-wrapper"
+                      >
+                        <button
+                          type="button"
+                          className={`calendar-task ${task.status}`}
+                          title={task.title}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            openTask(task.id);
+                          }}
+                        >
+                          <span className="calendar-task-dot" />
+
+                          <span className="calendar-task-title">
+                            {task.title}
+                          </span>
+                        </button>
+                      </div>
+                    ))}
+
+                    {remainingCount > 0 && (
+                      <button
+                        type="button"
+                        className="calendar-more-tasks"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          selectDay(date);
+                        }}
+                      >
+                        +{remainingCount} görev
+                      </button>
+                    )}
+                  </div>
+
+                  {/* MOBİL GÖREVLER */}
+
+                  <div className="mobile-day-tasks">
+                    {displayedTasks.map((task) => (
+                      <button
+                        key={task.id}
+                        type="button"
+                        className={`calendar-task ${task.status}`}
+                        title={task.title}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          openTask(task.id);
+                        }}
+                      >
+                        <span className="calendar-task-dot" />
+
+                        <span className="calendar-task-title">
+                          {task.title}
+                        </span>
+                      </button>
+                    ))}
+
+                    {remainingCount > 0 && (
+                      <button
+                        type="button"
+                        className="mobile-more-tasks"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          selectDay(date);
+                        }}
+                      >
+                        +{remainingCount}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
+
+      {/* GÜNLÜK GÖREV PENCERESİ */}
+
+      {selectedDate && (
+        <div
+          className="calendar-day-modal-overlay"
+          onClick={() => setSelectedDate(null)}
+        >
+          <div
+            className="calendar-day-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label={formatSelectedDate(selectedDate)}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="calendar-selected-day-heading">
+              <div>
+                <span className="calendar-selected-day-label">
+                  Seçilen gün
+                </span>
+
+                <h4>
+                  {formatSelectedDate(selectedDate)}
+                </h4>
+              </div>
+
+              <div className="calendar-selected-day-actions">
+                <span className="calendar-selected-day-count">
+                  {selectedDayTasks.length} görev
+                </span>
+
+                <button
+                  type="button"
+                  className="calendar-selected-day-close"
+                  onClick={() => setSelectedDate(null)}
+                  aria-label="Kapat"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+
+            {selectedDayTasks.length === 0 ? (
+              <p className="calendar-selected-day-empty">
+                Bu gün için görev bulunmuyor.
+              </p>
+            ) : (
+              <div className="calendar-selected-day-list">
+                {selectedDayTasks.map((task) => (
+                  <button
+                    key={task.id}
+                    type="button"
+                    className={`calendar-selected-task ${task.status}`}
+                    onClick={() => openTask(task.id)}
+                  >
+                    <div className="calendar-selected-task-info">
+                      <strong>{task.title}</strong>
+                      <span>{project.name}</span>
+                    </div>
+
+                    <span className="calendar-selected-task-status">
+                      {STATUS_LABELS[task.status]}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* SAĞDAN AÇILAN GÖREV PANELİ */}
+
+      <TaskDrawer
+        task={selectedTask}
+        onClose={closeTask}
+      />
     </div>
   );
 }
