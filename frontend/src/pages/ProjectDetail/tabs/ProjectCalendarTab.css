@@ -1,0 +1,1766 @@
+.project-calendar-tab {
+  width: 100%;
+  padding: 26px 24px 22px;
+
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+
+  color: var(--text);
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.project-calendar-header {
+  margin-bottom: 28px;
+}
+
+.project-calendar-header h3 {
+  margin: 0;
+
+  color: var(--text);
+
+  font-size: 25px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.project-calendar-header p {
+  margin: 7px 0 0;
+
+  color: var(--text-muted);
+
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* =========================
+   GANTT
+========================= */
+
+.gantt-card {
+  position: relative;
+
+  width: 100%;
+
+  overflow: visible;
+}
+
+.gantt-toolbar {
+  min-height: 58px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  padding: 0 2px 12px;
+}
+
+.gantt-month {
+  color: var(--text);
+
+  font-size: 19px;
+  font-weight: 650;
+
+  text-transform: capitalize;
+}
+
+.gantt-task-count {
+  padding: 7px 11px;
+
+  background: var(--surface-soft);
+  color: var(--text-muted);
+
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+
+  font-size: 11px;
+  font-weight: 550;
+}
+
+/* =========================
+   SCROLL
+========================= */
+
+.gantt-scroll {
+  position: relative;
+
+  width: 100%;
+
+  /*
+    Tooltip için üstte gerçek alan oluşturuyoruz.
+    Böylece tooltip scroll alanından dışarı çıkıp
+    kırpılmıyor.
+  */
+  padding-top: 92px;
+  margin-top: -92px;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  border: 1px solid var(--border);
+  border-radius: 10px;
+
+  /*
+    Üstte oluşturduğumuz tooltip alanında
+    border görünmesin diye görsel dengeleme.
+  */
+  border-top-color: transparent;
+
+  scrollbar-width: thin;
+  scrollbar-color:
+    var(--border)
+    transparent;
+}
+
+.gantt-scroll::-webkit-scrollbar {
+  height: 7px;
+}
+
+.gantt-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.gantt-scroll::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
+
+/* =========================
+   TABLE
+========================= */
+
+.gantt-table {
+  --gantt-task-column: 270px;
+
+  position: relative;
+
+  width: 100%;
+  min-width: 1080px;
+
+  background: var(--surface);
+
+  overflow: visible;
+
+  border-top: 1px solid var(--border);
+  border-radius: 10px 10px 0 0;
+}
+
+/* =========================
+   HEADER ROW
+========================= */
+
+.gantt-head {
+  position: relative;
+  z-index: 1;
+
+  display: grid;
+
+  grid-template-columns:
+    var(--gantt-task-column)
+    minmax(0, 1fr);
+
+  min-height: 48px;
+
+  background: var(--surface);
+
+  border-bottom:
+    1px solid var(--border);
+}
+
+.gantt-task-column-head {
+  display: flex;
+  align-items: center;
+
+  padding: 0 14px;
+
+  color: var(--text-muted);
+
+  font-size: 12px;
+  font-weight: 650;
+
+  border-right:
+    1px solid var(--border);
+}
+
+.gantt-days {
+  display: grid;
+
+  min-width: 0;
+}
+
+.gantt-day {
+  position: relative;
+
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--text-muted);
+
+  font-size: 11px;
+  font-weight: 500;
+
+  border-right:
+    1px solid var(--border-soft);
+}
+
+.gantt-day:last-child {
+  border-right: 0;
+}
+
+.gantt-day.weekend {
+  background:
+    rgba(
+      120,
+      125,
+      135,
+      0.07
+    );
+}
+
+.gantt-day.week-start {
+  border-left:
+    1px solid var(--border);
+}
+
+.gantt-day-number {
+  position: relative;
+  z-index: 2;
+
+  font-size: 11px;
+  font-weight: 550;
+  line-height: 1;
+}
+
+/* =========================
+   TODAY
+========================= */
+
+.gantt-day.today {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.gantt-day.today::before {
+  content: "";
+
+  position: absolute;
+
+  width: 28px;
+  height: 28px;
+
+  background: var(--accent);
+
+  border-radius: 50%;
+}
+
+.gantt-day.today
+  .gantt-day-number {
+  color: #ffffff;
+}
+
+/* =========================
+   BODY
+========================= */
+
+.gantt-body {
+  position: relative;
+  z-index: 2;
+
+  overflow: visible;
+}
+
+.gantt-row {
+  position: relative;
+  z-index: 2;
+
+  min-height: 60px;
+
+  display: grid;
+
+  grid-template-columns:
+    var(--gantt-task-column)
+    minmax(0, 1fr);
+
+  border-bottom:
+    1px solid var(--border-soft);
+
+  overflow: visible;
+}
+
+.gantt-row:hover {
+  z-index: 100;
+}
+
+.gantt-row:last-child {
+  border-bottom: 0;
+}
+
+/* =========================
+   TASK INFORMATION
+========================= */
+
+.gantt-task-column {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  padding: 10px 14px;
+
+  background: var(--surface);
+
+  border-right:
+    1px solid var(--border);
+}
+
+.gantt-status-dot {
+  width: 11px;
+  height: 11px;
+
+  flex: 0 0 11px;
+
+  border-radius: 50%;
+}
+
+.gantt-task-info {
+  min-width: 0;
+}
+
+.gantt-task-info strong {
+  display: block;
+
+  overflow: hidden;
+
+  color: var(--text);
+
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.3;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gantt-task-info span {
+  display: block;
+
+  margin-top: 4px;
+
+  color: var(--text-muted);
+
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+/* =========================
+   TIMELINE GRID
+========================= */
+
+.gantt-track {
+  position: relative;
+  z-index: 2;
+
+  display: grid;
+  align-items: stretch;
+
+  min-width: 0;
+
+  background: var(--surface);
+
+  overflow: visible;
+}
+
+.gantt-grid-cell {
+  min-width: 0;
+
+  border-right:
+    1px solid var(--border-soft);
+}
+
+.gantt-grid-cell:last-child {
+  border-right: 0;
+}
+
+.gantt-grid-cell.weekend {
+  background:
+    rgba(
+      120,
+      125,
+      135,
+      0.055
+    );
+}
+
+.gantt-grid-cell.week-start {
+  border-left:
+    1px solid var(--border);
+}
+
+/* =========================
+   TASK BAR
+========================= */
+
+.gantt-bar {
+  position: absolute;
+  z-index: 10;
+
+  top: 50%;
+
+  height: 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 30px;
+
+  padding: 0 8px;
+
+  border-radius: 6px;
+
+  transform: translateY(-50%);
+
+  cursor: default;
+
+  overflow: visible;
+
+  transition:
+    filter 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.gantt-bar:hover {
+  z-index: 1000;
+
+  /* Bar hover sırasında kesinlikle hareket etmez. */
+  transform: translateY(-50%);
+
+  filter: brightness(0.98);
+
+  box-shadow:
+    0 3px 8px
+    rgba(0, 0, 0, 0.06);
+}
+
+.gantt-bar-label {
+  position: relative;
+  z-index: 2;
+
+  width: 100%;
+  min-width: 0;
+
+  overflow: hidden;
+
+  color: inherit;
+
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1;
+
+  text-align: center;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  pointer-events: none;
+}
+
+/* =========================
+   STATUS COLORS
+========================= */
+
+.gantt-status-dot.todo,
+.gantt-legend-dot.todo {
+  background: #5c91ef;
+}
+
+.gantt-bar.todo {
+  background:
+    rgba(
+      92,
+      145,
+      239,
+      0.28
+    );
+
+  color: #174eaa;
+
+  border:
+    1px solid
+    rgba(
+      92,
+      145,
+      239,
+      0.58
+    );
+}
+
+.gantt-status-dot.in_progress,
+.gantt-legend-dot.in_progress {
+  background: #ffb82e;
+}
+
+.gantt-bar.in_progress {
+  background:
+    rgba(
+      255,
+      184,
+      46,
+      0.3
+    );
+
+  color: #805300;
+
+  border:
+    1px solid
+    rgba(
+      255,
+      184,
+      46,
+      0.65
+    );
+}
+
+.gantt-status-dot.review,
+.gantt-legend-dot.review {
+  background: #a34bef;
+}
+
+.gantt-bar.review {
+  background:
+    rgba(
+      163,
+      75,
+      239,
+      0.27
+    );
+
+  color: #6f21ad;
+
+  border:
+    1px solid
+    rgba(
+      163,
+      75,
+      239,
+      0.55
+    );
+}
+
+.gantt-status-dot.done,
+.gantt-legend-dot.done {
+  background: #49bf8a;
+}
+
+.gantt-bar.done {
+  background:
+    rgba(
+      73,
+      191,
+      138,
+      0.28
+    );
+
+  color: #19784d;
+
+  border:
+    1px solid
+    rgba(
+      73,
+      191,
+      138,
+      0.58
+    );
+}
+
+/* =========================
+   LEGEND
+========================= */
+
+.gantt-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+
+  gap: 28px;
+
+  padding: 18px 4px 0;
+}
+
+.gantt-legend-item {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  color: var(--text-muted);
+
+  font-size: 12px;
+}
+
+.gantt-legend-dot {
+  width: 10px;
+  height: 10px;
+
+  border-radius: 50%;
+}
+
+/* =========================
+   EMPTY
+========================= */
+
+.gantt-empty {
+  min-height: 270px;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 30px;
+
+  color: var(--text-muted);
+
+  border:
+    1px solid var(--border);
+  border-radius: 10px;
+
+  text-align: center;
+}
+
+.gantt-empty strong {
+  margin-top: 12px;
+
+  color: var(--text);
+
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.gantt-empty span {
+  max-width: 330px;
+
+  margin-top: 6px;
+
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+/* =========================
+   GANTT TASK TOOLTIP
+========================= */
+
+.gantt-tooltip {
+  position: absolute;
+  z-index: 9999;
+
+  left: 50%;
+  bottom: calc(100% + 10px);
+
+  width: 230px;
+
+  padding: 12px 14px;
+
+  background: var(--surface);
+  color: var(--text);
+
+  border: 1px solid var(--border);
+  border-radius: 10px;
+
+  box-shadow:
+    0 12px 32px
+    rgba(0, 0, 0, 0.16);
+
+  opacity: 0;
+  visibility: hidden;
+
+  transform:
+    translateX(-50%)
+    translateY(4px);
+
+  pointer-events: none;
+
+  text-align: left;
+
+  transition:
+    opacity 0.14s ease,
+    visibility 0.14s ease,
+    transform 0.14s ease;
+}
+
+/* =========================
+   TOOLTIP ARROW
+========================= */
+
+.gantt-tooltip::after {
+  content: "";
+
+  position: absolute;
+
+  left: 50%;
+  top: auto;
+  bottom: -5px;
+
+  width: 9px;
+  height: 9px;
+
+  background: var(--surface);
+
+  border-right:
+    1px solid var(--border);
+  border-bottom:
+    1px solid var(--border);
+
+  transform:
+    translateX(-50%)
+    rotate(45deg);
+}
+
+/* =========================
+   TOOLTIP HOVER
+========================= */
+
+.gantt-bar:hover
+  .gantt-tooltip {
+  opacity: 1;
+  visibility: visible;
+
+  transform:
+    translateX(-50%)
+    translateY(0);
+}
+
+/* =========================
+   TOOLTIP HEADER
+========================= */
+
+.gantt-tooltip-header {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  margin-bottom: 4px;
+}
+
+.gantt-tooltip-header strong {
+  display: block;
+
+  min-width: 0;
+
+  overflow: hidden;
+
+  color: var(--text);
+
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.3;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gantt-tooltip-dot {
+  width: 8px;
+  height: 8px;
+
+  flex: 0 0 8px;
+
+  border-radius: 50%;
+}
+
+.gantt-tooltip-dot.todo {
+  background: #5c91ef;
+}
+
+.gantt-tooltip-dot.in_progress {
+  background: #ffb82e;
+}
+
+.gantt-tooltip-dot.review {
+  background: #a34bef;
+}
+
+.gantt-tooltip-dot.done {
+  background: #49bf8a;
+}
+
+.gantt-tooltip-status {
+  display: block;
+
+  margin-top: 2px;
+
+  color: var(--text-muted);
+
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.gantt-tooltip-divider {
+  height: 1px;
+
+  margin: 10px 0;
+
+  background: var(--border-soft);
+}
+
+.gantt-tooltip-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 14px;
+
+  margin-top: 7px;
+
+  font-size: 11px;
+}
+
+.gantt-tooltip-row:first-of-type {
+  margin-top: 0;
+}
+
+.gantt-tooltip-row > span {
+  color: var(--text-muted);
+}
+
+.gantt-tooltip-row > strong {
+  color: var(--text);
+
+  font-size: 11px;
+  font-weight: 650;
+
+  white-space: nowrap;
+}
+
+/* =========================================
+   GANTT — DARK MODE
+========================================= */
+
+[data-theme="dark"]
+  .project-calendar-tab {
+  background: #171719;
+
+  border-color:
+    rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"]
+  .gantt-card {
+  background: transparent;
+}
+
+[data-theme="dark"]
+  .gantt-scroll {
+  background: #18181a;
+
+  border-color:
+    rgba(255, 255, 255, 0.09);
+}
+
+[data-theme="dark"]
+  .gantt-table {
+  background: #18181a;
+}
+
+[data-theme="dark"]
+  .gantt-head {
+  background: #1b1b1e;
+
+  border-bottom-color:
+    rgba(255, 255, 255, 0.09);
+}
+
+[data-theme="dark"]
+  .gantt-task-column-head {
+  color:
+    rgba(255, 255, 255, 0.55);
+
+  border-right-color:
+    rgba(255, 255, 255, 0.09);
+}
+
+[data-theme="dark"]
+  .gantt-day {
+  color:
+    rgba(255, 255, 255, 0.56);
+
+  border-right-color:
+    rgba(255, 255, 255, 0.055);
+}
+
+[data-theme="dark"]
+  .gantt-day.weekend {
+  background:
+    rgba(255, 255, 255, 0.035);
+}
+
+[data-theme="dark"]
+  .gantt-day.week-start {
+  border-left-color:
+    rgba(255, 255, 255, 0.09);
+}
+
+[data-theme="dark"]
+  .gantt-day.today {
+  color: #ffffff;
+}
+
+[data-theme="dark"]
+  .gantt-day.today::before {
+  background: #d83c3c;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(216, 60, 60, 0.12);
+}
+
+[data-theme="dark"]
+  .gantt-row {
+  border-bottom-color:
+    rgba(255, 255, 255, 0.055);
+}
+
+[data-theme="dark"]
+  .gantt-task-column {
+  background: #18181a;
+
+  border-right-color:
+    rgba(255, 255, 255, 0.09);
+}
+
+[data-theme="dark"]
+  .gantt-task-info strong {
+  color:
+    rgba(255, 255, 255, 0.9);
+}
+
+[data-theme="dark"]
+  .gantt-task-info span {
+  color:
+    rgba(255, 255, 255, 0.48);
+}
+
+[data-theme="dark"]
+  .gantt-track {
+  background: #18181a;
+}
+
+[data-theme="dark"]
+  .gantt-grid-cell {
+  border-right-color:
+    rgba(255, 255, 255, 0.055);
+}
+
+[data-theme="dark"]
+  .gantt-grid-cell.weekend {
+  background:
+    rgba(255, 255, 255, 0.035);
+}
+
+[data-theme="dark"]
+  .gantt-grid-cell.week-start {
+  border-left-color:
+    rgba(255, 255, 255, 0.085);
+}
+
+/* -------------------------
+   TASK BARS
+------------------------- */
+
+[data-theme="dark"]
+  .gantt-bar.todo {
+  background:
+    rgba(92, 145, 239, 0.22);
+
+  border-color:
+    rgba(110, 158, 244, 0.65);
+
+  color: #8bb4ff;
+}
+
+[data-theme="dark"]
+  .gantt-bar.in_progress {
+  background:
+    rgba(244, 177, 50, 0.22);
+
+  border-color:
+    rgba(244, 177, 50, 0.62);
+
+  color: #f6c45f;
+}
+
+[data-theme="dark"]
+  .gantt-bar.review {
+  background:
+    rgba(163, 75, 239, 0.22);
+
+  border-color:
+    rgba(178, 96, 245, 0.62);
+
+  color: #c88bff;
+}
+
+[data-theme="dark"]
+  .gantt-bar.done {
+  background:
+    rgba(73, 191, 138, 0.2);
+
+  border-color:
+    rgba(91, 201, 151, 0.58);
+
+  color: #79d6a8;
+}
+
+[data-theme="dark"]
+  .gantt-bar:hover {
+  filter: brightness(1.12);
+
+  box-shadow:
+    0 4px 12px
+    rgba(0, 0, 0, 0.28);
+}
+
+/* -------------------------
+   STATUS DOTS
+------------------------- */
+
+[data-theme="dark"]
+  .gantt-status-dot.todo,
+[data-theme="dark"]
+  .gantt-legend-dot.todo {
+  background: #6e9ef4;
+}
+
+[data-theme="dark"]
+  .gantt-status-dot.in_progress,
+[data-theme="dark"]
+  .gantt-legend-dot.in_progress {
+  background: #f4b132;
+}
+
+[data-theme="dark"]
+  .gantt-status-dot.review,
+[data-theme="dark"]
+  .gantt-legend-dot.review {
+  background: #ad63ef;
+}
+
+[data-theme="dark"]
+  .gantt-status-dot.done,
+[data-theme="dark"]
+  .gantt-legend-dot.done {
+  background: #5bc997;
+}
+
+/* -------------------------
+   TOOLTIP
+------------------------- */
+
+[data-theme="dark"]
+  .gantt-tooltip {
+  background: #252528;
+
+  color: #f4f4f5;
+
+  border-color:
+    rgba(255, 255, 255, 0.11);
+
+  box-shadow:
+    0 14px 36px
+    rgba(0, 0, 0, 0.48);
+}
+
+[data-theme="dark"]
+  .gantt-tooltip::after {
+  background: #252528;
+
+  border-right-color:
+    rgba(255, 255, 255, 0.11);
+
+  border-bottom-color:
+    rgba(255, 255, 255, 0.11);
+}
+
+[data-theme="dark"]
+  .gantt-tooltip-header strong {
+  color: #f4f4f5;
+}
+
+[data-theme="dark"]
+  .gantt-tooltip-status,
+[data-theme="dark"]
+  .gantt-tooltip-row > span {
+  color:
+    rgba(255, 255, 255, 0.55);
+}
+
+[data-theme="dark"]
+  .gantt-tooltip-row > strong {
+  color:
+    rgba(255, 255, 255, 0.88);
+}
+
+[data-theme="dark"]
+  .gantt-tooltip-divider {
+  background:
+    rgba(255, 255, 255, 0.08);
+}
+
+/* -------------------------
+   LEGEND / COUNT
+------------------------- */
+
+[data-theme="dark"]
+  .gantt-legend-item {
+  color:
+    rgba(255, 255, 255, 0.54);
+}
+
+[data-theme="dark"]
+  .gantt-task-count {
+  background:
+    rgba(255, 255, 255, 0.035);
+
+  color:
+    rgba(255, 255, 255, 0.58);
+
+  border-color:
+    rgba(255, 255, 255, 0.07);
+}
+
+/* =========================================================
+   RESPONSIVE MOBILE GANTT
+   DESKTOP GANTT'A DOKUNMAZ
+   ========================================================= */
+
+.mobile-gantt {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .gantt-desktop {
+    display: none;
+  }
+
+  .mobile-gantt {
+    display: block;
+  }
+
+  .project-calendar-tab {
+    padding: 14px 12px 18px;
+    border-radius: 12px;
+  }
+
+  .project-calendar-header {
+    margin-bottom: 14px;
+  }
+
+  .project-calendar-header h3 {
+    font-size: 19px;
+  }
+
+  .project-calendar-header p {
+    font-size: 11px;
+  }
+
+  .mobile-schedule {
+    width: 100%;
+    overflow: hidden;
+
+    background: var(--surface);
+
+    border: 1px solid var(--border);
+    border-radius: 18px;
+  }
+
+  .mobile-schedule-top {
+    padding: 16px 14px 12px;
+
+    border-bottom:
+      1px solid
+      var(--border-soft);
+  }
+
+  .mobile-schedule-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    margin-bottom: 16px;
+  }
+
+  .mobile-schedule-title {
+    color: var(--text);
+
+    font-size: 17px;
+    font-weight: 700;
+
+    text-transform: capitalize;
+  }
+
+  .mobile-schedule-subtitle {
+    margin-top: 3px;
+
+    color: var(--text-muted);
+
+    font-size: 10px;
+  }
+
+  .mobile-schedule-actions {
+    display: flex;
+
+    gap: 7px;
+  }
+
+  .mobile-schedule-actions button {
+    width: 34px;
+    height: 34px;
+
+    display: grid;
+    place-items: center;
+
+    padding: 0;
+
+    background:
+      var(--surface-soft);
+
+    color: var(--text);
+
+    border:
+      1px solid
+      var(--border-soft);
+
+    border-radius: 10px;
+
+    cursor: pointer;
+  }
+
+  .mobile-schedule-week {
+    display: grid;
+
+    grid-template-columns:
+      repeat(
+        7,
+        minmax(0, 1fr)
+      );
+
+    gap: 3px;
+  }
+
+  .mobile-schedule-day {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    gap: 6px;
+
+    padding: 5px 0;
+
+    color: var(--text-muted);
+  }
+
+  .mobile-schedule-day-name {
+    font-size: 9px;
+    font-weight: 600;
+
+    text-transform: uppercase;
+  }
+
+  .mobile-schedule-day-number {
+    width: 31px;
+    height: 31px;
+
+    display: grid;
+    place-items: center;
+
+    color: var(--text);
+
+    border-radius: 50%;
+
+    font-size: 12px;
+    font-weight: 650;
+  }
+
+  .mobile-schedule-day.today
+    .mobile-schedule-day-number {
+    background: var(--accent);
+
+    color: #ffffff;
+  }
+
+  .mobile-schedule-timeline {
+    padding: 10px 12px 4px;
+  }
+
+  .mobile-schedule-slot {
+    min-height: 76px;
+
+    display: grid;
+
+    grid-template-columns:
+      28px minmax(0, 1fr);
+
+    gap: 8px;
+  }
+
+  .mobile-schedule-index {
+    padding-top: 13px;
+
+    color: var(--text-muted);
+
+    font-size: 9px;
+    font-weight: 650;
+  }
+
+  .mobile-schedule-slot-content {
+    position: relative;
+
+    min-width: 0;
+
+    padding-bottom: 9px;
+  }
+
+  .mobile-schedule-slot-content::before {
+    content: "";
+
+    position: absolute;
+
+    left: -22px;
+    top: 0;
+    bottom: 0;
+
+    width: 1px;
+
+    background:
+      var(--border-soft);
+  }
+
+  .mobile-schedule-task {
+    min-height: 64px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 8px;
+
+    padding: 11px 12px;
+
+    border: 1px solid;
+
+    border-radius: 15px;
+  }
+
+  .mobile-schedule-task.position-b {
+    margin-left: 8px;
+  }
+
+  .mobile-schedule-task.position-c {
+    margin-right: 7px;
+  }
+
+  .mobile-schedule-task.position-d {
+    margin-left: 4px;
+    margin-right: 3px;
+  }
+
+  .mobile-schedule-task.todo {
+    background:
+      rgba(
+        92,
+        145,
+        239,
+        0.13
+      );
+
+    border-color:
+      rgba(
+        92,
+        145,
+        239,
+        0.32
+      );
+  }
+
+  .mobile-schedule-task.in_progress {
+    background:
+      rgba(
+        255,
+        184,
+        46,
+        0.14
+      );
+
+    border-color:
+      rgba(
+        255,
+        184,
+        46,
+        0.35
+      );
+  }
+
+  .mobile-schedule-task.review {
+    background:
+      rgba(
+        163,
+        75,
+        239,
+        0.12
+      );
+
+    border-color:
+      rgba(
+        163,
+        75,
+        239,
+        0.30
+      );
+  }
+
+  .mobile-schedule-task.done {
+    background:
+      rgba(
+        73,
+        191,
+        138,
+        0.13
+      );
+
+    border-color:
+      rgba(
+        73,
+        191,
+        138,
+        0.30
+      );
+  }
+
+  .mobile-schedule-task-main {
+    min-width: 0;
+
+    display: flex;
+    align-items: center;
+
+    gap: 9px;
+  }
+
+  .mobile-schedule-task-main > div {
+    min-width: 0;
+  }
+
+  .mobile-schedule-task-main strong {
+    display: block;
+
+    overflow: hidden;
+
+    color: var(--text);
+
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.25;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-schedule-task-main
+    span:not(.gantt-status-dot) {
+    display: block;
+
+    margin-top: 4px;
+
+    color: var(--text-muted);
+
+    font-size: 9px;
+  }
+
+  .mobile-schedule-task-date {
+    flex: 0 0 auto;
+
+    color: var(--text-muted);
+
+    font-size: 9px;
+
+    white-space: nowrap;
+  }
+
+  .mobile-schedule-empty {
+    min-height: 160px;
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 9px;
+
+    color: var(--text-muted);
+
+    font-size: 11px;
+
+    text-align: center;
+  }
+
+  .mobile-schedule-legend {
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: 9px 14px;
+
+    padding:
+      11px
+      14px
+      14px
+      50px;
+
+    border-top:
+      1px solid
+      var(--border-soft);
+  }
+
+  .mobile-schedule-legend-item {
+    display: flex;
+    align-items: center;
+
+    gap: 5px;
+
+    color: var(--text-muted);
+
+    font-size: 9px;
+  }
+
+  .mobile-schedule-legend-dot {
+    width: 7px;
+    height: 7px;
+
+    border-radius: 50%;
+  }
+
+  .mobile-schedule-legend-dot.todo {
+    background: #5c91ef;
+  }
+
+  .mobile-schedule-legend-dot.in_progress {
+    background: #ffb82e;
+  }
+
+  .mobile-schedule-legend-dot.review {
+    background: #a34bef;
+  }
+
+  .mobile-schedule-legend-dot.done {
+    background: #49bf8a;
+  }
+
+  [data-theme="dark"]
+    .mobile-schedule {
+    background: #18181a;
+
+    border-color:
+      rgba(
+        255,
+        255,
+        255,
+        0.09
+      );
+  }
+
+  [data-theme="dark"]
+    .mobile-schedule-top,
+  [data-theme="dark"]
+    .mobile-schedule-legend {
+    border-color:
+      rgba(
+        255,
+        255,
+        255,
+        0.07
+      );
+  }
+
+  [data-theme="dark"]
+    .mobile-schedule-actions
+    button {
+    background:
+      rgba(
+        255,
+        255,
+        255,
+        0.04
+      );
+
+    border-color:
+      rgba(
+        255,
+        255,
+        255,
+        0.08
+      );
+  }
+
+  [data-theme="dark"]
+    .mobile-schedule-slot-content::before {
+    background:
+      rgba(
+        255,
+        255,
+        255,
+        0.06
+      );
+  }
+}
+
+
+/* TIKLANABİLİR GANTT GÖREVLERİ */
+
+.gantt-bar {
+  cursor: pointer;
+  border: none;
+  text-align: left;
+  font: inherit;
+}
+
+.mobile-schedule-task {
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.gantt-bar:focus-visible,
+.mobile-schedule-task:focus-visible {
+  outline: 2px solid var(--accent, #dc2626);
+  outline-offset: 3px;
+}
+
+/* GÖREV DETAY PENCERESİ */
+
+.gantt-detail-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.48);
+}
+
+.gantt-detail-dialog {
+  width: min(100%, 480px);
+  max-height: 85dvh;
+  overflow-y: auto;
+  padding: 24px;
+  background: var(--surface, #fff);
+  color: var(--text, #171717);
+  border: 1px solid var(--border, #e5e5e5);
+  border-radius: 16px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.2);
+}
+
+.gantt-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.gantt-detail-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 11px;
+  border-radius: 8px;
+  background: var(--surface-soft, #f5f5f5);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.gantt-detail-close {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-soft, #f5f5f5);
+  color: var(--text, #171717);
+  border: 1px solid var(--border, #e5e5e5);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.gantt-detail-dialog h3 {
+  margin: 0 0 14px;
+  font-size: 21px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.gantt-detail-description {
+  margin: 0 0 20px;
+  color: var(--text-secondary, #666);
+  font-size: 14px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.gantt-detail-info {
+  display: grid;
+  border-top: 1px solid var(--border, #e5e5e5);
+}
+
+.gantt-detail-info > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border, #e5e5e5);
+  font-size: 13px;
+}
+
+.gantt-detail-info > div > span {
+  color: var(--text-muted, #888);
+}
+
+.gantt-detail-info > div > strong {
+  color: var(--text, #171717);
+  font-weight: 600;
+  text-align: right;
+}
+
+@media (max-width: 600px) {
+  .gantt-detail-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .gantt-detail-dialog {
+    width: 100%;
+    max-height: 85dvh;
+    padding: 22px 20px
+      calc(28px + env(safe-area-inset-bottom));
+    border-radius: 20px 20px 0 0;
+  }
+}

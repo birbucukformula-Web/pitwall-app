@@ -6,10 +6,8 @@ import {
   LayoutDashboard,
   LogOut,
   Megaphone,
-  MoreHorizontal,
   Settings,
   UserRound,
-  X,
 } from "lucide-react";
 
 import {
@@ -17,9 +15,15 @@ import {
   useNavigate,
 } from "react-router-dom";
 
-import formulaLogo from "../../assets/formula-logo.png";
+import { useAuth } from "../../contexts/AuthContext";
+import { useAvatar } from "../../contexts/AvatarContext";
+import { presenceApi } from "../../api/presence";
+import ActiveUsersWidget from "../ActiveUsersWidget/ActiveUsersWidget";
+
+import formulaLogo from "../../assets/logo-yazisiz0.png";
 
 import "./Sidebar.css";
+
 
 type SidebarProps = {
   isOpen: boolean;
@@ -30,279 +34,237 @@ export default function Sidebar({
   isOpen,
   onClose,
 }: SidebarProps) {
-  const [
-    showProfileMenu,
-    setShowProfileMenu,
-  ] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] =
+    useState(false);
 
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const { selectedAvatar } = useAvatar();
+
+  const roleName =
+    user?.organization?.name || "Takım Üyesi";
+
+  const fullName = user
+    ? `${user.first_name} ${user.last_name}`
+    : "Bilinmeyen Kullanıcı";
+
+  const initials = user
+    ? `${user.first_name.charAt(0)}${user.last_name.charAt(0)}`
+    : "?";
+
+  const avatarSrc =
+    selectedAvatar?.src ?? null;
 
   function handleNavigation() {
     setShowProfileMenu(false);
     onClose();
   }
 
-  function handleProfileNavigation(
-    path: string,
-  ) {
+  function handleProfileNavigation(path: string) {
     setShowProfileMenu(false);
     onClose();
     navigate(path);
   }
 
-  function handleLogout() {
+  async function handleLogout() {
     setShowProfileMenu(false);
-
-    /*
-      Backend authentication geldiğinde:
-      - logout endpoint çağrılacak
-      - access token temizlenecek
-      - refresh token temizlenecek
-      - session/user state temizlenecek
-    */
-
-    localStorage.removeItem(
-      "accessToken",
-    );
-
-    localStorage.removeItem(
-      "refreshToken",
-    );
-
     onClose();
 
+    await presenceApi.leave();
+
+    logout();
     navigate("/login");
   }
 
   return (
-    <aside
-      className={`sidebar ${
-        isOpen
-          ? "sidebar-open"
-          : ""
+    <div
+      className={`sidebar-container ${
+        isOpen ? "sidebar-open" : ""
       }`}
     >
-      <div className="sidebar-brand-row">
-        <NavLink
-          to="/dashboard"
-          className="brand"
-          aria-label="Görev Panosu'na dön"
-          onClick={handleNavigation}
-        >
-          <img
-            src={formulaLogo}
-            alt="1.5 Adana Formula Student"
-            className="brand-logo"
-          />
+      <aside className="outer-sidebar">
+        <div className="outer-top">
+          <div
+            className="outer-brand"
+            aria-label="Pitwall"
+            onClick={() => handleProfileNavigation("/game")}
+            style={{ cursor: "pointer" }}
+          >
+            <div className="outer-brand-glow" />
 
-          <div className="brand-text">
-            <strong>
-              1.5 ADANA
-            </strong>
-
-            <span>
-              FORMULA STUDENT
-            </span>
+            <img
+              src={formulaLogo}
+              alt="Pitwall"
+            />
           </div>
-        </NavLink>
 
-        <button
-          type="button"
-          className="sidebar-close-button"
-          onClick={onClose}
-          aria-label="Menüyü kapat"
-        >
-          <X size={20} />
-        </button>
-      </div>
+          <nav className="outer-nav">
+            <NavLink
+              to="/dashboard"
+              onClick={handleNavigation}
+              className={({ isActive }) =>
+                `outer-nav-item ${
+                  isActive ? "active" : ""
+                }`
+              }
+              aria-label="Görev Panosu"
+            >
+              <div className="outer-nav-icon">
+                <LayoutDashboard size={21} />
+              </div>
+              <span>Pano</span>
+            </NavLink>
 
-      <nav className="navigation">
-        <NavLink
-          to="/dashboard"
-          onClick={handleNavigation}
-          className={({ isActive }) =>
-            `nav-item ${
-              isActive
-                ? "active"
-                : ""
-            }`
-          }
-        >
-          <LayoutDashboard size={20} />
+            <NavLink
+              to="/calendar"
+              onClick={handleNavigation}
+              className={({ isActive }) =>
+                `outer-nav-item ${
+                  isActive ? "active" : ""
+                }`
+              }
+              aria-label="Takvim"
+            >
+              <div className="outer-nav-icon">
+                <CalendarDays size={21} />
+              </div>
+              <span>Takvim</span>
+            </NavLink>
 
-          <span>
-            Görev Panosu
-          </span>
-        </NavLink>
+            <NavLink
+              to="/projects"
+              onClick={handleNavigation}
+              className={({ isActive }) =>
+                `outer-nav-item ${
+                  isActive ? "active" : ""
+                }`
+              }
+              aria-label="Projeler"
+            >
+              <div className="outer-nav-icon">
+                <FolderKanban size={21} />
+              </div>
+              <span>Projeler</span>
+            </NavLink>
 
-        <NavLink
-          to="/calendar"
-          onClick={handleNavigation}
-          className={({ isActive }) =>
-            `nav-item ${
-              isActive
-                ? "active"
-                : ""
-            }`
-          }
-        >
-          <CalendarDays size={20} />
+            <NavLink
+              to="/announcements"
+              onClick={handleNavigation}
+              className={({ isActive }) =>
+                `outer-nav-item ${
+                  isActive ? "active" : ""
+                }`
+              }
+              aria-label="Duyurular"
+            >
+              <div className="outer-nav-icon">
+                <Megaphone size={21} />
+              </div>
+              <span>Duyuru</span>
+            </NavLink>
 
-          <span>
-            Takvim
-          </span>
-        </NavLink>
-
-        <NavLink
-          to="/projects"
-          onClick={handleNavigation}
-          className={({ isActive }) =>
-            `nav-item ${
-              isActive
-                ? "active"
-                : ""
-            }`
-          }
-        >
-          <FolderKanban size={20} />
-
-          <span>
-            Projeler
-          </span>
-        </NavLink>
-
-        <NavLink
-          to="/announcements"
-          onClick={handleNavigation}
-          className={({ isActive }) =>
-            `nav-item ${
-              isActive
-                ? "active"
-                : ""
-            }`
-          }
-        >
-          <Megaphone size={20} />
-
-          <span>
-            Duyurular
-          </span>
-        </NavLink>
-      </nav>
-
-      <div className="sidebar-bottom">
-        <div className="race-card">
-          <span>
-            FORMULA STUDENT
-          </span>
-
-          <strong>
-            46 GÜN
-          </strong>
-
-          <p>
-            Yarışa kalan süre
-          </p>
-
-          <div className="race-progress">
-            <div className="race-progress-value" />
-          </div>
+            <NavLink
+              to="/profile"
+              onClick={handleNavigation}
+              className={({ isActive }) =>
+                `outer-nav-item ${
+                  isActive ? "active" : ""
+                }`
+              }
+              aria-label="Profil"
+            >
+              <div className="outer-nav-icon">
+                <UserRound size={21} />
+              </div>
+              <span>Profil</span>
+            </NavLink>
+          </nav>
         </div>
 
-        <div className="profile-wrapper">
-          {showProfileMenu && (
-            <div className="profile-menu">
-              <div className="profile-menu-user">
-                <div className="profile-menu-avatar">
-                  LS
+        <div className="outer-bottom">
+          <div className="outer-presence">
+            <ActiveUsersWidget />
+          </div>
+
+          <div className="profile-wrapper">
+            {showProfileMenu && (
+              <div className="profile-menu profile-menu-outer">
+                <div className="profile-menu-user">
+                  <div className="profile-menu-avatar">
+                    {avatarSrc ? (
+                      <img src={avatarSrc} alt="avatar" />
+                    ) : (
+                      initials
+                    )}
+                  </div>
+
+                  <div className="profile-menu-user-info">
+                    <strong>{fullName}</strong>
+                    <span>{roleName}</span>
+                  </div>
                 </div>
 
-                <div className="profile-menu-user-info">
-                  <strong>
-                    Lidya Su
-                  </strong>
+                <div className="profile-menu-divider" />
 
-                  <span>
-                    Web &amp; Yazılım
-                  </span>
-                </div>
+                <button
+                  type="button"
+                  className="profile-menu-item"
+                  onClick={() =>
+                    handleProfileNavigation("/profile")
+                  }
+                >
+                  <UserRound size={17} />
+                  Profilim
+                </button>
+
+                <button
+                  type="button"
+                  className="profile-menu-item"
+                  onClick={() =>
+                    handleProfileNavigation("/settings")
+                  }
+                >
+                  <Settings size={17} />
+                  Ayarlar
+                </button>
+
+                <div className="profile-menu-divider" />
+
+                <button
+                  type="button"
+                  className="profile-menu-item logout"
+                  onClick={handleLogout}
+                >
+                  <LogOut size={17} />
+                  Çıkış Yap
+                </button>
+              </div>
+            )}
+
+            <button
+              type="button"
+              className="outer-profile-btn"
+              onClick={() =>
+                setShowProfileMenu(
+                  (previous) => !previous,
+                )
+              }
+              aria-label="Profil menüsü"
+              aria-expanded={showProfileMenu}
+            >
+              <div className="outer-avatar">
+                {avatarSrc ? (
+                  <img src={avatarSrc} alt="avatar" />
+                ) : (
+                  initials
+                )}
               </div>
 
-              <div className="profile-menu-divider" />
-
-              <button
-                type="button"
-                className="profile-menu-item"
-                onClick={() =>
-                  handleProfileNavigation(
-                    "/profile",
-                  )
-                }
-              >
-                <UserRound size={16} />
-
-                Profilim
-              </button>
-
-              <button
-                type="button"
-                className="profile-menu-item"
-                onClick={() =>
-                  handleProfileNavigation(
-                    "/settings",
-                  )
-                }
-              >
-                <Settings size={16} />
-
-                Ayarlar
-              </button>
-
-              <div className="profile-menu-divider" />
-
-              <button
-                type="button"
-                className="profile-menu-item logout"
-                onClick={handleLogout}
-              >
-                <LogOut size={16} />
-
-                Çıkış Yap
-              </button>
-            </div>
-          )}
-
-          <button
-            type="button"
-            className="profile-button"
-            onClick={() =>
-              setShowProfileMenu(
-                (previous) =>
-                  !previous,
-              )
-            }
-          >
-            <div className="profile-avatar">
-              LS
-            </div>
-
-            <div className="profile-info">
-              <strong>
-                Lidya Su
-              </strong>
-
-              <span>
-                Web &amp; Yazılım
-              </span>
-            </div>
-
-            <MoreHorizontal
-              className="profile-more"
-              size={18}
-            />
-          </button>
+              <span className="outer-avatar-status" />
+            </button>
+          </div>
         </div>
-      </div>
-    </aside>
+      </aside>
+    </div>
   );
 }

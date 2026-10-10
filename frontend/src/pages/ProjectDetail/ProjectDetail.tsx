@@ -1,392 +1,279 @@
-import { useMemo, useState } from "react";
+
+import { useEffect, useState } from "react";
+
 import {
   ArrowLeft,
-  Users,
+  LayoutDashboard,
+  CheckSquare,
+  Flag,
+  FolderOpen,
+  BookOpen,
+  CalendarDays,
+  ChartNoAxesGantt,
+  Settings,
 } from "lucide-react";
+
 import {
   useNavigate,
   useParams,
 } from "react-router-dom";
 
-import KanbanColumn from "../../components/KanbanColumn/KanbanColumn";
-import TaskDrawer from "../../components/TaskDrawer/TaskDrawer";
-import TaskModal from "../../components/TaskModal/TaskModal";
+import { useQuery } from "@tanstack/react-query";
 
-import { mockTasks } from "../../data/mockTasks";
-
+import { tasksApi } from "../../api/tasks";
+import { metadataApi } from "../../api/metadata";
 import type { Task } from "../../types/task";
+
+import ProjectDashboardTab from "./tabs/ProjectDashboardTab";
+import ProjectTasksTab from "./tabs/ProjectTasksTab";
+import ProjectMilestonesTab from "./tabs/ProjectMilestonesTab";
+import ProjectFilesTab from "./tabs/ProjectFilesTab";
+import ProjectWikiTab from "./tabs/ProjectWikiTab";
+import ProjectCalendarTab from "./tabs/ProjectCalendarTab";
+import ProjectMonthlyCalendarTab from "./tabs/ProjectMonthlyCalendarTab";
+import ProjectSettingsTab from "./tabs/ProjectSettingsTab";
 
 import "./ProjectDetail.css";
 
-const projectMap: Record<
-  string,
-  {
-    name: string;
-    description: string;
-    members: string[];
-  }
-> = {
-  "1": {
-    name: "Pitwall App",
-    description:
-      "Takım içi görev, proje ve çalışma takibi için geliştirilen uygulama.",
-    members: ["LS", "FK", "BC", "MK"],
-  },
-
-  "2": {
-    name: "Formula Student Web Sitesi",
-    description:
-      "1.5 Adana Formula Student takımının resmi web sitesi.",
-    members: ["LS", "BC", "EA"],
-  },
-
-  "3": {
-    name: "Araç Telemetri Sistemi",
-    description:
-      "Araç verilerinin takip ve analiz edildiği telemetri sistemi.",
-    members: ["FK", "TA", "MK"],
-  },
-};
-
 export default function ProjectDetail() {
   const navigate = useNavigate();
-  const { projectId } = useParams();
+  const { projectId } = useParams<{ projectId: string }>();
 
-  const [selectedTask, setSelectedTask] =
-    useState<Task | null>(null);
+  const unitId = Number(projectId);
 
-  const [tasks, setTasks] =
-    useState<Task[]>(mockTasks);
+  const [activeTab, setActiveTab] = useState("tasks");
+  const [tasks, setTasks] = useState<Task[]>([]);
 
-  const [showMembers, setShowMembers] =
-    useState(false);
+  const {
+    data: apiUnits = [],
+    isLoading: isProjectsLoading,
+  } = useQuery({
+    queryKey: ["units"],
+    queryFn: () => metadataApi.getUnits(),
+  });
 
-  const [
-    showTaskModal,
-    setShowTaskModal,
-  ] = useState(false);
+  const {
+    data: fetchedTasks,
+    isLoading: isTasksLoading,
+  } = useQuery({
+    queryKey: ["tasks", { unit: unitId }],
+    queryFn: () => tasksApi.getTasks({ unit: unitId }),
+    enabled: !!projectId,
+  });
 
-  const [
-    taskModalStatus,
-    setTaskModalStatus,
-  ] = useState<Task["status"]>("todo");
+  useEffect(() => {
+    setTasks(fetchedTasks ?? []);
+  }, [fetchedTasks]);
 
-  const project =
-    projectMap[projectId ?? ""];
+  const rawProject = apiUnits.find((unit) => unit.id === unitId);
 
-  const projectTasks = useMemo(() => {
-    if (!project) {
-      return [];
-    }
-
-    return tasks.filter(
-      (task) =>
-        task.project === project.name,
-    );
-  }, [project, tasks]);
-
-  if (!project) {
+  if (isProjectsLoading || isTasksLoading) {
     return (
       <section className="project-detail-page">
-        <h2>Proje bulunamadı.</h2>
+        <div
+          style={{
+            padding: "40px",
+            color: "var(--text-secondary)",
+          }}
+        >
+          Proje yükleniyor...
+        </div>
       </section>
     );
   }
 
-  function openTaskModal(
-    status: Task["status"],
-  ) {
-    setTaskModalStatus(status);
-    setShowTaskModal(true);
+  if (!rawProject) {
+    return (
+      <section className="project-detail-page">
+        <div
+          style={{
+            padding: "40px",
+            color: "var(--text-secondary)",
+          }}
+        >
+          Birim bulunamadı.
+        </div>
+      </section>
+    );
   }
 
-  function handleCreateTask(
-    newTask: Task,
-  ) {
-    const taskForProject: Task = {
-      ...newTask,
-      project: project.name,
-      status: taskModalStatus,
-    };
-
-    setTasks((previousTasks) => [
-      ...previousTasks,
-      taskForProject,
-    ]);
-  }
-
-  const completedCount =
-    projectTasks.filter(
-      (task) =>
-        task.status === "done",
-    ).length;
-
-  const progress =
-    projectTasks.length === 0
-      ? 0
-      : Math.round(
-          (completedCount /
-            projectTasks.length) *
-            100,
-        );
+  const project = {
+    id: rawProject.id,
+    name: rawProject.name,
+    description:
+      rawProject.description ||
+      "Açıklama belirtilmemiş.",
+    members:
+      "unit_members" in rawProject
+        ? rawProject.unit_members || []
+        : [],
+  };
 
   return (
-    <>
-      <section className="project-detail-page">
+    <section className="project-detail-page">
+      <div className="project-detail-topbar">
         <button
           type="button"
           className="back-button"
-          onClick={() =>
-            navigate("/projects")
-          }
+          onClick={() => navigate("/projects")}
         >
           <ArrowLeft size={17} />
           Projelere dön
         </button>
 
-        <div className="project-detail-header">
-          <div>
-            <span className="project-label">
-              PROJE
-            </span>
+        <div className="project-detail-header-compact">
+          <div className="project-title-wrapper">
+            <div className="project-avatar-placeholder">
+              {project.name.substring(0, 2).toUpperCase()}
+            </div>
 
-            <h2>{project.name}</h2>
-
-            <p>{project.description}</p>
-          </div>
-
-          <div className="project-detail-members-wrapper">
-            <button
-              type="button"
-              className="project-detail-members"
-              onClick={() =>
-                setShowMembers(
-                  (previous) =>
-                    !previous,
-                )
-              }
-            >
-              <Users size={17} />
-
-              <div className="detail-avatars">
-                {project.members.map(
-                  (member) => (
-                    <span key={member}>
-                      {member}
-                    </span>
-                  ),
-                )}
-              </div>
-            </button>
-
-            {showMembers && (
-              <div className="members-popover">
-                <div className="members-popover-header">
-                  Proje Üyeleri
-                </div>
-
-                <div className="members-list">
-                  {project.members.map(
-                    (member) => (
-                      <div
-                        className="member-item"
-                        key={member}
-                      >
-                        <span className="member-avatar">
-                          {member}
-                        </span>
-
-                        <div>
-                          <strong>
-                            {member ===
-                              "LS" &&
-                              "Lidya Su"}
-
-                            {member ===
-                              "FK" &&
-                              "Furkan"}
-
-                            {member ===
-                              "BC" &&
-                              "Busenur"}
-
-                            {member ===
-                              "MK" &&
-                              "Mert"}
-
-                            {member ===
-                              "EA" &&
-                              "E.A."}
-
-                            {member ===
-                              "TA" &&
-                              "T.A."}
-                          </strong>
-
-                          <span>
-                            Proje üyesi
-                          </span>
-                        </div>
-                      </div>
-                    ),
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <section className="project-summary">
-          <div>
-            <span>Toplam Görev</span>
-
-            <strong>
-              {projectTasks.length}
-            </strong>
-          </div>
-
-          <div>
-            <span>Devam Eden</span>
-
-            <strong>
-              {
-                projectTasks.filter(
-                  (task) =>
-                    task.status ===
-                    "progress",
-                ).length
-              }
-            </strong>
-          </div>
-
-          <div>
-            <span>İncelemede</span>
-
-            <strong>
-              {
-                projectTasks.filter(
-                  (task) =>
-                    task.status ===
-                    "review",
-                ).length
-              }
-            </strong>
-          </div>
-
-          <div>
-            <span>Tamamlanan</span>
-
-            <strong>
-              {completedCount}
-            </strong>
-          </div>
-        </section>
-
-        <div className="project-progress-box">
-          <div>
-            <span>
-              Proje İlerlemesi
-            </span>
-
-            <strong>
-              %{progress}
-            </strong>
-          </div>
-
-          <div className="project-detail-progress">
-            <div
-              style={{
-                width: `${progress}%`,
-              }}
-            />
-          </div>
-        </div>
-
-        <section className="project-task-board">
-          <div className="project-task-heading">
             <div>
-              <h3>
-                Proje Görevleri
-              </h3>
-
-              <p>
-                Bu projeye ait görevlerin
-                güncel durumu.
-              </p>
+              <h2>{project.name}</h2>
+              <span className="project-label">
+                BİRİM / DEPARTMAN
+              </span>
             </div>
           </div>
+        </div>
+      </div>
 
-          <div className="kanban">
-            <KanbanColumn
-              title="Yapılacak"
-              status="todo"
-              tasks={projectTasks}
-              onTaskClick={
-                setSelectedTask
-              }
-              onAddTask={() =>
-                openTaskModal("todo")
-              }
-            />
+      <div className="project-tabs-navigation">
+        <button
+          type="button"
+          className={`tab-btn ${
+            activeTab === "dashboard" ? "active" : ""
+          }`}
+          onClick={() => setActiveTab("dashboard")}
+        >
+          <LayoutDashboard size={16} />
+          Genel Bakış
+        </button>
 
-            <KanbanColumn
-              title="Devam Ediyor"
-              status="progress"
-              tasks={projectTasks}
-              onTaskClick={
-                setSelectedTask
-              }
-              onAddTask={() =>
-                openTaskModal(
-                  "progress",
-                )
-              }
-            />
+        <button
+          type="button"
+          className={`tab-btn ${
+            activeTab === "tasks" ? "active" : ""
+          }`}
+          onClick={() => setActiveTab("tasks")}
+        >
+          <CheckSquare size={16} />
+          Görevler
+        </button>
 
-            <KanbanColumn
-              title="İncelemede"
-              status="review"
-              tasks={projectTasks}
-              onTaskClick={
-                setSelectedTask
-              }
-              onAddTask={() =>
-                openTaskModal(
-                  "review",
-                )
-              }
-            />
+        <button
+          type="button"
+          className={`tab-btn ${
+            activeTab === "milestones" ? "active" : ""
+          }`}
+          onClick={() => setActiveTab("milestones")}
+        >
+          <Flag size={16} />
+          Hedefler
+        </button>
 
-            <KanbanColumn
-              title="Tamamlandı"
-              status="done"
-              tasks={projectTasks}
-              onTaskClick={
-                setSelectedTask
-              }
-              onAddTask={() =>
-                openTaskModal("done")
-              }
-            />
-          </div>
-        </section>
-      </section>
+        <button
+          type="button"
+          className={`tab-btn ${
+            activeTab === "files" ? "active" : ""
+          }`}
+          onClick={() => setActiveTab("files")}
+        >
+          <FolderOpen size={16} />
+          Dosyalar
+        </button>
 
-      <TaskDrawer
-        task={selectedTask}
-        onClose={() =>
-          setSelectedTask(null)
-        }
-      />
+        <button
+          type="button"
+          className={`tab-btn ${
+            activeTab === "wiki" ? "active" : ""
+          }`}
+          onClick={() => setActiveTab("wiki")}
+        >
+          <BookOpen size={16} />
+          Wiki
+        </button>
 
-      <TaskModal
-        isOpen={showTaskModal}
-        onClose={() =>
-          setShowTaskModal(false)
-        }
-        onCreate={handleCreateTask}
-        defaultStatus={taskModalStatus}
-      />
-    </>
+        <button
+          type="button"
+          className={`tab-btn ${
+            activeTab === "gantt" ? "active" : ""
+          }`}
+          onClick={() => setActiveTab("gantt")}
+        >
+          <ChartNoAxesGantt size={16} />
+          Gantt
+        </button>
+
+        <button
+          type="button"
+          className={`tab-btn ${
+            activeTab === "calendar" ? "active" : ""
+          }`}
+          onClick={() => setActiveTab("calendar")}
+        >
+          <CalendarDays size={16} />
+          Takvim
+        </button>
+
+        <button
+          type="button"
+          className={`tab-btn ${
+            activeTab === "settings" ? "active" : ""
+          }`}
+          onClick={() => setActiveTab("settings")}
+        >
+          <Settings size={16} />
+          Ayarlar
+        </button>
+      </div>
+
+      <div className="project-tab-content-area">
+        {activeTab === "dashboard" && (
+          <ProjectDashboardTab
+            project={project}
+            tasks={tasks}
+          />
+        )}
+
+        {activeTab === "tasks" && (
+          <ProjectTasksTab
+            projectId={unitId}
+            project={project}
+            tasks={tasks}
+            setTasks={setTasks}
+          />
+        )}
+
+        {activeTab === "milestones" && (
+          <ProjectMilestonesTab />
+        )}
+
+        {activeTab === "files" && (
+          <ProjectFilesTab />
+        )}
+
+        {activeTab === "wiki" && (
+          <ProjectWikiTab />
+        )}
+
+        {activeTab === "gantt" && (
+          <ProjectCalendarTab
+            project={project}
+            tasks={tasks}
+          />
+        )}
+
+        {activeTab === "calendar" && (
+          <ProjectMonthlyCalendarTab
+            project={project}
+            tasks={tasks}
+          />
+        )}
+
+        {activeTab === "settings" && (
+          <ProjectSettingsTab project={project} />
+        )}
+      </div>
+    </section>
   );
 }

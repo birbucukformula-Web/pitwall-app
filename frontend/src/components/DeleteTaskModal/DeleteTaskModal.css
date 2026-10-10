@@ -1,0 +1,148 @@
+.delete-task-overlay {
+  position: fixed;
+  inset: 0;
+
+  z-index: 300;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.delete-task-modal {
+  width: min(430px, 100%);
+
+  overflow: hidden;
+
+  background: var(--surface);
+  color: var(--text);
+
+  border: 1px solid var(--border);
+  border-radius: 12px;
+
+  box-shadow:
+    0 20px 60px
+    rgba(0, 0, 0, 0.25);
+}
+
+.delete-task-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 20px 20px 0;
+}
+
+.delete-task-icon {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background:
+    rgba(226, 29, 44, 0.1);
+
+  color: var(--accent);
+
+  border-radius: 9px;
+}
+
+.delete-task-close {
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  background: var(--surface-soft);
+  color: var(--text-muted);
+
+  border-radius: 7px;
+
+  cursor: pointer;
+}
+
+.delete-task-content {
+  padding: 18px 20px 24px;
+}
+
+.delete-task-content h3 {
+  margin: 0;
+
+  color: var(--text);
+
+  font-size: 18px;
+}
+
+.delete-task-content p {
+  margin: 9px 0 0;
+
+  color: var(--text-muted);
+
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.delete-task-content strong {
+  color: var(--text);
+}
+
+.delete-task-footer {
+  display: flex;
+  justify-content: flex-end;
+
+  gap: 9px;
+
+  padding: 15px 20px;
+
+  background: var(--surface-soft);
+
+  border-top:
+    1px solid var(--border);
+}
+
+.delete-task-cancel,
+.delete-task-confirm {
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 6px;
+
+  padding: 0 14px;
+
+  border-radius: 7px;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.delete-task-cancel {
+  background: var(--surface);
+  color: var(--text-secondary);
+
+  border:
+    1px solid var(--border);
+}
+
+.delete-task-confirm {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.delete-task-confirm:hover {
+  background: var(--accent-hover);
+}

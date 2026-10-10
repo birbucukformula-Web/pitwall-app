@@ -1,406 +1,669 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import {
-  Plus,
-  SlidersHorizontal,
+  AlertCircle,
+  Calendar,
+  CheckCircle2,
+  ChevronRight,
+  CircleDashed,
 } from "lucide-react";
 
-import StatCard from "../../components/StatCard/StatCard";
-import KanbanColumn from "../../components/KanbanColumn/KanbanColumn";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+
+import { tasksApi } from "../../api/tasks";
+import { useAuth } from "../../contexts/AuthContext";
+
+import type {
+  Task,
+  TaskStatus,
+} from "../../types/task";
+
 import TaskDrawer from "../../components/TaskDrawer/TaskDrawer";
-import TaskModal from "../../components/TaskModal/TaskModal";
-
-import { mockTasks } from "../../data/mockTasks";
-
-import type { Task } from "../../types/task";
 
 import "./Dashboard.css";
 
 export default function Dashboard() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
   const [selectedTask, setSelectedTask] =
     useState<Task | null>(null);
 
-  const [tasks, setTasks] =
-    useState<Task[]>(mockTasks);
-
-  const [showTaskModal, setShowTaskModal] =
-    useState(false);
-
+  /*
+   * Bu oturum sırasında tamamlanan görevlerin
+   * önceki durumunu saklıyoruz.
+   */
   const [
-    taskModalStatus,
-    setTaskModalStatus,
-  ] = useState<Task["status"]>("todo");
+    previousStatuses,
+    setPreviousStatuses,
+  ] = useState<Record<number, TaskStatus>>({});
 
-  const [showFilters, setShowFilters] =
-    useState(false);
+  const {
+    data: allTasks = [],
+    isLoading,
+  } = useQuery({
+    queryKey: ["tasks"],
+    queryFn: () => tasksApi.getTasks(),
+  });
 
-  const [projectFilter, setProjectFilter] =
-    useState("all");
+  const toggleStatusMutation = useMutation({
+    mutationFn: ({
+      task,
+      nextStatus,
+    }: {
+      task: Task;
+      nextStatus: TaskStatus;
+    }) =>
+      tasksApi.updateTask(task.id, {
+        status: nextStatus,
+      }),
 
-  const [priorityFilter, setPriorityFilter] =
-    useState("all");
+    onSuccess: (
+      updatedTask,
+      variables,
+    ) => {
+      queryClient.setQueryData<Task[]>(
+        ["tasks"],
+        (currentTasks = []) =>
+          currentTasks.map((task) =>
+            task.id === updatedTask.id
+              ? updatedTask
+              : task,
+          ),
+      );
 
-  const [assigneeFilter, setAssigneeFilter] =
-    useState("all");
+      setSelectedTask((current) =>
+        current?.id === updatedTask.id
+          ? updatedTask
+          : current,
+      );
 
-  function handleCreateTask(
-    newTask: Task,
-  ) {
-    setTasks((previousTasks) => [
-      ...previousTasks,
-      newTask,
-    ]);
-  }
+      if (
+        variables.nextStatus === "done"
+      ) {
+        setPreviousStatuses(
+          (current) => ({
+            ...current,
+            [variables.task.id]:
+              variables.task.status,
+          }),
+        );
+      } else {
+        setPreviousStatuses(
+          (current) => {
+            const next = {
+              ...current,
+            };
 
-  function openTaskModal(
-    status: Task["status"] = "todo",
-  ) {
-    setTaskModalStatus(status);
-    setShowTaskModal(true);
-  }
+            delete next[
+              variables.task.id
+            ];
 
-  const availableProjects = Array.from(
-    new Set(tasks.map((task) => task.project)),
+            return next;
+          },
+        );
+      }
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["tasks"],
+      });
+    },
+  });
+
+  const myTasks = useMemo(() => {
+    if (!user) {
+      return [];
+    }
+
+    return allTasks.filter((task) =>
+      task.assignees?.some(
+        (assignee: any) =>
+          assignee.id === user.id,
+      ),
+    );
+  }, [allTasks, user]);
+
+  const activeTasks = useMemo(
+    () =>
+      myTasks.filter(
+        (task) =>
+          task.status !== "done",
+      ),
+    [myTasks],
   );
 
-  const availableAssignees = Array.from(
-    new Map(
-      tasks
-        .flatMap((task) => task.assignees)
-        .map((member) => [
-          member.id,
-          member,
-        ]),
-    ).values(),
+  const completedTasks = useMemo(
+    () =>
+      myTasks.filter(
+        (task) =>
+          task.status === "done",
+      ),
+    [myTasks],
   );
 
-  const filteredTasks = tasks.filter(
-    (task) => {
-      const matchesProject =
-        projectFilter === "all" ||
-        task.project === projectFilter;
+  const today = useMemo(() => {
+    const date = new Date();
 
-      const matchesPriority =
-        priorityFilter === "all" ||
-        task.priority === priorityFilter;
+    date.setHours(0, 0, 0, 0);
 
-      const matchesAssignee =
-        assigneeFilter === "all" ||
-        task.assignees.some(
-          (member) =>
-            member.id.toString() ===
-            assigneeFilter,
+    return date;
+  }, []);
+
+  const overdueTasks = useMemo(() => {
+    return activeTasks.filter(
+      (task) => {
+        if (!task.due_date) {
+          return false;
+        }
+
+        const dueDate =
+          new Date(task.due_date);
+
+        dueDate.setHours(
+          0,
+          0,
+          0,
+          0,
         );
 
-      return (
-        matchesProject &&
-        matchesPriority &&
-        matchesAssignee
-      );
-    },
-  );
+        return dueDate < today;
+      },
+    );
+  }, [activeTasks, today]);
 
-  const activeFilterCount = [
-    projectFilter !== "all",
-    priorityFilter !== "all",
-    assigneeFilter !== "all",
-  ].filter(Boolean).length;
+  function formatDate(
+    value?: string | null,
+  ) {
+    if (!value) {
+      return "";
+    }
 
-  function clearFilters() {
-    setProjectFilter("all");
-    setPriorityFilter("all");
-    setAssigneeFilter("all");
+    return new Date(
+      value,
+    ).toLocaleDateString(
+      "tr-TR",
+      {
+        day: "numeric",
+        month: "short",
+      },
+    );
+  }
+
+  function priorityText(
+    priority: Task["priority"],
+  ) {
+    if (priority === "high") {
+      return "Yüksek";
+    }
+
+    if (priority === "medium") {
+      return "Orta";
+    }
+
+    return "Düşük";
+  }
+
+  function handleToggleComplete(
+    task: Task,
+  ) {
+    if (
+      toggleStatusMutation.isPending
+    ) {
+      return;
+    }
+
+    /*
+     * Aktif görev -> tamamlandı
+     */
+    if (task.status !== "done") {
+      toggleStatusMutation.mutate({
+        task,
+        nextStatus: "done",
+      });
+
+      return;
+    }
+
+    /*
+     * Tamamlanmış görev -> eski durum
+     *
+     * Bu oturumda tamamlandıysa gerçek eski duruma,
+     * önceden tamamlanmışsa yapılacak durumuna döner.
+     */
+    const previousStatus =
+      previousStatuses[task.id] ??
+      "todo";
+
+    toggleStatusMutation.mutate({
+      task,
+      nextStatus: previousStatus,
+    });
+  }
+
+  function canUndoCompletion(
+    task: Task,
+  ) {
+    return task.status === "done";
+  }
+
+  if (isLoading) {
+    return (
+      <div className="pd-loading">
+        Yükleniyor...
+      </div>
+    );
   }
 
   return (
     <>
-      <section className="dashboard">
-        <div className="welcome-row">
-          <div>
-            <h2>Takımın genel durumu</h2>
+      <section className="personal-dashboard">
+        {/* HERO */}
+
+        <section className="pd-hero">
+          <div className="pd-welcome">
+            <h2>
+              Hoş Geldin,{" "}
+              {user?.first_name}
+            </h2>
 
             <p>
-              Formula Student çalışmalarındaki görevleri
-              buradan takip edebilirsin.
+              Bugün seni bekleyen
+              görevleri ve ilerlemeni
+              buradan takip
+              edebilirsin.
             </p>
           </div>
-
-          <button
-            className="new-task-button"
-            onClick={() =>
-              openTaskModal("todo")
-            }
-          >
-            <Plus size={18} />
-            Yeni Görev
-          </button>
-        </div>
-
-        <section className="stats-grid">
-          <StatCard
-            title="Toplam Görev"
-            value={tasks.length}
-            description="Bu sprintte"
-            color="black"
-          />
-
-          <StatCard
-            title="Devam Ediyor"
-            value={
-              tasks.filter(
-                (task) =>
-                  task.status === "progress",
-              ).length
-            }
-            description="Aktif görev"
-            color="red"
-          />
-
-          <StatCard
-            title="İncelemede"
-            value={
-              tasks.filter(
-                (task) =>
-                  task.status === "review",
-              ).length
-            }
-            description="Onay bekliyor"
-            color="orange"
-          />
-
-          <StatCard
-            title="Tamamlanan"
-            value={
-              tasks.filter(
-                (task) =>
-                  task.status === "done",
-              ).length
-            }
-            description="Tamamlanan görev"
-            color="green"
-          />
         </section>
 
-        <section className="board-section">
-          <div className="board-toolbar">
-            <div>
-              <h3>Görevler</h3>
+        {/* STATS */}
 
+        <div className="pd-stats-grid">
+          <div className="pd-stat-card">
+            <div className="pd-stat-icon active">
+              <CircleDashed size={20} />
+            </div>
+
+            <div className="pd-stat-info">
               <span>
-                Takım görevlerinin mevcut durumu
+                Aktif Görevler
+              </span>
+
+              <strong>
+                {activeTasks.length}
+              </strong>
+            </div>
+          </div>
+
+          <div className="pd-stat-card">
+            <div className="pd-stat-icon overdue">
+              <AlertCircle size={20} />
+            </div>
+
+            <div className="pd-stat-info">
+              <span>
+                Geciken
+              </span>
+
+              <strong>
+                {overdueTasks.length}
+              </strong>
+            </div>
+          </div>
+
+          <div className="pd-stat-card">
+            <div className="pd-stat-icon completed">
+              <CheckCircle2 size={20} />
+            </div>
+
+            <div className="pd-stat-info">
+              <span>
+                Tamamlanan
+              </span>
+
+              <strong>
+                {completedTasks.length}
+              </strong>
+            </div>
+          </div>
+        </div>
+
+        {/* MAIN */}
+
+        <div className="pd-main-grid">
+          <div className="pd-panel">
+            <div className="pd-panel-header">
+              <div>
+                <h3>
+                  Bana Atanan Görevler
+                </h3>
+              </div>
+
+              <span className="pd-count">
+                {activeTasks.length} Aktif
               </span>
             </div>
 
-            <div className="filter-wrapper">
-              <button
-                className={`filter-button ${activeFilterCount > 0
-                    ? "active"
-                    : ""
-                  }`}
-                onClick={() =>
-                  setShowFilters(
-                    (previous) => !previous,
-                  )
-                }
-              >
-                <SlidersHorizontal size={17} />
+            <div className="pd-task-list">
+              {activeTasks.length === 0 ? (
+                <div className="pd-empty">
+                  Şu an için sana
+                  atanmış aktif bir görev
+                  bulunmuyor.
+                </div>
+              ) : (
+                activeTasks.map(
+                  (task) => {
+                    const isOverdue =
+                      task.due_date &&
+                      new Date(
+                        task.due_date,
+                      ) < today;
 
-                Filtrele
-
-                {activeFilterCount > 0 && (
-                  <span className="filter-count">
-                    {activeFilterCount}
-                  </span>
-                )}
-              </button>
-
-              {showFilters && (
-                <div className="filter-panel">
-                  <div className="filter-panel-header">
-                    <div>
-                      <strong>Görevleri filtrele</strong>
-                      <span>
-                        Görmek istediğin görevleri daralt.
-                      </span>
-                    </div>
-
-                    {activeFilterCount > 0 && (
+                    return (
                       <button
                         type="button"
-                        className="clear-filter-button"
-                        onClick={clearFilters}
+                        key={task.id}
+                        className={`pd-task-row ${
+                          isOverdue
+                            ? "overdue"
+                            : ""
+                        }`}
+                        onClick={() =>
+                          setSelectedTask(
+                            task,
+                          )
+                        }
                       >
-                        Temizle
+                        <span
+                          role="button"
+                          tabIndex={0}
+                          className="pd-complete-toggle"
+                          title="Tamamlandı olarak işaretle"
+                          aria-label={`${task.title} görevini tamamlandı olarak işaretle`}
+                          onClick={(
+                            event,
+                          ) => {
+                            event.stopPropagation();
+
+                            handleToggleComplete(
+                              task,
+                            );
+                          }}
+                          onKeyDown={(
+                            event,
+                          ) => {
+                            if (
+                              event.key ===
+                                "Enter" ||
+                              event.key ===
+                                " "
+                            ) {
+                              event.preventDefault();
+                              event.stopPropagation();
+
+                              handleToggleComplete(
+                                task,
+                              );
+                            }
+                          }}
+                        >
+                          <CircleDashed
+                            size={17}
+                          />
+                        </span>
+
+                        <div className="pd-task-main">
+                          <strong>
+                            {task.title}
+                          </strong>
+
+                          <div className="pd-task-meta">
+                            {task.project && (
+                              <span>
+                                {
+                                  task
+                                    .project
+                                    .name
+                                }
+                              </span>
+                            )}
+
+                            {task.due_date && (
+                              <span className="pd-task-date">
+                                <Calendar
+                                  size={12}
+                                />
+
+                                {formatDate(
+                                  task.due_date,
+                                )}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="pd-task-priority">
+                          <i
+                            className={`priority-dot ${task.priority}`}
+                          />
+
+                          {priorityText(
+                            task.priority,
+                          )}
+                        </div>
+
+                        <ChevronRight
+                          size={15}
+                          className="pd-row-arrow"
+                        />
                       </button>
-                    )}
-                  </div>
-
-                  <div className="filter-fields">
-                    <label>
-                      Proje
-
-                      <select
-                        value={projectFilter}
-                        onChange={(event) =>
-                          setProjectFilter(
-                            event.target.value,
-                          )
-                        }
-                      >
-                        <option value="all">
-                          Tüm projeler
-                        </option>
-
-                        {availableProjects.map(
-                          (project) => (
-                            <option
-                              key={project}
-                              value={project}
-                            >
-                              {project}
-                            </option>
-                          ),
-                        )}
-                      </select>
-                    </label>
-
-                    <label>
-                      Öncelik
-
-                      <select
-                        value={priorityFilter}
-                        onChange={(event) =>
-                          setPriorityFilter(
-                            event.target.value,
-                          )
-                        }
-                      >
-                        <option value="all">
-                          Tüm öncelikler
-                        </option>
-
-                        <option value="low">
-                          Düşük
-                        </option>
-
-                        <option value="medium">
-                          Orta
-                        </option>
-
-                        <option value="high">
-                          Yüksek
-                        </option>
-                      </select>
-                    </label>
-
-                    <label>
-                      Atanan kişi
-
-                      <select
-                        value={assigneeFilter}
-                        onChange={(event) =>
-                          setAssigneeFilter(
-                            event.target.value,
-                          )
-                        }
-                      >
-                        <option value="all">
-                          Tüm ekip
-                        </option>
-
-                        {availableAssignees.map(
-                          (member) => (
-                            <option
-                              key={member.id}
-                              value={member.id}
-                            >
-                              {member.name}
-                            </option>
-                          ),
-                        )}
-                      </select>
-                    </label>
-                  </div>
-
-                  <div className="filter-panel-footer">
-                    <span>
-                      {filteredTasks.length} görev
-                      gösteriliyor
-                    </span>
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setShowFilters(false)
-                      }
-                    >
-                      Tamam
-                    </button>
-                  </div>
-                </div>
+                    );
+                  },
+                )
               )}
             </div>
           </div>
 
-          <div className="kanban">
-            <KanbanColumn
-              title="Yapılacak"
-              status="todo"
-              tasks={filteredTasks}
-              onTaskClick={setSelectedTask}
-              onAddTask={() =>
-                openTaskModal("todo")
-              }
-            />
+          <div className="pd-side-stack">
+            {overdueTasks.length >
+              0 && (
+              <div className="pd-panel">
+                <div className="pd-panel-header">
+                  <h3 className="pd-danger">
+                    Dikkat Gerektirenler
+                  </h3>
+                </div>
 
-            <KanbanColumn
-              title="Devam Ediyor"
-              status="progress"
-              tasks={filteredTasks}
-              onTaskClick={setSelectedTask}
-              onAddTask={() =>
-                openTaskModal("progress")
-              }
-            />
+                <div className="pd-overdue-list">
+                  {overdueTasks.map(
+                    (task) => (
+                      <button
+                        type="button"
+                        key={task.id}
+                        className="pd-overdue-row"
+                        onClick={() =>
+                          setSelectedTask(
+                            task,
+                          )
+                        }
+                      >
+                        <AlertCircle
+                          size={15}
+                        />
 
-            <KanbanColumn
-              title="İncelemede"
-              status="review"
-              tasks={filteredTasks}
-              onTaskClick={setSelectedTask}
-              onAddTask={() =>
-                openTaskModal("review")
-              }
-            />
+                        <div>
+                          <strong>
+                            {task.title}
+                          </strong>
 
-            <KanbanColumn
-              title="Tamamlandı"
-              status="done"
-              tasks={filteredTasks}
-              onTaskClick={setSelectedTask}
-              onAddTask={() =>
-                openTaskModal("done")
-              }
-            />
+                          <span>
+                            Son Tarih:{" "}
+                            {task.due_date
+                              ? new Date(
+                                  task.due_date,
+                                ).toLocaleDateString(
+                                  "tr-TR",
+                                )
+                              : "-"}
+                          </span>
+                        </div>
+                      </button>
+                    ),
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="pd-panel">
+              <div className="pd-panel-header">
+                <h3>
+                  Son Tamamlananlar
+                </h3>
+              </div>
+
+              {completedTasks.length ===
+              0 ? (
+                <div className="pd-completed-empty">
+                  <CheckCircle2
+                    size={26}
+                  />
+
+                  <span>
+                    Henüz tamamlanan
+                    görev yok.
+                  </span>
+                </div>
+              ) : (
+                completedTasks
+                  .slice(0, 5)
+                  .map((task) => {
+                    const canUndo =
+                      canUndoCompletion(
+                        task,
+                      );
+
+                    return (
+                      <button
+                        type="button"
+                        key={task.id}
+                        className="pd-task-row completed-row"
+                        onClick={() =>
+                          setSelectedTask(
+                            task,
+                          )
+                        }
+                      >
+                        <span
+                          role={
+                            canUndo
+                              ? "button"
+                              : undefined
+                          }
+                          tabIndex={
+                            canUndo
+                              ? 0
+                              : -1
+                          }
+                          className={`pd-complete-toggle completed ${
+                            canUndo
+                              ? "undoable"
+                              : "locked"
+                          }`}
+                          title={
+                            canUndo
+                              ? "Tamamlanmayı geri al"
+                              : "Tamamlandı"
+                          }
+                          aria-label={
+                            canUndo
+                              ? `${task.title} görevinin tamamlanmasını geri al`
+                              : `${task.title} tamamlandı`
+                          }
+                          onClick={(
+                            event,
+                          ) => {
+                            if (!canUndo) {
+                              return;
+                            }
+
+                            event.stopPropagation();
+
+                            handleToggleComplete(
+                              task,
+                            );
+                          }}
+                          onKeyDown={(
+                            event,
+                          ) => {
+                            if (!canUndo) {
+                              return;
+                            }
+
+                            if (
+                              event.key ===
+                                "Enter" ||
+                              event.key ===
+                                " "
+                            ) {
+                              event.preventDefault();
+                              event.stopPropagation();
+
+                              handleToggleComplete(
+                                task,
+                              );
+                            }
+                          }}
+                        >
+                          <CheckCircle2
+                            size={17}
+                          />
+                        </span>
+
+                        <div className="pd-task-main">
+                          <strong>
+                            {task.title}
+                          </strong>
+                        </div>
+
+                        <ChevronRight
+                          size={15}
+                        />
+                      </button>
+                    );
+                  })
+              )}
+            </div>
           </div>
-        </section>
+        </div>
       </section>
 
-      <TaskDrawer
-        task={selectedTask}
-        onClose={() =>
-          setSelectedTask(null)
-        }
-      />
-
-      <TaskModal
-        isOpen={showTaskModal}
-        onClose={() =>
-          setShowTaskModal(false)
-        }
-        onCreate={handleCreateTask}
-        defaultStatus={taskModalStatus}
-      />
+      {selectedTask && (
+        <TaskDrawer
+          task={selectedTask}
+          onClose={() =>
+            setSelectedTask(null)
+          }
+          onToggleComplete={
+            handleToggleComplete
+          }
+          canUndoCompletion={
+            selectedTask.status ===
+              "done" &&
+            canUndoCompletion(
+              selectedTask,
+            )
+          }
+          isStatusUpdating={
+            toggleStatusMutation.isPending
+          }
+        />
+      )}
     </>
   );
 }

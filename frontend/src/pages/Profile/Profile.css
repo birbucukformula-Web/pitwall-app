@@ -1,44 +1,21 @@
 .profile-page {
-  padding: 34px 38px 44px;
-
+  width: 100%;
+  padding: 34px 48px 50px;
   color: var(--text);
 }
 
 .profile-page-header {
-  margin-bottom: 28px;
+  margin-bottom: 18px;
 }
 
-.profile-page-label {
-  display: block;
-
-  margin-bottom: 7px;
-
-  color: var(--accent);
-
-  font-size: 10px;
-  font-weight: 800;
-
-  letter-spacing: 1.5px;
-}
-
-.profile-page-header h2 {
-  margin: 0;
-
-  color: var(--text);
-
-  font-size: 30px;
-  font-weight: 700;
-}
-
-.profile-page-header p {
+.profile-page-description {
   max-width: 680px;
-
-  margin: 8px 0 0;
+  margin: 0;
 
   color: var(--text-muted);
 
   font-size: 14px;
-  line-height: 1.6;
+  line-height: 1.55;
 }
 
 /* LAYOUT */
@@ -83,9 +60,17 @@
   color: #ffffff;
 
   border-radius: 50%;
+  overflow: hidden;
 
   font-size: 25px;
   font-weight: 800;
+}
+
+.profile-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 .profile-overview-card h3 {
@@ -308,20 +293,103 @@
   cursor: not-allowed;
 }
 
-/* RESPONSIVE */
+.profile-theme-button--active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.profile-theme-button--active:hover {
+  opacity: 0.85;
+}
+
+/* AVATAR PICKER */
+
+.avatar-picker {
+  padding: 24px 28px 28px;
+  border-top: 1px solid var(--border);
+  background: var(--surface-soft);
+}
+
+.avatar-picker-title {
+  margin: 0 0 16px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.avatar-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 12px;
+}
+
+.avatar-picker-item {
+  position: relative;
+  aspect-ratio: 1;
+  padding: 0;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.avatar-picker-item:hover {
+  border-color: var(--accent);
+  transform: scale(1.08);
+}
+
+.avatar-picker-item.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.avatar-picker-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.avatar-picker-check {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 18px;
+  height: 18px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* =====================================
+   RESPONSIVE
+===================================== */
 
 @media (max-width: 900px) {
   .profile-page {
-    padding: 24px 20px;
+    padding: 24px 20px 36px;
   }
 
   .profile-layout {
     grid-template-columns: 1fr;
+    gap: 18px;
   }
 
   .profile-overview-card {
     align-items: flex-start;
-
+    padding: 28px 24px;
     text-align: left;
   }
 
@@ -332,5 +400,225 @@
   .profile-theme-section {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .avatar-picker-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .profile-page {
+    width: 100%;
+    max-width: 100%;
+    padding: 18px 14px 32px;
+  }
+
+  .profile-page-header {
+    margin-bottom: 14px;
+  }
+
+  .profile-page-description {
+    font-size: 12px;
+  }
+
+  .profile-layout {
+    gap: 14px;
+  }
+
+  /* OVERVIEW */
+
+  .profile-overview-card {
+    align-items: center;
+
+    padding: 24px 18px;
+
+    border-radius: 10px;
+
+    text-align: center;
+  }
+
+  .profile-large-avatar {
+    width: 82px;
+    height: 82px;
+
+    font-size: 22px;
+  }
+
+  .profile-overview-card h3 {
+    margin-top: 16px;
+
+    font-size: 19px;
+  }
+
+  .profile-department {
+    margin-top: 5px;
+
+    font-size: 12px;
+  }
+
+  .profile-member-role {
+    margin-top: 10px;
+  }
+
+  .profile-team-badge {
+    margin-top: 15px;
+  }
+
+  /* DETAILS */
+
+  .profile-details-card {
+    border-radius: 10px;
+  }
+
+  .profile-section-heading {
+    padding: 20px 18px;
+  }
+
+  .profile-section-heading h3 {
+    font-size: 17px;
+  }
+
+  .profile-section-heading p {
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  /* INFO */
+
+  .profile-info-grid {
+    grid-template-columns: 1fr;
+
+    gap: 10px;
+
+    padding: 16px;
+  }
+
+  .profile-info-item {
+    min-height: 78px;
+
+    gap: 13px;
+
+    padding: 14px;
+
+    border-radius: 9px;
+  }
+
+  .profile-info-icon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .profile-info-item span {
+    font-size: 10px;
+  }
+
+  .profile-info-item strong {
+    font-size: 13px;
+  }
+
+  /* AVATAR THEME */
+
+  .profile-theme-section {
+    gap: 18px;
+
+    padding: 22px 18px;
+  }
+
+  .profile-section-kicker {
+    margin-bottom: 5px;
+  }
+
+  .profile-theme-section h3 {
+    font-size: 17px;
+  }
+
+  .profile-theme-section p {
+    max-width: none;
+
+    margin-top: 6px;
+
+    font-size: 11px;
+    line-height: 1.55;
+  }
+
+  .profile-theme-button {
+    width: 100%;
+    height: 42px;
+
+    padding: 0 16px;
+  }
+
+  /* AVATAR PICKER */
+
+  .avatar-picker {
+    padding: 20px 18px 24px;
+  }
+
+  .avatar-picker-title {
+    margin-bottom: 16px;
+
+    font-size: 11px;
+  }
+
+  .avatar-picker-grid {
+    grid-template-columns: repeat(5, 44px);
+
+    justify-content: space-between;
+
+    gap: 14px 8px;
+  }
+
+  .avatar-picker-item {
+    width: 44px;
+    height: 44px;
+
+    aspect-ratio: auto;
+  }
+
+  /*
+   * Mobilde hover büyümesi kullanmıyoruz.
+   * Dokunmatik ekranda gereksiz ve kaymaya
+   * neden olabiliyor.
+   */
+  .avatar-picker-item:hover {
+    border-color: var(--border);
+    transform: none;
+  }
+
+  .avatar-picker-item.selected,
+  .avatar-picker-item.selected:hover {
+    border-color: var(--accent);
+
+    box-shadow:
+      0 0 0 3px var(--accent-soft);
+  }
+
+  .avatar-picker-check {
+    right: 0;
+    bottom: 0;
+
+    width: 16px;
+    height: 16px;
+
+    font-size: 9px;
+  }
+}
+
+@media (max-width: 390px) {
+  .profile-page {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .avatar-picker-grid {
+    grid-template-columns: repeat(5, 40px);
+
+    gap: 13px 6px;
+  }
+
+  .avatar-picker-item {
+    width: 40px;
+    height: 40px;
   }
 }

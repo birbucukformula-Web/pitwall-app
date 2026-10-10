@@ -1,42 +1,100 @@
+import { useState } from "react";
 import {
   Mail,
   ShieldCheck,
   UserRound,
   BriefcaseBusiness,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+
+import { authApi } from "../../api/auth";
+import {
+  AVATARS,
+  useAvatar,
+} from "../../contexts/AvatarContext";
 
 import "./Profile.css";
 
 export default function Profile() {
+  const { data: currentUser, isLoading } = useQuery({
+    queryKey: ["me"],
+    queryFn: () => authApi.getMe(),
+  });
+
+  const {
+    selectedAvatarId,
+    selectedAvatar,
+    selectAvatar,
+  } = useAvatar();
+
+  const [showPicker, setShowPicker] =
+    useState(false);
+
+  if (isLoading || !currentUser) {
+    return (
+      <div
+        style={{
+          padding: "40px",
+          color: "var(--text-secondary)",
+        }}
+      >
+        Yükleniyor...
+      </div>
+    );
+  }
+
   const user = {
-    name: "Lidya Su",
-    initials: "LS",
-    department: "Web & Yazılım",
-    teamRole: "Üye",
-    email: "lidya@1bucukadana.com",
+    name:
+      `${currentUser.first_name} ${currentUser.last_name}`.trim() ||
+      currentUser.email,
+
+    initials:
+      `${currentUser.first_name?.[0] ?? ""}${
+        currentUser.last_name?.[0] ?? ""
+      }`.toUpperCase() ||
+      currentUser.email[0].toUpperCase(),
+
+    department:
+      currentUser.organization?.name ??
+      "Belirtilmemiş",
+
+    teamRole:
+      ((currentUser as any).unit_name ? `${(currentUser as any).unit_name} - ` : "") +
+      (currentUser.role === "captain"
+        ? "Kaptan"
+        : currentUser.role === "lead"
+          ? "Lider"
+          : "Üye"),
+
+    email: currentUser.email,
   };
+
+  function handleSelectAvatar(id: string) {
+    selectAvatar(id);
+    setShowPicker(false);
+  }
 
   return (
     <section className="profile-page">
       <div className="profile-page-header">
-        <div>
-          <span className="profile-page-label">
-            HESAP
-          </span>
-
-          <h2>Profilim</h2>
-
-          <p>
-            Hesap bilgilerini ve takım içindeki
-            profilini buradan görüntüleyebilirsin.
-          </p>
-        </div>
+        <p className="profile-page-description">
+          Hesap bilgilerini ve takım içindeki
+          profilini buradan görüntüleyebilirsin.
+        </p>
       </div>
 
       <div className="profile-layout">
         <aside className="profile-overview-card">
           <div className="profile-large-avatar">
-            {user.initials}
+            {selectedAvatar ? (
+              <img
+                src={selectedAvatar.src}
+                alt={selectedAvatar.label}
+                className="profile-avatar-img"
+              />
+            ) : (
+              user.initials
+            )}
           </div>
 
           <h3>{user.name}</h3>
@@ -58,7 +116,6 @@ export default function Profile() {
           <div className="profile-section-heading">
             <div>
               <h3>Kullanıcı bilgileri</h3>
-
               <p>
                 Takım içindeki temel hesap
                 bilgilerin.
@@ -98,9 +155,7 @@ export default function Profile() {
 
               <div>
                 <span>Takım Yetkisi</span>
-                <strong>
-                  {user.teamRole}
-                </strong>
+                <strong>{user.teamRole}</strong>
               </div>
             </div>
 
@@ -125,20 +180,66 @@ export default function Profile() {
               <h3>Avatar teması</h3>
 
               <p>
-                Profil görünümünü kişiselleştirmek
-                için daha sonra Formula 1 pilot
-                temalarından birini seçebileceksin.
+                Formula pilotu temalı 9 avatardan
+                birini seç — seçimin tarayıcında
+                saklanır.
               </p>
             </div>
 
             <button
               type="button"
-              className="profile-theme-button"
-              disabled
+              className="profile-theme-button profile-theme-button--active"
+              onClick={() =>
+                setShowPicker(
+                  (previous) => !previous,
+                )
+              }
             >
-              Yakında
+              {selectedAvatar
+                ? "Avatarı değiştir"
+                : "Avatar seç"}
             </button>
           </div>
+
+          {showPicker && (
+            <div className="avatar-picker">
+              <p className="avatar-picker-title">
+                Pilotunu seç
+              </p>
+
+              <div className="avatar-picker-grid">
+                {AVATARS.map((avatar) => (
+                  <button
+                    key={avatar.id}
+                    type="button"
+                    className={`avatar-picker-item ${
+                      selectedAvatarId === avatar.id
+                        ? "selected"
+                        : ""
+                    }`}
+                    onClick={() =>
+                      handleSelectAvatar(
+                        avatar.id,
+                      )
+                    }
+                    title={avatar.label}
+                  >
+                    <img
+                      src={avatar.src}
+                      alt={avatar.label}
+                    />
+
+                    {selectedAvatarId ===
+                      avatar.id && (
+                      <span className="avatar-picker-check">
+                        ✓
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </section>

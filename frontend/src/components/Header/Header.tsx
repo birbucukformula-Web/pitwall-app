@@ -1,5 +1,9 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+
+import {
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 
 import {
   Bell,
@@ -12,9 +16,11 @@ import {
 import TaskDrawer from "../TaskDrawer/TaskDrawer";
 import ThemeToggle from "../ThemeToggle/ThemeToggle";
 
-import { mockTasks } from "../../data/mockTasks";
+import { useQuery } from "@tanstack/react-query";
+import { tasksApi } from "../../api/tasks";
 
 import type { Task } from "../../types/task";
+import { useNotifications, type NotificationItem } from "../../contexts/NotificationContext";
 
 import "./Header.css";
 
@@ -22,150 +28,24 @@ type HeaderProps = {
   onMenuClick: () => void;
 };
 
-type Notification = {
-  id: number;
-  title: string;
-  description: string;
-  time: string;
-  unread: boolean;
 
-  type:
-    | "task"
-    | "comment"
-    | "status"
-    | "announcement"
-    | "deadline";
-
-  taskId?: number;
-};
-
-const initialNotifications: Notification[] = [
-  {
-    id: 1,
-    title: "Yeni görev atandı",
-    description:
-      "Telemetri dashboard frontend görevine dahil edildin.",
-    time: "2 dk önce",
-    unread: true,
-    type: "task",
-    taskId: 1,
-  },
-  {
-    id: 2,
-    title: "Yeni yorum",
-    description:
-      "Furkan, Araç veri API bağlantısı görevine yorum yaptı.",
-    time: "18 dk önce",
-    unread: true,
-    type: "comment",
-    taskId: 3,
-  },
-  {
-    id: 3,
-    title: "Görev durumu değişti",
-    description:
-      "Görev takip ekranı tasarımı İncelemede durumuna alındı.",
-    time: "1 sa önce",
-    unread: false,
-    type: "status",
-    taskId: 5,
-  },
-  {
-    id: 4,
-    title: "Yeni duyuru",
-    description:
-      "Web ekibi toplantısı duyurusu yayınlandı.",
-    time: "2 sa önce",
-    unread: false,
-    type: "announcement",
-  },
-  {
-    id: 5,
-    title: "Teslim tarihi yaklaşıyor",
-    description:
-      "Telemetri dashboard arayüzü görevinin teslim tarihi yaklaşıyor.",
-    time: "Bugün",
-    unread: false,
-    type: "deadline",
-    taskId: 1,
-  },
-  {
-    id: 6,
-    title: "Göreve yeni üye eklendi",
-    description:
-      "Busenur, Pitwall dashboard frontend görevine eklendi.",
-    time: "Dün",
-    unread: false,
-    type: "task",
-    taskId: 1,
-  },
-  {
-    id: 7,
-    title: "Yeni yorum",
-    description:
-      "Lidya, Görev takip ekranı tasarımı görevine yorum yaptı.",
-    time: "Dün",
-    unread: false,
-    type: "comment",
-    taskId: 5,
-  },
-  {
-    id: 8,
-    title: "Görev tamamlandı",
-    description:
-      "Parça maliyet tablosu görevi tamamlandı.",
-    time: "2 gün önce",
-    unread: false,
-    type: "status",
-    taskId: 6,
-  },
-  {
-    id: 9,
-    title: "Yeni duyuru",
-    description:
-      "Takım toplantısı için yeni duyuru yayınlandı.",
-    time: "3 gün önce",
-    unread: false,
-    type: "announcement",
-  },
-  {
-    id: 10,
-    title: "Teslim tarihi yaklaşıyor",
-    description:
-      "Elektrik sistemi dokümantasyonu görevinin teslim tarihine 2 gün kaldı.",
-    time: "3 gün önce",
-    unread: false,
-    type: "deadline",
-    taskId: 4,
-  },
-  {
-    id: 11,
-    title: "Görev durumu değişti",
-    description:
-      "Araç veri API bağlantısı görevi Devam Ediyor durumuna alındı.",
-    time: "4 gün önce",
-    unread: false,
-    type: "status",
-    taskId: 3,
-  },
-];
 
 export default function Header({
   onMenuClick,
 }: HeaderProps) {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [
     showNotifications,
     setShowNotifications,
   ] = useState(false);
 
-  const [
-    notifications,
-    setNotifications,
-  ] = useState<Notification[]>(
-    initialNotifications,
-  );
+  const {
+    unreadNotifications: activeNotifications,
+    unreadCount,
+    markAllAsRead,
+  } = useNotifications();
 
   const [
     selectedTask,
@@ -182,80 +62,95 @@ export default function Header({
     setShowMobileSearch,
   ] = useState(false);
 
-  const searchResults =
-    searchTerm.trim().length > 0
-      ? mockTasks.filter((task) => {
-          const search =
-            searchTerm.toLowerCase();
+  const { data: tasks = [] } = useQuery({
+    queryKey: ["tasks"],
+    queryFn: () => tasksApi.getTasks(),
+  });
 
-          return (
-            task.title
-              .toLowerCase()
-              .includes(search) ||
-            task.project
-              .toLowerCase()
-              .includes(search) ||
-            task.department
-              .toLowerCase()
-              .includes(search)
-          );
-        })
-      : [];
+  /*
+   * Sayfa başlığı route'a göre otomatik değişir.
+   */
+  const pageTitle = (() => {
+    const path = location.pathname;
 
-  const unreadCount =
-    notifications.filter(
-      (notification) =>
-        notification.unread,
-    ).length;
+    if (path === "/dashboard") {
+      return "Görev Panosu";
+    }
 
-  function handleNotificationClick(
-    notification: Notification,
-  ) {
-    setNotifications((previous) =>
-      previous.map((item) =>
-        item.id === notification.id
-          ? {
-              ...item,
-              unread: false,
-            }
-          : item,
-      ),
-    );
+    if (path === "/calendar") {
+      return "Takvim";
+    }
 
-    setShowNotifications(false);
+    if (path === "/projects") {
+      return "Projeler";
+    }
 
     if (
-      notification.type ===
-      "announcement"
+      path.startsWith("/projects/")
     ) {
-      navigate("/announcements");
-
-      return;
+      return "Projeler";
     }
 
-    if (notification.taskId) {
-      const task = mockTasks.find(
-        (item) =>
-          item.id ===
-          notification.taskId,
-      );
-
-      if (task) {
-        setSelectedTask(task);
-      }
+    if (
+      path === "/announcements"
+    ) {
+      return "Duyurular";
     }
+
+    if (path === "/inbox") {
+      return "Inbox";
+    }
+
+    if (path === "/profile") {
+      return "Profil";
+    }
+
+    if (path === "/settings") {
+      return "Ayarlar";
+    }
+
+    return "Pitwall";
+  })();
+
+  const searchResults =
+    searchTerm.trim().length > 0
+      ? tasks.filter((task) => {
+        const search =
+          searchTerm.toLowerCase();
+
+        return (
+          task.title
+            .toLowerCase()
+            .includes(search) ||
+          task.project?.name
+            .toLowerCase()
+            .includes(search) ||
+          task.unit?.name
+            .toLowerCase()
+            .includes(search)
+        );
+      })
+      : [];
+
+  function handleNotificationClick(
+  notification: NotificationItem,
+) {
+  setShowNotifications(false);
+
+  if (notification.link) {
+    navigate(notification.link);
   }
 
-  function markAllAsRead() {
-    setNotifications((previous) =>
-      previous.map(
-        (notification) => ({
-          ...notification,
-          unread: false,
-        }),
-      ),
+  if (notification.taskId) {
+    const task = tasks.find(
+      (item) => item.id === notification.taskId,
     );
+
+    if (task) {
+      setSelectedTask(task);
+    }
   }
+}
 
   function handleSearchResultClick(
     task: Task,
@@ -289,7 +184,7 @@ export default function Header({
             </p>
 
             <h1>
-              Görev Panosu
+              {pageTitle}
             </h1>
           </div>
         </div>
@@ -349,65 +244,83 @@ export default function Header({
                 </div>
 
                 <div className="notification-list">
-                  {notifications.map(
-                    (notification) => (
-                      <button
-                        type="button"
-                        className={`notification-item ${
-                          notification.unread
+                  {activeNotifications.length > 0 ? (
+                    activeNotifications.map(
+                      (notification) => (
+                        <button
+                          type="button"
+                          className={`notification-item ${!notification.isRead
                             ? "unread"
                             : ""
-                        }`}
-                        key={
-                          notification.id
-                        }
-                        onClick={() =>
-                          handleNotificationClick(
-                            notification,
-                          )
-                        }
-                      >
-                        <span className="notification-indicator" />
+                            }`}
+                          key={
+                            notification.id
+                          }
+                          onClick={() =>
+                            handleNotificationClick(
+                              notification,
+                            )
+                          }
+                        >
+                          <span className="notification-indicator" />
 
-                        <div className="notification-content">
-                          <div className="notification-title-row">
-                            <strong>
-                              {
-                                notification.title
-                              }
-                            </strong>
+                          <div className="notification-content">
+                            <div className="notification-title-row">
+                              <strong>
+                                {
+                                  notification.title
+                                }
+                              </strong>
 
-                            <span>
+                              <span>
+                                {
+                                  notification.createdAt
+                                }
+                              </span>
+                            </div>
+
+                            <p>
                               {
-                                notification.time
+                                notification.message
                               }
-                            </span>
+                            </p>
                           </div>
+                        </button>
+                      ),
+                    )
+                  ) : (
+                    <div className="notification-empty">
+                      <div className="notification-empty-icon">
+                        <Bell size={17} />
+                      </div>
 
-                          <p>
-                            {
-                              notification.description
-                            }
-                          </p>
-                        </div>
-                      </button>
-                    ),
+                      <strong>Yeni bildirimin yok</strong>
+                    </div>
                   )}
                 </div>
 
-                <div className="notification-footer">
+                <div className={`notification-footer ${unreadCount === 0 ? "empty" : ""}`}>
                   <button
                     type="button"
-                    onClick={
-                      markAllAsRead
-                    }
+                    className="notification-inbox-link"
+                    onClick={() => {
+                      setShowNotifications(false);
+                      navigate("/inbox");
+                    }}
                   >
-                    <CheckCheck
-                      size={14}
-                    />
-
-                    Tümünü okundu işaretle
+                    Tüm bildirimleri gör
                   </button>
+
+                  {unreadCount > 0 && (
+                    <button
+                      type="button"
+                      className="notification-read-all"
+                      onClick={markAllAsRead}
+                    >
+                      <CheckCheck size={14} />
+                      Tümünü okundu işaretle
+                    </button>
+                  )}
                 </div>
               </div>
             )}
@@ -460,7 +373,7 @@ export default function Header({
               !showMobileSearch && (
                 <div className="search-results desktop-search-results">
                   {searchResults.length >
-                  0 ? (
+                    0 ? (
                     searchResults.map(
                       (task) => (
                         <button
@@ -482,14 +395,16 @@ export default function Header({
 
                             <span>
                               {
-                                task.project
+                                task.project?.name ??
+                                "Proje yok"
                               }
                             </span>
                           </div>
 
                           <p>
                             {
-                              task.department
+                              task.unit?.name ??
+                              "Birim yok"
                             }
                           </p>
                         </button>
@@ -559,14 +474,14 @@ export default function Header({
                         </strong>
 
                         <span>
-                          {task.project}
+                          {task.project?.name ??
+                            "Proje yok"}
                         </span>
                       </div>
 
                       <p>
-                        {
-                          task.department
-                        }
+                        {task.unit?.name ??
+                          "Birim yok"}
                       </p>
                     </button>
                   ),

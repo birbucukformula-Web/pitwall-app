@@ -1,28 +1,53 @@
-import { useState } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
+import { useAuth } from "./contexts/AuthContext";
 
 import {
   Navigate,
   Route,
   Routes,
+  useLocation,
 } from "react-router-dom";
 
 import Sidebar from "./components/Sidebar/Sidebar";
 import Header from "./components/Header/Header";
-
-import Login from "./pages/Login/Login";
-import Dashboard from "./pages/Dashboard/Dashboard";
-import Calendar from "./pages/Calendar/Calendar";
-import Projects from "./pages/Projects/Projects";
-import ProjectDetail from "./pages/ProjectDetail/ProjectDetail";
-import Announcements from "./pages/Announcements/Announcements";
-import Profile from "./pages/Profile/Profile";
-import Settings from "./pages/Settings/Settings";
+import LoadingScreen from "./components/LoadingScreen/LoadingScreen";
+import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
+import { NotificationProvider } from "./contexts/NotificationContext";
+import { AvatarProvider } from "./contexts/AvatarContext";
 
 import "./App.css";
 
+import Login from "./pages/Login/Login";
+import Register from "./pages/Register/Register";
+
+const Dashboard = lazy(() => import("./pages/Dashboard/Dashboard"));
+const Calendar = lazy(() => import("./pages/Calendar/Calendar"));
+const Projects = lazy(() => import("./pages/Projects/Projects"));
+const ProjectDetail = lazy(
+  () => import("./pages/ProjectDetail/ProjectDetail")
+);
+const Announcements = lazy(
+  () => import("./pages/Announcements/Announcements")
+);
+const Inbox = lazy(() => import("./pages/Inbox/Inbox"));
+const Profile = lazy(() => import("./pages/Profile/Profile"));
+const Settings = lazy(() => import("./pages/Settings/Settings"));
+const Game = lazy(() => import("./pages/Game/Game"));
+
 function AppLayout() {
-  const [isSidebarOpen, setIsSidebarOpen] =
-    useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    if (isSidebarOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isSidebarOpen]);
 
   function openSidebar() {
     setIsSidebarOpen(true);
@@ -33,11 +58,13 @@ function AppLayout() {
   }
 
   return (
-    <div className="app">
-      <Sidebar
-        isOpen={isSidebarOpen}
-        onClose={closeSidebar}
-      />
+  <NotificationProvider>
+    <AvatarProvider>
+      <div className="app">
+        <Sidebar
+          isOpen={isSidebarOpen}
+          onClose={closeSidebar}
+        />
 
       {isSidebarOpen && (
         <button
@@ -49,74 +76,148 @@ function AppLayout() {
       )}
 
       <main className="main">
-        <Header
-          onMenuClick={openSidebar}
-        />
+        <Header onMenuClick={openSidebar} />
 
-        <Routes>
-          <Route
-            path="/dashboard"
-            element={<Dashboard />}
-          />
+        <ErrorBoundary>
+          <Suspense
+            fallback={
+              <LoadingScreen fullScreen={false} />
+            }
+          >
+            <Routes>
+              <Route
+                path="/dashboard"
+                element={<Dashboard />}
+              />
 
-          <Route
-            path="/calendar"
-            element={<Calendar />}
-          />
+              <Route
+                path="/calendar"
+                element={<Calendar />}
+              />
 
-          <Route
-            path="/projects"
-            element={<Projects />}
-          />
+              <Route
+                path="/projects"
+                element={<Projects />}
+              />
 
-          <Route
-            path="/projects/:projectId"
-            element={<ProjectDetail />}
-          />
+              <Route
+                path="/projects/:projectId"
+                element={<ProjectDetail />}
+              />
 
-          <Route
-            path="/announcements"
-            element={<Announcements />}
-          />
+              <Route
+                path="/inbox"
+                element={<Inbox />}
+              />
 
-          <Route
-            path="/profile"
-            element={<Profile />}
-          />
+              <Route
+                path="/announcements"
+                element={<Announcements />}
+              />
 
-          <Route
-            path="/settings"
-            element={<Settings />}
-          />
-        </Routes>
+              <Route
+                path="/profile"
+                element={<Profile />}
+              />
+
+              <Route
+                path="/settings"
+                element={<Settings />}
+              />
+
+              <Route
+                path="/game"
+                element={<Game />}
+              />
+            </Routes>
+          </Suspense>
+        </ErrorBoundary>
       </main>
     </div>
-  );
+      </AvatarProvider>
+  </NotificationProvider>
+);
+}
+
+function ProtectedRoute({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const { isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <Navigate
+        to="/login"
+        state={{ from: location }}
+        replace
+      />
+    );
+  }
+
+  return <>{children}</>;
 }
 
 function App() {
+  const { isAuthenticated } = useAuth();
+
   return (
-    <Routes>
-      <Route
-        path="/login"
-        element={<Login />}
-      />
+    <ErrorBoundary>
+      <Routes>
+        <Route
+          path="/login"
+          element={
+            isAuthenticated ? (
+              <Navigate
+                to="/dashboard"
+                replace
+              />
+            ) : (
+              <Login />
+            )
+          }
+        />
 
-      <Route
-        path="/"
-        element={
-          <Navigate
-            to="/login"
-            replace
-          />
-        }
-      />
+        <Route
+          path="/register"
+          element={
+            isAuthenticated ? (
+              <Navigate
+                to="/dashboard"
+                replace
+              />
+            ) : (
+              <Register />
+            )
+          }
+        />
 
-      <Route
-        path="/*"
-        element={<AppLayout />}
-      />
-    </Routes>
+        <Route
+          path="/"
+          element={
+            <Navigate
+              to="/dashboard"
+              replace
+            />
+          }
+        />
+
+        <Route
+          path="/*"
+          element={
+            <ProtectedRoute>
+              <AppLayout />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </ErrorBoundary>
   );
 }
 
