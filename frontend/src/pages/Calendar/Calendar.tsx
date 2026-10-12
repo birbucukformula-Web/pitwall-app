@@ -6,13 +6,15 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-
 import TaskDrawer from "../../components/TaskDrawer/TaskDrawer";
 import TaskModal from "../../components/TaskModal/TaskModal";
 import { tasksApi, type TaskPayload } from "../../api/tasks";
 import type { Task } from "../../types/task";
-
 import "./Calendar.css";
+import {
+  calendarMockTasks,
+  isCalendarMockEnabled,
+} from "../../mocks/calendarTasks";
 
 const WEEK_DAYS = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"];
 
@@ -43,7 +45,9 @@ function getDateKey(date: Date): string {
   ].join("-");
 }
 
-function parseTaskDate(value: string | null | undefined): Date | null {
+function parseTaskDate(
+  value: string | null | undefined
+): Date | null {
   if (!value) return null;
 
   const [year, month, day] = value
@@ -54,10 +58,14 @@ function parseTaskDate(value: string | null | undefined): Date | null {
   if (!year || !month || !day) return null;
 
   const date = new Date(year, month - 1, day);
+
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-function createCalendarDays(year: number, month: number): CalendarDay[] {
+function createCalendarDays(
+  year: number,
+  month: number
+): CalendarDay[] {
   const firstDay = new Date(year, month, 1);
   const firstDayIndex = (firstDay.getDay() + 6) % 7;
   const start = new Date(year, month, 1 - firstDayIndex);
@@ -117,27 +125,137 @@ function formatSelectedDate(date: Date): string {
   }).format(date);
 }
 
+// Bir haftadaki görevleri en fazla iki sabit satıra yerleştirir.
+// Her görev, haftalık satırda tek bir yatay şerit olarak çizilir.
+function getWeekBars<
+  T extends {
+    id: number;
+    start_date?: string | null;
+    due_date?: string | null;
+  }
+>(
+  dates: Date[],
+  tasks: T[],
+  occurs: (task: T, date: Date) => boolean,
+  parse: (value: string | null | undefined) => Date | null
+) {
+  const candidates = tasks
+    .flatMap((task) => {
+      const start =
+        parse(task.start_date) ?? parse(task.due_date);
+      const end = parse(task.due_date);
+
+      if (!start || !end || end < start) return [];
+
+      const first = dates.findIndex((date) =>
+        occurs(task, date)
+      );
+
+      if (first < 0) return [];
+
+      let last = first;
+
+      while (
+        last + 1 < dates.length &&
+        occurs(task, dates[last + 1])
+      ) {
+        last++;
+      }
+
+      return [{
+        task,
+        start: first,
+        end: last,
+        actualStart: start,
+      }];
+    })
+    .sort(
+      (a, b) =>
+        a.start - b.start ||
+        (b.end - b.start) - (a.end - a.start) ||
+        a.task.id - b.task.id
+    );
+
+  const occupied: boolean[][] = [
+    Array(7).fill(false),
+    Array(7).fill(false),
+  ];
+
+  const bars: {
+    task: T;
+    start: number;
+    end: number;
+    lane: number;
+    showTitle: boolean;
+  }[] = [];
+
+  for (const item of candidates) {
+    const lane = occupied.findIndex((row) =>
+      row
+        .slice(item.start, item.end + 1)
+        .every((used) => !used)
+    );
+
+    if (lane === -1) continue;
+
+    for (let i = item.start; i <= item.end; i++) {
+      occupied[lane][i] = true;
+    }
+
+    bars.push({
+      task: item.task,
+      start: item.start,
+      end: item.end,
+      lane,
+      showTitle: true,
+    });
+  }
+
+  return bars;
+}
+
 export default function Calendar() {
-  const [currentDate, setCurrentDate] = useState(() => new Date());
+  const [currentDate, setCurrentDate] = useState(
+    () => new Date()
+  );
   const [view, setView] = useState<CalendarView>("month");
-  const [selectedDate, setSelectedDate] = useState(() => new Date());
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [expandedDay, setExpandedDay] = useState<Date | null>(null);
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(
+    () => new Date()
+  );
+  const [selectedTask, setSelectedTask] =
+    useState<Task | null>(null);
+  const [expandedDay, setExpandedDay] =
+    useState<Date | null>(null);
+  const [editingTask, setEditingTask] =
+    useState<Task | null>(null);
+  const [showTaskModal, setShowTaskModal] =
+    useState(false);
 
   const queryClient = useQueryClient();
 
-  const { data: tasks = [] } = useQuery<Task[]>({
+  const { data: apiTasks = [] } = useQuery<Task[]>({
     queryKey: ["tasks"],
     queryFn: () => tasksApi.getTasks(),
   });
 
+  const tasks = useMemo(
+    () =>
+      isCalendarMockEnabled()
+        ? [...apiTasks, ...calendarMockTasks]
+        : apiTasks,
+    [apiTasks]
+  );
+
   const createTaskMutation = useMutation({
-    mutationFn: (newTask: TaskPayload) => tasksApi.createTask(newTask),
+    mutationFn: (newTask: TaskPayload) =>
+      tasksApi.createTask(newTask),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      queryClient.invalidateQueries({ queryKey: ["stats"] });
+      queryClient.invalidateQueries({
+        queryKey: ["tasks"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["stats"],
+      });
       setShowTaskModal(false);
       setEditingTask(null);
     },
@@ -152,8 +270,12 @@ export default function Calendar() {
       updates: TaskPayload;
     }) => tasksApi.updateTask(id, updates),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      queryClient.invalidateQueries({ queryKey: ["stats"] });
+      queryClient.invalidateQueries({
+        queryKey: ["tasks"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["stats"],
+      });
       setShowTaskModal(false);
       setEditingTask(null);
     },
@@ -162,8 +284,12 @@ export default function Calendar() {
   const deleteTaskMutation = useMutation({
     mutationFn: (id: number) => tasksApi.deleteTask(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      queryClient.invalidateQueries({ queryKey: ["stats"] });
+      queryClient.invalidateQueries({
+        queryKey: ["tasks"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["stats"],
+      });
       setSelectedTask(null);
     },
   });
@@ -182,7 +308,6 @@ export default function Calendar() {
     [currentDate]
   );
 
-
   const expandedDayTasks = useMemo(() => {
     if (!expandedDay) return [];
 
@@ -196,7 +321,6 @@ export default function Calendar() {
       )
       .sort((a, b) => a.id - b.id);
   }, [expandedDay, tasks]);
-
 
   function previousPeriod() {
     setCurrentDate((date) => {
@@ -254,7 +378,9 @@ export default function Calendar() {
       priority: newTask.priority,
       project: newTask.project?.id,
       unit: newTask.unit?.id,
-      assignees: newTask.assignees?.map((assignee) => assignee.id),
+      assignees: newTask.assignees?.map(
+        (assignee) => assignee.id
+      ),
       start_date: newTask.start_date || null,
       due_date: newTask.due_date,
     });
@@ -282,19 +408,34 @@ export default function Calendar() {
   function renderCalendarDay(
     date: Date,
     isCurrentMonth: boolean,
-    isWeekView: boolean
+    isWeekView: boolean,
+    weekBars: ReturnType<typeof getWeekBars<Task>>
   ) {
     const dayTasks = tasks
       .filter((task) =>
-        isDateBetween(date, task.start_date, task.due_date)
+        isDateBetween(
+          date,
+          task.start_date,
+          task.due_date
+        )
       )
       .sort((a, b) => a.id - b.id);
 
     const selected =
       getDateKey(date) === getDateKey(selectedDate);
 
-    const visibleTasks = dayTasks.slice(0, 2);
-    const remainingCount = dayTasks.length - 2;
+    const dayIndex = (date.getDay() + 6) % 7;
+
+    const visibleCount = weekBars.filter(
+      (bar) =>
+        bar.start <= dayIndex &&
+        bar.end >= dayIndex
+    ).length;
+
+    const remainingCount = Math.max(
+      0,
+      dayTasks.length - visibleCount
+    );
 
     return (
       <div
@@ -320,7 +461,9 @@ export default function Calendar() {
         >
           <span
             className={[
-              isWeekView ? "week-day-number" : "day-number",
+              isWeekView
+                ? "week-day-number"
+                : "day-number",
               isToday(date) ? "today" : "",
             ]
               .filter(Boolean)
@@ -330,29 +473,7 @@ export default function Calendar() {
           </span>
         </button>
 
-        <div className="day-tasks">
-          {visibleTasks.map((task) => (
-            <button
-              type="button"
-              key={task.id}
-              className={`calendar-task calendar-task-${task.status}`}
-              title={task.title}
-              onClick={() => {
-                setSelectedDate(date);
-                openTask(task);
-              }}
-            >
-              <span
-                className="calendar-task-dot"
-                aria-hidden="true"
-              />
-
-              <span className="calendar-task-title">
-                {task.title}
-              </span>
-            </button>
-          ))}
-
+        <div className="day-tasks calendar-span-day-content">
           {remainingCount > 0 && (
             <button
               type="button"
@@ -449,31 +570,157 @@ export default function Calendar() {
           <div className="calendar-weekdays">
             {view === "month"
               ? WEEK_DAYS.map((day) => (
-                <div key={day}>{day}</div>
-              ))
+                  <div key={day}>{day}</div>
+                ))
               : weekDays.map((date, index) => (
-                <div key={getDateKey(date)}>
-                  {WEEK_DAYS[index]} {date.getDate()}
-                </div>
-              ))}
+                  <div key={getDateKey(date)}>
+                    {WEEK_DAYS[index]} {date.getDate()}
+                  </div>
+                ))}
           </div>
 
           {view === "month" ? (
             <div className="calendar-grid">
-              {calendarDays.map(
-                ({ date, isCurrentMonth }) =>
-                  renderCalendarDay(
-                    date,
-                    isCurrentMonth,
-                    false
-                  )
-              )}
+              {Array.from({ length: 6 }, (_, week) => {
+                const days = calendarDays.slice(
+                  week * 7,
+                  week * 7 + 7
+                );
+
+                const bars = getWeekBars(
+                  days.map((d) => d.date),
+                  tasks,
+                  (task, date) =>
+                    isDateBetween(
+                      date,
+                      task.start_date,
+                      task.due_date
+                    ),
+                  parseTaskDate
+                );
+
+                return (
+                  <div
+                    className="calendar-span-week"
+                    key={week}
+                  >
+                    {days.map(
+                      ({ date, isCurrentMonth }) =>
+                        renderCalendarDay(
+                          date,
+                          isCurrentMonth,
+                          false,
+                          bars
+                        )
+                    )}
+
+                    <div className="calendar-span-layer">
+                      {bars.map(
+                        ({
+                          task,
+                          start,
+                          end,
+                          lane,
+                          showTitle,
+                        }) => (
+                          <button
+                            key={`${task.id}-${start}-${lane}`}
+                            type="button"
+                            className={`calendar-task calendar-task-${task.status} calendar-span-bar`}
+                            style={{
+                              gridColumn: `${start + 1} / ${end + 2}`,
+                              gridRow: lane + 1,
+                            }}
+                            title={task.title}
+                            onClick={() => openTask(task)}
+                          >
+                            {showTitle && (
+                              <>
+                                <span
+                                  className="calendar-task-dot"
+                                  aria-hidden="true"
+                                />
+                                <span className="calendar-task-title">
+                                  {task.title}
+                                </span>
+                              </>
+                            )}
+                          </button>
+                        )
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <div className="week-grid">
-              {weekDays.map((date) =>
-                renderCalendarDay(date, true, true)
-              )}
+              <div className="calendar-span-week">
+                {weekDays.map((date) =>
+                  renderCalendarDay(
+                    date,
+                    true,
+                    true,
+                    getWeekBars(
+                      weekDays,
+                      tasks,
+                      (task, day) =>
+                        isDateBetween(
+                          day,
+                          task.start_date,
+                          task.due_date
+                        ),
+                      parseTaskDate
+                    )
+                  )
+                )}
+
+                <div className="calendar-span-layer">
+                  {getWeekBars(
+                    weekDays,
+                    tasks,
+                    (task, date) =>
+                      isDateBetween(
+                        date,
+                        task.start_date,
+                        task.due_date
+                      ),
+                    parseTaskDate
+                  ).map(
+                    ({
+                      task,
+                      start,
+                      end,
+                      lane,
+                      showTitle,
+                    }) => (
+                      <button
+                        key={`${task.id}-${start}-${lane}`}
+                        type="button"
+                        className={`calendar-task calendar-task-${task.status} calendar-span-bar`}
+                        style={{
+                          gridColumn: `${start + 1} / ${end + 2}`,
+                          gridRow: lane + 1,
+                        }}
+                        title={task.title}
+                        onClick={() => openTask(task)}
+                      >
+                        {showTitle && (
+                          <>
+                            <span
+                              className="calendar-task-dot"
+                              aria-hidden="true"
+                            />
+                            <span className="calendar-task-title">
+                              {task.title}
+                            </span>
+                          </>
+                        )}
+                      </button>
+                    )
+                  )}
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -504,7 +751,6 @@ export default function Calendar() {
         defaultStatus="todo"
       />
 
-
       {expandedDay && (
         <div
           className="calendar-day-list-overlay"
@@ -515,15 +761,18 @@ export default function Calendar() {
             role="dialog"
             aria-modal="true"
             aria-label={`${formatSelectedDate(expandedDay)} görevleri`}
-            onClick={(event) => event.stopPropagation()}
+            onClick={(event) =>
+              event.stopPropagation()
+            }
           >
             <div className="calendar-day-list-header">
               <div className="calendar-day-list-heading">
                 <span className="calendar-day-list-eyebrow">
                   Seçilen gün
                 </span>
-
-                <h3>{formatSelectedDate(expandedDay)}</h3>
+                <h3>
+                  {formatSelectedDate(expandedDay)}
+                </h3>
               </div>
 
               <div className="calendar-day-list-header-actions">
@@ -556,12 +805,14 @@ export default function Calendar() {
                     </span>
 
                     <span className="calendar-day-list-task-project">
-                      {task.project?.name || "Proje belirtilmemiş"}
+                      {task.project?.name ||
+                        "Proje belirtilmemiş"}
                     </span>
                   </div>
 
                   <span className="calendar-day-list-task-status">
-                    {STATUS_LABELS[task.status] ?? task.status}
+                    {STATUS_LABELS[task.status] ??
+                      task.status}
                   </span>
                 </button>
               ))}
@@ -569,7 +820,6 @@ export default function Calendar() {
           </section>
         </div>
       )}
-
     </>
   );
 }
