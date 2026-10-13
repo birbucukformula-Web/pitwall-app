@@ -1,5 +1,6 @@
 
 import { useEffect, useMemo, useState } from "react";
+
 import {
   CalendarDays,
   ChevronLeft,
@@ -38,7 +39,6 @@ const STATUS_LABELS: Record<TaskStatus, string> = {
   done: "Tamamlandı",
 };
 
-// Masaüstü ve mobil: en fazla 2 görev
 const VISIBLE_TASK_LIMIT = 2;
 
 function normalizeDate(date: Date): Date {
@@ -55,6 +55,7 @@ function parseDate(
   if (!value) return null;
 
   const datePart = value.split("T")[0];
+
   const match = datePart.match(
     /^(\d{4})-(\d{2})-(\d{2})$/
   );
@@ -108,6 +109,7 @@ function getMonday(date: Date): Date {
 function addDays(date: Date, amount: number): Date {
   const next = new Date(date);
   next.setDate(next.getDate() + amount);
+
   return next;
 }
 
@@ -116,6 +118,7 @@ function taskOccursOnDay(
   date: Date
 ): boolean {
   const end = parseDate(task.due_date);
+
   if (!end) return false;
 
   const start = parseDate(task.start_date) ?? end;
@@ -130,6 +133,7 @@ function taskOverlapsPeriod(
   endDate: Date
 ): boolean {
   const end = parseDate(task.due_date);
+
   if (!end) return false;
 
   const start = parseDate(task.start_date) ?? end;
@@ -144,6 +148,146 @@ function formatSelectedDate(date: Date): string {
     year: "numeric",
     weekday: "long",
   }).format(date);
+}
+
+/*
+  HAFTALIK GÖREV ŞERİTLERİ
+
+  Bir görev birden fazla gün sürüyorsa,
+  ilgili haftadaki günleri tek şerit halinde gösterir.
+
+  Görev başka bir haftada devam ediyorsa,
+  yeni haftada da başlığı görünür.
+
+  Aynı günlerde çakışan görevler iki farklı
+  satıra yerleştirilir.
+*/
+
+type WeekBar<T> = {
+  task: T;
+  start: number;
+  end: number;
+  lane: number;
+};
+
+function getWeekBars<
+  T extends {
+    id: number;
+    start_date?: string | null;
+    due_date?: string | null;
+  }
+>(
+  dates: Date[],
+  tasks: T[],
+  occurs: (task: T, date: Date) => boolean,
+  parse: (date: string | null | undefined) => Date | null
+): WeekBar<T>[] {
+  const bars: WeekBar<T>[] = [];
+
+  if (dates.length === 0) return bars;
+
+  const weekStart = dates[0];
+  const weekEnd = dates[dates.length - 1];
+
+  const candidates = tasks
+    .map((task) => {
+      const end = parse(task.due_date);
+
+      if (!end) return null;
+
+      const start = parse(task.start_date) ?? end;
+
+      if (start > weekEnd || end < weekStart) {
+        return null;
+      }
+
+      const first = dates.findIndex((date) =>
+        occurs(task, date)
+      );
+
+      if (first === -1) return null;
+
+      let last = first;
+
+      for (
+        let index = first + 1;
+        index < dates.length;
+        index++
+      ) {
+        if (!occurs(task, dates[index])) break;
+
+        last = index;
+      }
+
+      return {
+        task,
+        start: first,
+        end: last,
+      };
+    })
+    .filter(
+      (
+        item
+      ): item is {
+        task: T;
+        start: number;
+        end: number;
+      } => item !== null
+    )
+    .sort(
+      (a, b) =>
+        a.start - b.start ||
+        b.end - a.end ||
+        a.task.id - b.task.id
+    );
+
+  const occupied: boolean[][] = [
+    Array(7).fill(false),
+    Array(7).fill(false),
+  ];
+
+  for (const candidate of candidates) {
+    let assignedLane = -1;
+
+    for (let lane = 0; lane < VISIBLE_TASK_LIMIT; lane++) {
+      let available = true;
+
+      for (
+        let day = candidate.start;
+        day <= candidate.end;
+        day++
+      ) {
+        if (occupied[lane][day]) {
+          available = false;
+          break;
+        }
+      }
+
+      if (available) {
+        assignedLane = lane;
+        break;
+      }
+    }
+
+    if (assignedLane === -1) continue;
+
+    for (
+      let day = candidate.start;
+      day <= candidate.end;
+      day++
+    ) {
+      occupied[assignedLane][day] = true;
+    }
+
+    bars.push({
+      task: candidate.task,
+      start: candidate.start,
+      end: candidate.end,
+      lane: assignedLane,
+    });
+  }
+
+  return bars;
 }
 
 export default function ProjectMonthlyCalendarTab({
@@ -171,9 +315,15 @@ export default function ProjectMonthlyCalendarTab({
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
+  /*
+    AYLIK TAKVİM GÜNLERİ
+    6 hafta × 7 gün = 42 hücre
+  */
   const monthDays = useMemo(() => {
     const firstDay = new Date(year, month, 1);
-    const offset = (firstDay.getDay() + 6) % 7;
+
+    const offset =
+      (firstDay.getDay() + 6) % 7;
 
     const start = new Date(
       year,
@@ -187,6 +337,9 @@ export default function ProjectMonthlyCalendarTab({
     );
   }, [year, month]);
 
+  /*
+    HAFTALIK TAKVİM GÜNLERİ
+  */
   const weekDays = useMemo(() => {
     const monday = getMonday(currentDate);
 
@@ -201,6 +354,9 @@ export default function ProjectMonthlyCalendarTab({
       ? monthDays
       : weekDays;
 
+  /*
+    TAKVİM BAŞLIĞI
+  */
   const toolbarLabel = useMemo(() => {
     if (calendarView === "month") {
       return new Intl.DateTimeFormat("tr-TR", {
@@ -222,6 +378,9 @@ export default function ProjectMonthlyCalendarTab({
     )} – ${formatter.format(weekDays[6])}`;
   }, [calendarView, currentDate, weekDays]);
 
+  /*
+    GÖRÜNÜR DÖNEMDEKİ GÖREV SAYISI
+  */
   const visibleTaskCount = useMemo(() => {
     const periodStart =
       calendarView === "month"
@@ -248,6 +407,9 @@ export default function ProjectMonthlyCalendarTab({
     weekDays,
   ]);
 
+  /*
+    SEÇİLEN GÜNÜN GÖREVLERİ
+  */
   const selectedDayTasks = useMemo(() => {
     if (!selectedDate) return [];
 
@@ -258,11 +420,17 @@ export default function ProjectMonthlyCalendarTab({
       .sort((a, b) => a.id - b.id);
   }, [tasks, selectedDate]);
 
+  /*
+    SAĞ PANELDE AÇILACAK GÖREV
+  */
   const selectedTask =
     tasks.find(
       (task) => task.id === selectedTaskId
     ) ?? null;
 
+  /*
+    ÖNCEKİ / SONRAKİ DÖNEM
+  */
   function changePeriod(direction: -1 | 1) {
     setCurrentDate((previous) => {
       if (calendarView === "month") {
@@ -280,22 +448,34 @@ export default function ProjectMonthlyCalendarTab({
     setSelectedTaskId(null);
   }
 
+  /*
+    BUGÜNE DÖN
+  */
   function goToToday() {
     setCurrentDate(new Date());
     setSelectedDate(null);
     setSelectedTaskId(null);
   }
 
+  /*
+    AY / HAFTA GÖRÜNÜMÜ
+  */
   function changeView(view: CalendarView) {
     setCalendarView(view);
     setSelectedDate(null);
     setSelectedTaskId(null);
   }
 
+  /*
+    GÜN SEÇİMİ
+  */
   function selectDay(date: Date) {
     setSelectedDate(date);
   }
 
+  /*
+    GÖREV DETAYINI AÇ
+  */
   function openTask(taskId: number) {
     setSelectedDate(null);
     setSelectedTaskId(taskId);
@@ -305,6 +485,9 @@ export default function ProjectMonthlyCalendarTab({
     setSelectedTaskId(null);
   }
 
+  /*
+    ESC İLE GÜNLÜK PENCEREYİ KAPAT
+  */
   useEffect(() => {
     if (!selectedDate) return;
 
@@ -335,6 +518,8 @@ export default function ProjectMonthlyCalendarTab({
           : "month-view"
       }`}
     >
+      {/* TAKVİM BAŞLIĞI */}
+
       <div className="monthly-calendar-header">
         <div>
           <h3>{project.name} Takvimi</h3>
@@ -351,7 +536,11 @@ export default function ProjectMonthlyCalendarTab({
         </div>
       </div>
 
+      {/* TAKVİM KARTI */}
+
       <div className="monthly-calendar-card">
+        {/* ÜST ARAÇ ÇUBUĞU */}
+
         <div className="monthly-calendar-toolbar">
           <div className="monthly-calendar-navigation">
             <button
@@ -414,7 +603,11 @@ export default function ProjectMonthlyCalendarTab({
           </div>
         </div>
 
+        {/* TAKVİM */}
+
         <div className="monthly-calendar">
+          {/* HAFTANIN GÜNLERİ */}
+
           <div className="monthly-calendar-weekdays">
             {WEEK_DAYS.map((day) => (
               <div
@@ -426,143 +619,163 @@ export default function ProjectMonthlyCalendarTab({
             ))}
           </div>
 
+          {/* GÜN HÜCRELERİ VE GÖREV ŞERİTLERİ */}
+
           <div className="monthly-calendar-grid">
-            {visibleDays.map((date) => {
-              const dayTasks = tasks
-                .filter((task) =>
-                  taskOccursOnDay(task, date)
-                )
-                .sort((a, b) => a.id - b.id);
+            {Array.from(
+              {
+                length: visibleDays.length / 7,
+              },
+              (_, week) => {
+                const days = visibleDays.slice(
+                  week * 7,
+                  week * 7 + 7
+                );
 
-              // Hem web hem mobil: ilk 2 görev
-              const displayedTasks = dayTasks.slice(
-                0,
-                VISIBLE_TASK_LIMIT
-              );
+                const weekBars = getWeekBars(
+                  days,
+                  tasks,
+                  taskOccursOnDay,
+                  parseDate
+                );
 
-              // Kalan görev sayısı
-              const remainingCount = Math.max(
-                0,
-                dayTasks.length - VISIBLE_TASK_LIMIT
-              );
+                return (
+                  <div
+                    className="calendar-span-week"
+                    key={dateKey(days[0])}
+                  >
+                    {/* GÜN HÜCRELERİ */}
 
-              const isOutside =
-                calendarView === "month" &&
-                date.getMonth() !== month;
+                    {days.map((date) => {
+                      const dayTasks = tasks.filter(
+                        (task) =>
+                          taskOccursOnDay(task, date)
+                      );
 
-              const isToday = isSameDay(date, today);
+                      const remainingCount =
+                        Math.max(
+                          0,
+                          dayTasks.length -
+                            VISIBLE_TASK_LIMIT
+                        );
 
-              const isSelected =
-                selectedDate !== null &&
-                isSameDay(date, selectedDate);
+                      const isOutside =
+                        calendarView === "month" &&
+                        date.getMonth() !== month;
 
-              return (
-                <div
-                  key={dateKey(date)}
-                  className={[
-                    "calendar-day-cell",
-                    isOutside ? "outside-month" : "",
-                    isToday ? "today" : "",
-                    isSelected ? "selected" : "",
-                  ]
-                    .filter(Boolean)
-                    .join(" ")}
-                  onClick={() => selectDay(date)}
-                >
-                  <div className="calendar-day-header">
-                    <button
-                      type="button"
-                      className="calendar-day-number"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        selectDay(date);
-                      }}
-                      aria-label={`${formatSelectedDate(
-                        date
-                      )} gününü seç`}
-                    >
-                      {date.getDate()}
-                    </button>
-                  </div>
+                      const isToday = isSameDay(
+                        date,
+                        today
+                      );
 
-                  {/* MASAÜSTÜ GÖREVLER */}
+                      const isSelected =
+                        selectedDate !== null &&
+                        isSameDay(
+                          date,
+                          selectedDate
+                        );
 
-                  <div className="calendar-day-tasks desktop-day-tasks">
-                    {displayedTasks.map((task) => (
-                      <div
-                        key={task.id}
-                        className="calendar-task-wrapper"
-                      >
-                        <button
-                          type="button"
-                          className={`calendar-task ${task.status}`}
-                          title={task.title}
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            openTask(task.id);
-                          }}
+                      return (
+                        <div
+                          key={dateKey(date)}
+                          className={[
+                            "calendar-day-cell",
+                            isOutside
+                              ? "outside-month"
+                              : "",
+                            isToday ? "today" : "",
+                            isSelected
+                              ? "selected"
+                              : "",
+                          ]
+                            .filter(Boolean)
+                            .join(" ")}
+                          onClick={() =>
+                            selectDay(date)
+                          }
                         >
-                          <span className="calendar-task-dot" />
+                          <div className="calendar-day-header">
+                            <button
+                              type="button"
+                              className="calendar-day-number"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                selectDay(date);
+                              }}
+                              aria-label={`${formatSelectedDate(
+                                date
+                              )} gününü seç`}
+                            >
+                              {date.getDate()}
+                            </button>
+                          </div>
 
-                          <span className="calendar-task-title">
-                            {task.title}
-                          </span>
-                        </button>
-                      </div>
-                    ))}
+                          <div className="calendar-span-day-content">
+                            {remainingCount > 0 && (
+                              <button
+                                type="button"
+                                className="calendar-more-tasks"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  selectDay(date);
+                                }}
+                              >
+                                +{remainingCount} görev
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
 
-                    {remainingCount > 0 && (
-                      <button
-                        type="button"
-                        className="calendar-more-tasks"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          selectDay(date);
-                        }}
-                      >
-                        +{remainingCount} görev
-                      </button>
-                    )}
+                    {/* HAFTAYA YAYILAN GÖREV ŞERİTLERİ */}
+
+                    <div className="calendar-span-layer">
+                      {weekBars.map(
+                        ({
+                          task,
+                          start,
+                          end,
+                          lane,
+                        }) => (
+                          <button
+                            key={`${task.id}-${start}-${lane}`}
+                            type="button"
+                            className={`calendar-task ${task.status} calendar-span-bar`}
+                            style={{
+                              gridColumn: `${
+                                start + 1
+                              } / ${end + 2}`,
+                              gridRow: lane + 1,
+                            }}
+                            title={task.title}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              openTask(task.id);
+                            }}
+                          >
+                            {/*
+                              Başlık her haftada gösterilir.
+
+                              Önceki kodda showTitle
+                              koşulu nedeniyle devam
+                              eden görevlerin şeritleri
+                              boş görünüyordu.
+                            */}
+
+                            <span className="calendar-task-dot" />
+
+                            <span className="calendar-task-title">
+                              {task.title}
+                            </span>
+                          </button>
+                        )
+                      )}
+                    </div>
                   </div>
-
-                  {/* MOBİL GÖREVLER */}
-
-                  <div className="mobile-day-tasks">
-                    {displayedTasks.map((task) => (
-                      <button
-                        key={task.id}
-                        type="button"
-                        className={`calendar-task ${task.status}`}
-                        title={task.title}
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          openTask(task.id);
-                        }}
-                      >
-                        <span className="calendar-task-dot" />
-
-                        <span className="calendar-task-title">
-                          {task.title}
-                        </span>
-                      </button>
-                    ))}
-
-                    {remainingCount > 0 && (
-                      <button
-                        type="button"
-                        className="mobile-more-tasks"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          selectDay(date);
-                        }}
-                      >
-                        +{remainingCount}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+                );
+              }
+            )}
           </div>
         </div>
       </div>
@@ -578,8 +791,12 @@ export default function ProjectMonthlyCalendarTab({
             className="calendar-day-modal"
             role="dialog"
             aria-modal="true"
-            aria-label={formatSelectedDate(selectedDate)}
-            onClick={(event) => event.stopPropagation()}
+            aria-label={formatSelectedDate(
+              selectedDate
+            )}
+            onClick={(event) =>
+              event.stopPropagation()
+            }
           >
             <div className="calendar-selected-day-heading">
               <div>
@@ -588,7 +805,9 @@ export default function ProjectMonthlyCalendarTab({
                 </span>
 
                 <h4>
-                  {formatSelectedDate(selectedDate)}
+                  {formatSelectedDate(
+                    selectedDate
+                  )}
                 </h4>
               </div>
 
@@ -600,7 +819,9 @@ export default function ProjectMonthlyCalendarTab({
                 <button
                   type="button"
                   className="calendar-selected-day-close"
-                  onClick={() => setSelectedDate(null)}
+                  onClick={() =>
+                    setSelectedDate(null)
+                  }
                   aria-label="Kapat"
                 >
                   <X size={18} />
@@ -619,15 +840,24 @@ export default function ProjectMonthlyCalendarTab({
                     key={task.id}
                     type="button"
                     className={`calendar-selected-task ${task.status}`}
-                    onClick={() => openTask(task.id)}
+                    onClick={() =>
+                      openTask(task.id)
+                    }
                   >
                     <div className="calendar-selected-task-info">
-                      <strong>{task.title}</strong>
-                      <span>{project.name}</span>
+                      <strong>
+                        {task.title}
+                      </strong>
+
+                      <span>
+                        {project.name}
+                      </span>
                     </div>
 
                     <span className="calendar-selected-task-status">
-                      {STATUS_LABELS[task.status]}
+                      {STATUS_LABELS[
+                        task.status
+                      ]}
                     </span>
                   </button>
                 ))}
@@ -637,7 +867,7 @@ export default function ProjectMonthlyCalendarTab({
         </div>
       )}
 
-      {/* SAĞDAN AÇILAN GÖREV PANELİ */}
+      {/* SAĞDAN AÇILAN GÖREV DETAY PANELİ */}
 
       <TaskDrawer
         task={selectedTask}
