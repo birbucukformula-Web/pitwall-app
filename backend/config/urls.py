@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
+from django.db import connection
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -17,6 +18,7 @@ from apps.accounts.presence_views import PresencePingView, PresenceLeaveView
             fields={
                 'status': serializers.CharField(),
                 'service': serializers.CharField(),
+                'database': serializers.CharField(),
             }
         )
     }
@@ -25,9 +27,26 @@ from apps.accounts.presence_views import PresencePingView, PresenceLeaveView
 @permission_classes([AllowAny])
 def health_check(request):
     """
-    Sistem sağlık kontrolü endpoint'i (Karar #14)
+    Sistem sağlık kontrolü endpoint'i (Karar #14).
+    Veritabanına hafif bir SELECT 1 sorgusu atarak UptimeRobot ping'lerinin
+    Supabase'i de uyanık tutmasını sağlar.
     """
-    return Response({"status": "healthy", "service": "pitwall-backend"})
+    db_status = "connected"
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+    except Exception as e:
+        db_status = f"error: {str(e)}"
+        return Response(
+            {"status": "unhealthy", "service": "pitwall-backend", "database": db_status},
+            status=503
+        )
+
+    return Response({
+        "status": "healthy",
+        "service": "pitwall-backend",
+        "database": db_status
+    })
 
 
 urlpatterns = [

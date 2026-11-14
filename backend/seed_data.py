@@ -28,20 +28,53 @@ def seed():
     Unit.objects.filter(organization=org).delete()
     Task.objects.filter(organization=org).delete()
 
-    # 2. Faz 2 Birim Ağacı Oluştur
-    # Kök Birim
-    yazilim_unit = Unit.objects.create(name="Yazılım Departmanı", code="YZL", color="#3b82f6", organization=org, parent=None)
-    
-    # Alt Birimler (1. Seviye)
-    oyun_unit = Unit.objects.create(name="Oyun", code="OYUN", color="#8b5cf6", organization=org, parent=yazilim_unit)
-    web_unit = Unit.objects.create(name="Web", code="WEB", color="#06b6d4", organization=org, parent=yazilim_unit)
-    gomulu_unit = Unit.objects.create(name="Gömülü", code="GML", color="#10b981", organization=org, parent=yazilim_unit)
-    
-    # Alt Birimler (2. Seviye - Gömülü altı)
-    gomulu_tk_unit = Unit.objects.create(name="Gömülü_teknofest", code="GML-TK", color="#f59e0b", organization=org, parent=gomulu_unit)
-    gomulu_fs_unit = Unit.objects.create(name="Gömülü_FSAE", code="GML-FS", color="#ef4444", organization=org, parent=gomulu_unit)
-    
-    print("Birim hiyerarşisi oluşturuldu (Yazılım -> Oyun, Web, Gömülü -> Teknofest, FSAE)")
+    # 2. Faz 3 Çoklu Departman Ağacı Oluştur
+    # Renk Paleti
+    C_ELEKTRIK = "#f59e0b"
+    C_MEKANIK = "#ef4444"
+    C_YAZILIM = "#3b82f6"
+    C_BANDO = "#8b5cf6"
+    C_ORYANTASYON = "#10b981"
+
+    # 1. Elektrik Departmanı
+    elektrik_unit = Unit.objects.create(name="Elektrik Departmanı", code="ELK", color=C_ELEKTRIK, organization=org, parent=None)
+    hv_unit = Unit.objects.create(name="High Voltage", code="HV", color=C_ELEKTRIK, organization=org, parent=elektrik_unit)
+    Unit.objects.create(name="Accumulator", code="ACC", color=C_ELEKTRIK, organization=org, parent=hv_unit)
+    Unit.objects.create(name="Accumulator Management System", code="AMS", color=C_ELEKTRIK, organization=org, parent=hv_unit)
+    Unit.objects.create(name="Low Voltage", code="LV", color=C_ELEKTRIK, organization=org, parent=elektrik_unit)
+
+    # 2. Mekanik Departmanı
+    mekanik_unit = Unit.objects.create(name="Mekanik Departmanı", code="MEK", color=C_MEKANIK, organization=org, parent=None)
+    powertrain_unit = Unit.objects.create(name="Powertrain", code="PT", color=C_MEKANIK, organization=org, parent=mekanik_unit)
+    Unit.objects.create(name="Drivetrain", code="DT", color=C_MEKANIK, organization=org, parent=powertrain_unit)
+    Unit.objects.create(name="Kompozit ve Üretim", code="KOMP", color=C_MEKANIK, organization=org, parent=mekanik_unit)
+    Unit.objects.create(name="Aerodinami", code="AERO", color=C_MEKANIK, organization=org, parent=mekanik_unit)
+    Unit.objects.create(name="Şasi", code="SASI", color=C_MEKANIK, organization=org, parent=mekanik_unit)
+    Unit.objects.create(name="Araç Dinamiği", code="VDIN", color=C_MEKANIK, organization=org, parent=mekanik_unit)
+
+    # 3. Yazılım Departmanı
+    yazilim_unit = Unit.objects.create(name="Yazılım Departmanı", code="YZL", color=C_YAZILIM, organization=org, parent=None)
+    oyun_unit = Unit.objects.create(name="Oyun", code="OYUN", color=C_YAZILIM, organization=org, parent=yazilim_unit)
+    web_unit = Unit.objects.create(name="Web", code="WEB", color=C_YAZILIM, organization=org, parent=yazilim_unit)
+    gomulu_unit = Unit.objects.create(name="Gömülü", code="GML", color=C_YAZILIM, organization=org, parent=yazilim_unit)
+    Unit.objects.create(name="Teknofest", code="TK", color=C_YAZILIM, organization=org, parent=gomulu_unit)
+
+    # 4. Bando Departmanı
+    bando_unit = Unit.objects.create(name="Bando Departmanı (Business and Operations Departmanı)", code="BANDO", color=C_BANDO, organization=org, parent=None)
+    sponsorluk_unit = Unit.objects.create(name="Sponsorluk Birimi", code="SPN", color=C_BANDO, organization=org, parent=bando_unit)
+    Unit.objects.create(name="Partner Relationship Management", code="PRM", color=C_BANDO, organization=org, parent=sponsorluk_unit)
+    Unit.objects.create(name="Medya ve Tasarım", code="MED", color=C_BANDO, organization=org, parent=bando_unit)
+    Unit.objects.create(name="Statik Event", code="STATIK", color=C_BANDO, organization=org, parent=bando_unit)
+    Unit.objects.create(name="Finans", code="FIN", color=C_BANDO, organization=org, parent=bando_unit)
+
+    # 5. Oryantasyon
+    oryantasyon_unit = Unit.objects.create(name="ORYANTASYON", code="ORY", color=C_ORYANTASYON, organization=org, parent=None)
+    Unit.objects.create(name="BANDO ORYANTASYON", code="ORY-BANDO", color=C_ORYANTASYON, organization=org, parent=oryantasyon_unit)
+    Unit.objects.create(name="YAZILIM ORYANTASYON", code="ORY-YZL", color=C_ORYANTASYON, organization=org, parent=oryantasyon_unit)
+    Unit.objects.create(name="MEKANİK ORYANTASYON", code="ORY-MEK", color=C_ORYANTASYON, organization=org, parent=oryantasyon_unit)
+    Unit.objects.create(name="ELEKTRİK ORYANTASYON", code="ORY-ELK", color=C_ORYANTASYON, organization=org, parent=oryantasyon_unit)
+
+    print("Tüm organizasyon birim hiyerarşisi oluşturuldu (Elektrik, Mekanik, Yazılım, Bando, Oryantasyon)")
 
     # 3. Test Kullanıcıları
     # Ekran görüntüsündeki mevcut gerçek kullanıcıların birimlerini ve rollerini güncelliyoruz.

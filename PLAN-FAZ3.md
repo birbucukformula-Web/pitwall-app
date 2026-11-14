@@ -50,17 +50,17 @@ apps/tasks/models.py -> TaskActivity (Model Aktifleştirme & Genişletme)
 ## 🚀 Sıralı Uygulama Adımları
 
 ### 🔹 F3-Adım 0 — Altyapı ve Veritabanı Health-Check İyileştirmesi
-- [ ] `backend/config/urls.py` altındaki `health_check` görünümüne hafif bir veritabanı sorgusu (`SELECT 1`) eklenir.
-- [ ] UptimeRobot ping attığında hem web servisi hem de Supabase veritabanı sorgu alarak uyanık kalır; duraklatma (pause) riski ortadan kaldırılır.
+- [x] `backend/config/urls.py` altındaki `health_check` görünümüne hafif bir veritabanı sorgusu (`SELECT 1`) eklenir.
+- [x] UptimeRobot ping attığında hem web servisi hem de Supabase veritabanı sorgu alarak uyanık kalır; duraklatma (pause) riski ortadan kaldırılır.
 
 **Bitti sayılır:** `/api/v1/health/` çağrıldığında veritabanı bağlantısı doğrulanarak `{"status":"healthy","database":"connected"}` dönüyor.
 
 ---
 
 ### 🔹 F3-Adım 1 — Çoklu Departman Ağacının Kurulması
-- [ ] Veritabanında ana departmanlar (`Yazılım`, `Mekanik`, `Elektrik`, `Bando`) ve alt takımları (`Otonom`, `Şasi`, `Aerodinamik`, `Batarya/HV`, `Telemetri` vb.) hiyerarşik olarak oluşturulur.
-- [ ] `Unit.get_descendant_ids()` fonksiyonunun çoklu kök departman ağacında bağımsız olarak doğru alt küme ürettiği test edilir.
-- [ ] Sol navigasyon menüsünde (Sidebar) ana departmanların ve alt takımların accordion yapısında listelenmesi doğrulanır.
+- [x] Veritabanında ana departmanlar (`Yazılım`, `Mekanik`, `Elektrik`, `Bando`, `ORYANTASYON`) ve alt takımları (`High Voltage`, `Powertrain`, `Sponsorluk`, vb.) hiyerarşik olarak oluşturuldu (toplam 30 birim).
+- [x] `Unit.get_descendant_ids()` fonksiyonunun çoklu kök departman ağacında bağımsız olarak doğru alt küme ürettiği doğrulandı.
+- [x] `seed_data.py` yeni departman ve alt birim ağacıyla güncellendi.
 
 **Bitti sayılır:** Yeni departmanlar ve alt takımlar panoda ve sol menüde hiyerarşik olarak seçilip filtrelenebiliyor.
 
