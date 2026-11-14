@@ -28,6 +28,22 @@ type HeaderProps = {
   onMenuClick: () => void;
 };
 
+function formatNotificationDate(dateStr: string) {
+  if (!dateStr) return "";
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    const now = new Date();
+    const isToday = d.toDateString() === now.toDateString();
+    if (isToday) {
+      return d.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
+    }
+    return d.toLocaleDateString("tr-TR", { day: "numeric", month: "short" });
+  } catch {
+    return dateStr;
+  }
+}
+
 
 
 export default function Header({
@@ -45,6 +61,7 @@ export default function Header({
     unreadNotifications: activeNotifications,
     unreadCount,
     markAllAsRead,
+    markAsRead,
   } = useNotifications();
 
   const [
@@ -133,24 +150,28 @@ export default function Header({
       : [];
 
   function handleNotificationClick(
-  notification: NotificationItem,
-) {
-  setShowNotifications(false);
+    notification: NotificationItem,
+  ) {
+    setShowNotifications(false);
 
-  if (notification.link) {
-    navigate(notification.link);
-  }
+    if (!notification.isRead) {
+      markAsRead(notification.id);
+    }
 
-  if (notification.taskId) {
-    const task = tasks.find(
-      (item) => item.id === notification.taskId,
-    );
+    if (notification.link) {
+      navigate(notification.link);
+    }
 
-    if (task) {
-      setSelectedTask(task);
+    if (notification.taskId) {
+      const task = tasks.find(
+        (item) => item.id === notification.taskId,
+      );
+
+      if (task) {
+        setSelectedTask(task);
+      }
     }
   }
-}
 
   function handleSearchResultClick(
     task: Task,
@@ -274,7 +295,7 @@ export default function Header({
 
                               <span>
                                 {
-                                  notification.createdAt
+                                  formatNotificationDate(notification.createdAt)
                                 }
                               </span>
                             </div>

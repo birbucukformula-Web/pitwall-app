@@ -2,9 +2,10 @@ import {
   createContext,
   useContext,
   useMemo,
-  useState,
   type ReactNode,
 } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { notificationsApi } from "../api/notifications";
 
 export type NotificationType =
   | "task_assigned"
@@ -22,17 +23,18 @@ export type NotificationItem = {
   isRead: boolean;
   link: string;
   taskId?: number;
+  actor_name?: string | null;
 };
-
-const initialNotifications: NotificationItem[] = [];
 
 type NotificationContextValue = {
   notifications: NotificationItem[];
   unreadNotifications: NotificationItem[];
   unreadCount: number;
+  isLoading: boolean;
   markAsRead: (id: number) => void;
   markManyAsRead: (ids: number[]) => void;
   markAllAsRead: () => void;
+  refetch: () => void;
 };
 
 const NotificationContext =
@@ -43,36 +45,88 @@ export function NotificationProvider({
 }: {
   children: ReactNode;
 }) {
-  const [notifications, setNotifications] =
-    useState<NotificationItem[]>(initialNotifications);
+  const queryClient = useQueryClient();
+  const hasAuth = !!localStorage.getItem("access");
+
+  const {
+    data: notifications = [],
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: ["notifications"],
+    queryFn: () => notificationsApi.getNotifications(),
+    enabled: hasAuth,
+    refetchInterval: 30000, // 30 saniyede bir arka planda kontrol et
+    refetchOnWindowFocus: true,
+  });
 
   const unreadNotifications = useMemo(
     () => notifications.filter((item) => !item.isRead),
     [notifications],
   );
 
+  const markAsReadMutation = useMutation({
+    mutationFn: (id: number) => notificationsApi.markAsRead(id),
+    onMutate: async (id: number) => {
+      await queryClient.cancelQueries({ queryKey: ["notifications"] });
+      const previous = queryClient.getQueryData<NotificationItem[]>(["notifications"]);
+      if (previous) {
+        queryClient.setQueryData<NotificationItem[]>(
+          ["notifications"],
+          previous.map((n) => (n.id === id ? { ...n, isRead: true } : n))
+        );
+      }
+      return { previous };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["notifications"], context.previous);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    },
+  });
+
+  const markAllAsReadMutation = useMutation({
+    mutationFn: () => notificationsApi.markAllAsRead(),
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ["notifications"] });
+      const previous = queryClient.getQueryData<NotificationItem[]>(["notifications"]);
+      if (previous) {
+        queryClient.setQueryData<NotificationItem[]>(
+          ["notifications"],
+          previous.map((n) => ({ ...n, isRead: true }))
+        );
+      }
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["notifications"], context.previous);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    },
+  });
+
   function markAsRead(id: number) {
-    setNotifications((current) =>
-      current.map((item) =>
-        item.id === id ? { ...item, isRead: true } : item,
-      ),
-    );
+    markAsReadMutation.mutate(id);
   }
 
-  function markManyAsRead(ids: number[]) {
-    setNotifications((current) =>
-      current.map((item) =>
-        ids.includes(item.id)
-          ? { ...item, isRead: true }
-          : item,
-      ),
-    );
+  async function markManyAsRead(ids: number[]) {
+    if (!ids || ids.length === 0) return;
+    queryClient.setQueryData<NotificationItem[]>(["notifications"], (old) => {
+      if (!old) return [];
+      return old.map((n) => (ids.includes(n.id) ? { ...n, isRead: true } : n));
+    });
+    await Promise.allSettled(ids.map((id) => notificationsApi.markAsRead(id)));
+    queryClient.invalidateQueries({ queryKey: ["notifications"] });
   }
 
   function markAllAsRead() {
-    setNotifications((current) =>
-      current.map((item) => ({ ...item, isRead: true })),
-    );
+    markAllAsReadMutation.mutate();
   }
 
   return (
@@ -81,9 +135,11 @@ export function NotificationProvider({
         notifications,
         unreadNotifications,
         unreadCount: unreadNotifications.length,
+        isLoading,
         markAsRead,
         markManyAsRead,
         markAllAsRead,
+        refetch,
       }}
     >
       {children}
@@ -102,3 +158,4 @@ export function useNotifications() {
 
   return context;
 }
+

@@ -40,12 +40,29 @@ function NotificationIcon({
     }
 }
 
+function formatNotificationDate(dateStr: string) {
+    if (!dateStr) return "";
+    try {
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return dateStr;
+        const now = new Date();
+        const isToday = d.toDateString() === now.toDateString();
+        if (isToday) {
+            return d.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
+        }
+        return d.toLocaleDateString("tr-TR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+    } catch {
+        return dateStr;
+    }
+}
+
 export default function Inbox() {
     const navigate = useNavigate();
 
     const {
         notifications: items,
         unreadCount,
+        markAsRead,
         markManyAsRead,
         markAllAsRead: markAllNotificationsAsRead,
     } = useNotifications();
@@ -293,7 +310,14 @@ export default function Inbox() {
                                         <button
                                             type="button"
                                             className="inbox-row-open"
-                                            onClick={() => navigate(item.link)}
+                                            onClick={() => {
+                                                if (!item.isRead) {
+                                                    markAsRead(item.id);
+                                                }
+                                                if (item.link) {
+                                                    navigate(item.link);
+                                                }
+                                            }}
                                             aria-label={`${item.title} bildirimini aç`}
                                         >
                                             <span className="inbox-row-title">
@@ -309,7 +333,7 @@ export default function Inbox() {
                                             </span>
                                         </button>
                                         <div className="inbox-row-meta">
-                                            <span>{item.createdAt}</span>
+                                            <span>{formatNotificationDate(item.createdAt)}</span>
 
                                             {!item.isRead && (
                                                 <span className="inbox-unread-dot" />

@@ -113,9 +113,10 @@ apps/tasks/models.py -> TaskActivity (Model Aktifleştirme & Genişletme)
 ---
 
 ### 🔹 F3-Adım 5 — Gelen Kutusu ve Üst Menü Bildirim Entegrasyonu: Frontend
-- [ ] `NotificationContext.tsx` sahte/statik veriden arındırılarak `@tanstack/react-query` ile backend bildirim API'sine bağlanır.
-- [ ] Üst menü (Header) bildirim çanı: Gerçek okunmamış bildirim rozet sayısı (badge) ve tıklandığında açılan hızlı bildirim listesi.
-- [ ] `Inbox.tsx` sayfası: Gerçek bildirimleri listeleme, "Tümü / Okunmamış" filtreleme, tekli ve toplu okundu işaretleme, bildirime tıklandığında ilgili göreve gitme (`link`).
+- [x] `NotificationContext.tsx` sahte/statik veriden arındırılarak `@tanstack/react-query` ile backend bildirim API'sine bağlandı (`notificationsApi`).
+- [x] Üst menü (Header) bildirim çanı: Gerçek okunmamış bildirim rozet sayısı (badge) ve tıklandığında açılan hızlı bildirim listesi bağlandı; tekil tıklandığında okundu yapılıyor ve ilgili göreve yönlendiriyor.
+- [x] `Inbox.tsx` sayfası: Gerçek bildirimleri listeleme, "Tümü / Okunmamış" filtreleme, tekli ve toplu okundu işaretleme, bildirime tıklandığında ilgili göreve gitme (`link`) ve formatlanmış tarih gösterimi eklendi.
+- [x] Frontend derlemesi (`npm run build`) hatasız geçti.
 
 **Bitti sayılır:** Bir kullanıcıya görev atandığında, üst menüdeki çanda anında bildirim beliriyor ve Gelen Kutusu sayfasından okunup yönetilebiliyor.
 

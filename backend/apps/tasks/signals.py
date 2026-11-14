@@ -77,3 +77,4 @@ def task_comment_notification(sender, instance, created, **kwargs):
                 message=instance.content[:150] if instance.content else "",
                 link=f"/projects?task={task.id}",
             )
+
