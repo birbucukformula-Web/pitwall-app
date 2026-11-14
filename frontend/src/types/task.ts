@@ -22,6 +22,7 @@ export type Unit = {
   color?: string;
 
   parent?: number | null;
+  parent_name?: string | null;
   task_count?: number;
   member_count?: number;
   description?: string;
@@ -32,6 +33,7 @@ export type Project = {
   name: string;
   description?: string;
   color?: string;
+  is_archived?: boolean;
 };
 
 export type Task = {
