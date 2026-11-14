@@ -85,7 +85,7 @@ apps/tasks/models.py -> TaskActivity (Model Aktifleştirme & Genişletme)
 ---
 
 ### 🔹 F3-Adım 3 — Captain Yönetim Paneli: Frontend Arayüzü
-- [ ] `Settings.tsx` sayfasına veya `/settings` altına sadece `role === 'captain'` kullanıcıların görebileceği yönetim sekmeleri eklenir:
+- [x] `Settings.tsx` sayfasına veya `/settings` altına sadece `role === 'captain'` kullanıcıların görebileceği yönetim sekmeleri eklendi:
   - **Birimler Sekmesi:** Departman ve alt birim ekleme modalı, renk seçici, üst birim (parent) seçici, hiyerarşi listesi ve silme aksiyonu.
   - **Projeler Sekmesi:** Proje oluşturma, renk belirleme, arşivleme ve düzenleme kontrolleri.
   - **Üyeler Sekmesi:** Mevcut üyelerin rolünü (`lead`, `member`, `captain`) ve birimini tek tıkla değiştirebilen inline dropdown'lar.
@@ -96,16 +96,17 @@ apps/tasks/models.py -> TaskActivity (Model Aktifleştirme & Genişletme)
 ---
 
 ### 🔹 F3-Adım 4 — Kalıcı Bildirim Sistemi: Backend
-- [ ] `apps/accounts/models.py` içerisine `Notification` modeli eklenir ve migration alınır.
-- [ ] Django Sinyalleri (`apps/tasks/signals.py`):
-  - Göreve yeni bir kullanıcı atandığında (`m2m_changed` veya `post_save`) atanan kişiye `task_assigned` bildirimi.
-  - Görev durumu değiştiğinde (`post_save`) görevin ilgililerine `status_change` bildirimi.
-  - Göreve yeni yorum eklendiğinde `comment` bildirimi.
-- [ ] Bildirim API Uç Noktaları:
-  - `GET /api/v1/notifications/`: Kullanıcının bildirimlerini listeleme (filtre: `unread=true`).
+- [x] `apps/accounts/models.py` içerisine `Notification` modeli eklendi ve Supabase'e migration (`0004_notification`) uygulandı.
+- [x] Django Sinyalleri (`apps/tasks/signals.py`):
+  - Göreve yeni bir kullanıcı atandığında (`m2m_changed`) atanan kişiye `task_assigned` bildirimi.
+  - Görev durumu değiştiğinde (`post_save`) görevin ilgililerine `task_updated` bildirimi.
+  - Göreve yeni yorum eklendiğinde (`post_save` on `TaskActivity`) diğer üyelere `comment` bildirimi.
+- [x] Bildirim API Uç Noktaları:
+  - `GET /api/v1/notifications/`: Kullanıcının bildirimlerini listeleme (filtre: `status=unread`).
   - `PATCH /api/v1/notifications/<id>/read/`: Tekil bildirimi okundu işaretleme.
   - `POST /api/v1/notifications/mark-all-read/`: Tüm bildirimleri tek seferde okundu işaretleme.
   - `GET /api/v1/notifications/unread-count/`: Okunmamış bildirim sayısı (hafif endpoint).
+- [x] 30/30 unit testi başarıyla geçti.
 
 **Bitti sayılır:** Görev hareketleri veritabanında bildirim kayıtları üretiyor ve kullanıcının bildirim endpoint'leri çalışıyor.
 

@@ -1,7 +1,31 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import User
+from .models import User, Notification
 from apps.organizations.models import Organization, Unit
+
+class NotificationSerializer(serializers.ModelSerializer):
+    actor_name = serializers.SerializerMethodField()
+    task_id = serializers.IntegerField(source='task.id', read_only=True)
+    task_title = serializers.CharField(source='task.title', read_only=True)
+    isRead = serializers.BooleanField(source='is_read', read_only=True)
+    createdAt = serializers.DateTimeField(source='created_at', read_only=True)
+    taskId = serializers.IntegerField(source='task.id', read_only=True)
+
+    class Meta:
+        model = Notification
+        fields = (
+            'id', 'type', 'title', 'message', 'link',
+            'is_read', 'created_at', 'task_id', 'task_title',
+            'actor_name', 'isRead', 'createdAt', 'taskId'
+        )
+        read_only_fields = ('id', 'created_at', 'type', 'title', 'message', 'link', 'task_id', 'task_title')
+
+    def get_actor_name(self, obj):
+        if obj.actor:
+            name = obj.actor.get_full_name()
+            return name if name else obj.actor.username
+        return None
+
 
 class OrganizationSerializer(serializers.ModelSerializer):
     class Meta:

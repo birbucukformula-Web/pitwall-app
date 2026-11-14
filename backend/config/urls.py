@@ -7,7 +7,11 @@ from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema, inline_serializer
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework import serializers
-from apps.accounts.views import MemberListView, MemberDetailView
+from apps.accounts.views import (
+    MemberListView, MemberDetailView,
+    NotificationListView, NotificationReadView,
+    NotificationMarkAllReadView, NotificationUnreadCountView
+)
 from apps.accounts.presence_views import PresencePingView, PresenceLeaveView
 
 
@@ -60,6 +64,10 @@ urlpatterns = [
     path('api/v1/auth/', include('apps.accounts.urls')),
     path('api/v1/members/', MemberListView.as_view(), name='members'),
     path('api/v1/members/<int:pk>/', MemberDetailView.as_view(), name='member_detail'),
+    path('api/v1/notifications/', NotificationListView.as_view(), name='notification_list'),
+    path('api/v1/notifications/<int:pk>/read/', NotificationReadView.as_view(), name='notification_read'),
+    path('api/v1/notifications/mark-all-read/', NotificationMarkAllReadView.as_view(), name='notification_mark_all_read'),
+    path('api/v1/notifications/unread-count/', NotificationUnreadCountView.as_view(), name='notification_unread_count'),
     path('api/v1/presence/ping/', PresencePingView.as_view(), name='presence-ping'),
     path('api/v1/presence/leave/', PresenceLeaveView.as_view(), name='presence-leave'),
     path('api/v1/', include('apps.organizations.urls')),

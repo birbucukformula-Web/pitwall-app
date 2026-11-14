@@ -207,5 +207,102 @@ class AccountTests(TestCase):
         pending_user.refresh_from_db()
         self.assertTrue(pending_user.is_active)
 
+    def test_notification_endpoints_and_read_status(self):
+        from apps.accounts.models import Notification
+
+        n1 = Notification.objects.create(
+            recipient=self.user,
+            type="announcement",
+            title="Duyuru 1",
+            message="Test mesajı",
+            is_read=False
+        )
+        n2 = Notification.objects.create(
+            recipient=self.user,
+            type="task_assigned",
+            title="Görev 1",
+            message="Görev atandı",
+            is_read=False
+        )
+
+        self.client.force_authenticate(user=self.user)
+
+        # 1. Unread count endpoint
+        count_res = self.client.get('/api/v1/notifications/unread-count/')
+        self.assertEqual(count_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(count_res.data['unread_count'], 2)
+
+        # 2. List notifications
+        list_res = self.client.get('/api/v1/notifications/')
+        self.assertEqual(list_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(list_res.data), 2)
+
+        # 3. Mark single notification as read
+        patch_res = self.client.patch(f'/api/v1/notifications/{n1.id}/read/', {'is_read': True})
+        self.assertEqual(patch_res.status_code, status.HTTP_200_OK)
+        n1.refresh_from_db()
+        self.assertTrue(n1.is_read)
+
+        # Verify unread count is now 1
+        count_res2 = self.client.get('/api/v1/notifications/unread-count/')
+        self.assertEqual(count_res2.data['unread_count'], 1)
+
+        # 4. Mark all as read
+        mark_all_res = self.client.post('/api/v1/notifications/mark-all-read/')
+        self.assertEqual(mark_all_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(mark_all_res.data['status'], 'success')
+
+        n2.refresh_from_db()
+        self.assertTrue(n2.is_read)
+
+        count_res3 = self.client.get('/api/v1/notifications/unread-count/')
+        self.assertEqual(count_res3.data['unread_count'], 0)
+
+    def test_task_signals_trigger_notifications(self):
+        from apps.tasks.models import Task, TaskActivity
+        from apps.accounts.models import Notification
+
+        # Görev oluştur
+        task = Task.objects.create(
+            organization=self.org,
+            title="Batarya Kutusu Tasarımı",
+            description="CAD çizimlerini tamamla",
+            status="todo"
+        )
+
+        # 1. Göreve kullanıcı ata -> m2m_changed sinyali bildirim üretmeli
+        task.assigned_to.add(self.user)
+        notif = Notification.objects.filter(recipient=self.user, task=task, type="task_assigned").first()
+        self.assertIsNotNone(notif)
+        self.assertIn("Batarya Kutusu Tasarımı", notif.title)
+
+        # 2. Durum güncelle -> post_save sinyali bildirim üretmeli
+        task.status = "in_progress"
+        task.save()
+        status_notif = Notification.objects.filter(recipient=self.user, task=task, type="task_updated").first()
+        self.assertIsNotNone(status_notif)
+        self.assertIn("Durum Güncellendi", status_notif.title)
+
+        # 3. İkinci bir kullanıcı yorum yapsın -> post_save TaskActivity sinyali ilk kullanıcıya bildirim üretmeli
+        other_user = User.objects.create_user(
+            username="mechanic_dev",
+            email="mech@pitwall.app",
+            password="pitwall123",
+            first_name="Can",
+            last_name="Yılmaz",
+            organization=self.org
+        )
+        TaskActivity.objects.create(
+            task=task,
+            user=other_user,
+            activity_type=TaskActivity.ActivityType.COMMENT,
+            content="Statik analiz tamamlandı, üretime hazır."
+        )
+
+        comment_notif = Notification.objects.filter(recipient=self.user, task=task, type="comment").first()
+        self.assertIsNotNone(comment_notif)
+        self.assertIn("Can Yılmaz", comment_notif.title)
+
+
 
 

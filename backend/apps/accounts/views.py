@@ -1,11 +1,14 @@
-from rest_framework import generics, permissions, exceptions
+from rest_framework import generics, permissions, exceptions, views, status
+from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.contrib.auth import get_user_model
+from .models import Notification
 from .serializers import (
     CustomTokenObtainPairSerializer,
     UserSerializer,
     UserRegistrationSerializer,
     MemberAdminUpdateSerializer,
+    NotificationSerializer,
 )
 from .permissions import IsAuthenticatedOrgMember, IsCaptain
 
@@ -67,3 +70,79 @@ class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     permission_classes = [permissions.AllowAny]
     serializer_class = UserRegistrationSerializer
+
+
+# ==========================================
+# BİLDİRİM (NOTIFICATION) VIEW'LARI
+# ==========================================
+
+class NotificationListView(generics.ListAPIView):
+    """
+    Giriş yapmış kullanıcının bildirimlerini listeler.
+    ?status=unread parametresi ile sadece okunmamışlar filtrelenebilir.
+    """
+    serializer_class = NotificationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = Notification.objects.filter(recipient=user).select_related('actor', 'task')
+        status_param = self.request.query_params.get('status')
+        if status_param == 'unread':
+            qs = qs.filter(is_read=False)
+        return qs.order_by('-created_at')[:100]
+
+
+class NotificationReadView(generics.UpdateAPIView):
+    """
+    Tekil bir bildirimi okundu (veya okunmadı) olarak günceller.
+    PATCH /api/v1/notifications/<id>/read/
+    """
+    serializer_class = NotificationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Notification.objects.filter(recipient=self.request.user)
+
+    def patch(self, request, *args, **kwargs):
+        instance = self.get_object()
+        # Eğer istek gövdesinde is_read belirtilmişse onu kullan, yoksa True yap
+        is_read = request.data.get('is_read', True)
+        instance.is_read = bool(is_read)
+        instance.save(update_fields=['is_read'])
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+
+class NotificationMarkAllReadView(views.APIView):
+    """
+    Giriş yapmış kullanıcının tüm okunmamış bildirimlerini okundu yapar.
+    POST /api/v1/notifications/mark-all-read/
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        updated_count = Notification.objects.filter(
+            recipient=request.user,
+            is_read=False
+        ).update(is_read=True)
+        return Response({
+            "status": "success",
+            "marked_count": updated_count
+        }, status=status.HTTP_200_OK)
+
+
+class NotificationUnreadCountView(views.APIView):
+    """
+    Giriş yapmış kullanıcının okunmamış bildirim sayısını döner.
+    GET /api/v1/notifications/unread-count/
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        count = Notification.objects.filter(
+            recipient=request.user,
+            is_read=False
+        ).count()
+        return Response({"unread_count": count}, status=status.HTTP_200_OK)
+
