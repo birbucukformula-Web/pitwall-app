@@ -67,15 +67,15 @@ apps/tasks/models.py -> TaskActivity (Model Aktifleştirme & Genişletme)
 ---
 
 ### 🔹 F3-Adım 2 — Captain Yönetim Paneli: Backend API
-- [ ] **Birim Yönetimi (`Unit` CRUD):**
+- [x] **Birim Yönetimi (`Unit` CRUD):**
   - `POST /api/v1/units/`: Yeni birim/departman oluşturma (Sadece `captain`).
   - `PATCH /api/v1/units/<id>/`: Birim adı, rengi veya üst birimini (`parent`) güncelleme (döngüsel parent koruması ile).
   - `DELETE /api/v1/units/<id>/`: Birim silme (varsa alt birimleri veya görevleri koruma kontrolü ile).
-- [ ] **Proje Yönetimi (`Project` CRUD):**
+- [x] **Proje Yönetimi (`Project` CRUD):**
   - `POST /api/v1/projects/`: Yeni proje oluşturma (Sadece `captain` ve yetkili `lead`).
   - `PATCH /api/v1/projects/<id>/`: Proje adı, renk veya arşivleme durumu (`is_archived`) güncelleme.
   - `DELETE /api/v1/projects/<id>/`: Proje silme/arşivleme.
-- [ ] **Üye Yönetimi ve Kayıt Onayı:**
+- [x] **Üye Yönetimi ve Kayıt Onayı:**
   - `GET /api/v1/members/?status=pending`: Kayıt olmuş ancak onay bekleyen (`is_active=False`) kullanıcıları listeleme.
   - `PATCH /api/v1/members/<id>/`: Üyenin rolünü (`role`), birimini (`unit`) değiştirebilme ve `is_active=True` yaparak onaylama (Sadece `captain`).
   - `DELETE /api/v1/members/<id>/`: Üyeyi takımdan çıkarma / pasife alma.

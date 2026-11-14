@@ -40,6 +40,15 @@ class UnitSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['organization']
 
+    def validate_parent(self, value):
+        if value and self.instance:
+            if value.id == self.instance.id:
+                raise serializers.ValidationError("Bir birim kendi kendisinin üst birimi olamaz.")
+            descendants = self.instance.get_descendant_ids()
+            if value.id in descendants:
+                raise serializers.ValidationError("Bir birim kendi alt biriminin altına taşınamaz (döngüsel hiyerarşi engellendi).")
+        return value
+
     def get_parent_name(self, obj):
         return obj.parent.name if obj.parent else None
 

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import User
-from apps.organizations.models import Organization
+from apps.organizations.models import Organization, Unit
 
 class OrganizationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -27,11 +27,27 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'role', 'organization', 'unit_id', 'unit_name', 'accessible_unit_ids')
+        fields = (
+            'id', 'username', 'email', 'first_name', 'last_name',
+            'role', 'is_active', 'date_joined', 'organization',
+            'unit_id', 'unit_name', 'accessible_unit_ids'
+        )
 
     def get_accessible_unit_ids(self, obj):
         from apps.accounts.permissions import get_visible_unit_ids
         return get_visible_unit_ids(obj)
+
+class MemberAdminUpdateSerializer(serializers.ModelSerializer):
+    unit_id = serializers.PrimaryKeyRelatedField(
+        queryset=Unit.objects.all(),
+        source='unit',
+        required=False,
+        allow_null=True
+    )
+
+    class Meta:
+        model = User
+        fields = ('id', 'role', 'unit_id', 'is_active', 'first_name', 'last_name')
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -49,14 +65,13 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
-        # Use email as username
         username = validated_data['email']
         user = User.objects.create(
             username=username,
             email=validated_data['email'],
             first_name=validated_data['first_name'],
             last_name=validated_data['last_name'],
-            is_active=False  # Must be approved by admin
+            is_active=False  # Must be approved by captain
         )
         user.set_password(validated_data['password'])
         user.save()

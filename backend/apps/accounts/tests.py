@@ -146,4 +146,66 @@ class AccountTests(TestCase):
         self.user.refresh_from_db()
         self.assertIsNone(self.user.last_seen_at)
 
+    def test_captain_can_update_member_role_and_unit(self):
+        from apps.organizations.models import Unit
+        unit = Unit.objects.create(name="Yeni Ekip", organization=self.org)
+        captain = User.objects.create_user(
+            username="captain_user",
+            email="captain@pitwall.app",
+            password="pitwall123",
+            role="captain",
+            organization=self.org
+        )
+
+        self.client.force_authenticate(user=captain)
+        response = self.client.patch(f'/api/v1/members/{self.user.id}/', {
+            'role': 'lead',
+            'unit_id': unit.id
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.role, 'lead')
+        self.assertEqual(self.user.unit_id, unit.id)
+
+    def test_member_cannot_update_member_role(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.patch(f'/api/v1/members/{self.user.id}/', {
+            'role': 'captain'
+        })
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_captain_can_filter_pending_and_approve_member(self):
+        pending_user = User.objects.create_user(
+            username="newbie",
+            email="newbie@pitwall.app",
+            password="pitwall123",
+            organization=self.org,
+            is_active=False
+        )
+        captain = User.objects.create_user(
+            username="captain_boss",
+            email="boss@pitwall.app",
+            password="pitwall123",
+            role="captain",
+            organization=self.org
+        )
+
+        self.client.force_authenticate(user=captain)
+        # Pending listeleme
+        response = self.client.get('/api/v1/members/?status=pending')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        usernames = [u['username'] for u in response.data]
+        self.assertIn('newbie', usernames)
+        self.assertNotIn('captain_boss', usernames)
+
+        # Onaylama (is_active=True yapma)
+        patch_res = self.client.patch(f'/api/v1/members/{pending_user.id}/', {
+            'is_active': True,
+            'role': 'member'
+        })
+        self.assertEqual(patch_res.status_code, status.HTTP_200_OK)
+        pending_user.refresh_from_db()
+        self.assertTrue(pending_user.is_active)
+
+
 

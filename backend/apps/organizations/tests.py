@@ -84,3 +84,61 @@ class UnitHierarchyTest(TestCase):
         )
         yeni_birim.parent = self.yazilim
         yeni_birim.clean()  # hata fırlatmamalı
+
+
+class UnitAPIPermissionTest(TestCase):
+    def setUp(self):
+        from rest_framework.test import APIClient
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+
+        self.client = APIClient()
+        self.org = Organization.objects.create(name="Formula Org", slug="formula-org")
+        self.captain = User.objects.create_user(
+            username="captain",
+            email="cap@pitwall.app",
+            password="pitwall123",
+            role="captain",
+            organization=self.org
+        )
+        self.member = User.objects.create_user(
+            username="member",
+            email="mem@pitwall.app",
+            password="pitwall123",
+            role="member",
+            organization=self.org
+        )
+        self.parent_unit = Unit.objects.create(name="Parent Unit", organization=self.org)
+        self.child_unit = Unit.objects.create(name="Child Unit", organization=self.org, parent=self.parent_unit)
+
+    def test_captain_can_create_unit(self):
+        self.client.force_authenticate(user=self.captain)
+        res = self.client.post('/api/v1/units/', {
+            'name': 'Yeni Departman',
+            'code': 'YD',
+            'color': '#ff0000'
+        })
+        self.assertEqual(res.status_code, 201)
+        self.assertTrue(Unit.objects.filter(name='Yeni Departman').exists())
+
+    def test_member_cannot_create_unit(self):
+        self.client.force_authenticate(user=self.member)
+        res = self.client.post('/api/v1/units/', {
+            'name': 'Yetkisiz Departman'
+        })
+        self.assertEqual(res.status_code, 403)
+
+    def test_unit_cannot_be_deleted_if_has_children(self):
+        self.client.force_authenticate(user=self.captain)
+        res = self.client.delete(f'/api/v1/units/{self.parent_unit.id}/')
+        self.assertEqual(res.status_code, 400)
+        self.assertTrue(Unit.objects.filter(id=self.parent_unit.id).exists())
+
+    def test_unit_serializer_cycle_validation(self):
+        self.client.force_authenticate(user=self.captain)
+        # parent_unit'in üst birimini child_unit yapmayı dene (döngü)
+        res = self.client.patch(f'/api/v1/units/{self.parent_unit.id}/', {
+            'parent': self.child_unit.id
+        })
+        self.assertEqual(res.status_code, 400)
+
