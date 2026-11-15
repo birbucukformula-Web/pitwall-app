@@ -16,6 +16,7 @@ import {
 import {
   useNavigate,
   useParams,
+  useSearchParams,
 } from "react-router-dom";
 
 import { useQuery } from "@tanstack/react-query";
@@ -43,6 +44,14 @@ export default function ProjectDetail() {
 
   const [activeTab, setActiveTab] = useState("tasks");
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [searchParams] = useSearchParams();
+  const taskParam = searchParams.get("task");
+
+  useEffect(() => {
+    if (taskParam) {
+      setActiveTab("tasks");
+    }
+  }, [taskParam]);
 
   const {
     data: apiUnits = [],

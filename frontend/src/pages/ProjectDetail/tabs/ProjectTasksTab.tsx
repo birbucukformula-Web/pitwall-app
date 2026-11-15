@@ -1,4 +1,5 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import {
   DndContext,
@@ -89,6 +90,27 @@ export default function ProjectTasksTab({
 
   const [selectedTask, setSelectedTask] =
     useState<Task | null>(null);
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const taskIdParam = searchParams.get("task");
+
+  useEffect(() => {
+    if (taskIdParam && tasks.length > 0) {
+      const foundTask = tasks.find((t) => String(t.id) === taskIdParam);
+      if (foundTask) {
+        setSelectedTask(foundTask);
+      }
+    }
+  }, [taskIdParam, tasks]);
+
+  const handleCloseDrawer = () => {
+    setSelectedTask(null);
+    if (searchParams.has("task")) {
+      const next = new URLSearchParams(searchParams);
+      next.delete("task");
+      setSearchParams(next, { replace: true });
+    }
+  };
 
   const [activeTask, setActiveTask] =
     useState<Task | null>(null);
@@ -816,16 +838,11 @@ export default function ProjectTasksTab({
 
       <TaskDrawer
         task={selectedTask}
-        onClose={() =>
-          setSelectedTask(null)
-        }
+        onClose={handleCloseDrawer}
         onEdit={
           canEditTask
             ? (task) => {
-              setSelectedTask(
-                null
-              );
-
+              handleCloseDrawer();
               openEditTaskModal(
                 task
               );
@@ -835,10 +852,7 @@ export default function ProjectTasksTab({
         onDelete={
           canDeleteTask
             ? (task) => {
-              setSelectedTask(
-                null
-              );
-
+              handleCloseDrawer();
               setDeletingTask(
                 task
               );

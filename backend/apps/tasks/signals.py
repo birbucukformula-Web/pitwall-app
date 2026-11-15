@@ -10,6 +10,7 @@ def task_assigned_notification(sender, instance, action, pk_set, **kwargs):
     Göreve yeni üye(ler) atandığında bildirim oluşturur.
     """
     if action == "post_add" and pk_set:
+        link = f"/projects/{instance.unit_id}?task={instance.id}" if instance.unit_id else f"/dashboard?task={instance.id}"
         for user_id in pk_set:
             user = User.objects.filter(id=user_id).first()
             if user:
@@ -19,7 +20,7 @@ def task_assigned_notification(sender, instance, action, pk_set, **kwargs):
                     type=Notification.NotificationType.TASK_ASSIGNED,
                     title=f"Yeni Görev: {instance.title}",
                     message=f"'{instance.title}' görevi size atandı.",
-                    link=f"/projects?task={instance.id}",
+                    link=link,
                 )
 
 
@@ -44,6 +45,7 @@ def task_status_changed_notification(sender, instance, created, **kwargs):
         if instance._old_status != instance.status:
             status_display = instance.get_status_display()
             assignees = instance.assigned_to.all()
+            link = f"/projects/{instance.unit_id}?task={instance.id}" if instance.unit_id else f"/dashboard?task={instance.id}"
             for user in assignees:
                 Notification.objects.create(
                     recipient=user,
@@ -51,7 +53,7 @@ def task_status_changed_notification(sender, instance, created, **kwargs):
                     type=Notification.NotificationType.TASK_UPDATED,
                     title=f"Durum Güncellendi: {instance.title}",
                     message=f"Görev durumu '{status_display}' olarak güncellendi.",
-                    link=f"/projects?task={instance.id}",
+                    link=link,
                 )
 
 
@@ -67,6 +69,7 @@ def task_comment_notification(sender, instance, created, **kwargs):
 
         # Yorumu yazan kişi dışındaki tüm görev sorumlularına bildirim oluştur
         recipients = task.assigned_to.exclude(id=author.id)
+        link = f"/projects/{task.unit_id}?task={task.id}" if task.unit_id else f"/dashboard?task={task.id}"
         for recipient in recipients:
             Notification.objects.create(
                 recipient=recipient,
@@ -75,6 +78,6 @@ def task_comment_notification(sender, instance, created, **kwargs):
                 type=Notification.NotificationType.COMMENT,
                 title=f"{author_name} yeni bir yorum ekledi",
                 message=instance.content[:150] if instance.content else "",
-                link=f"/projects?task={task.id}",
+                link=link,
             )
 

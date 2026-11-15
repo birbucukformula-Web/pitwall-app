@@ -2,6 +2,7 @@ from rest_framework import generics, permissions, exceptions, views, status
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 from .models import Notification
 from .serializers import (
     CustomTokenObtainPairSerializer,
@@ -41,7 +42,7 @@ class MemberListView(generics.ListAPIView):
 
         # Captain ise onay bekleyenleri veya tümünü filtreleyebilir
         if status_param == 'pending' and user.role == 'captain':
-            return qs.filter(is_active=False).order_by('-date_joined')
+            return User.objects.filter(organization__isnull=True, is_active=False).order_by('-date_joined')
         elif status_param == 'all' and user.role == 'captain':
             return qs.order_by('first_name', 'username')
 
@@ -57,14 +58,29 @@ class MemberDetailView(generics.RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
         user = self.request.user
         if hasattr(user, 'organization') and user.organization:
+            if user.role == 'captain':
+                return User.objects.filter(
+                    Q(organization=user.organization) |
+                    Q(organization__isnull=True, is_active=False)
+                )
             return User.objects.filter(organization=user.organization)
         return User.objects.none()
+
+    def perform_update(self, serializer):
+        user = serializer.instance
+        if not user.organization:
+            serializer.save(organization=self.request.user.organization)
+        else:
+            serializer.save()
 
     def perform_destroy(self, instance):
         if instance.id == self.request.user.id:
             raise exceptions.ValidationError("Kaptan kendi hesabını pasife alamaz.")
-        instance.is_active = False
-        instance.save()
+        if instance.organization is None and not instance.is_active:
+            instance.delete()
+        else:
+            instance.is_active = False
+            instance.save()
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()

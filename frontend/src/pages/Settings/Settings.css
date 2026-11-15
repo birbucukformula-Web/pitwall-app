@@ -788,6 +788,31 @@
   background: rgba(239, 68, 68, 0.1);
 }
 
+.unit-action-btn,
+.project-action-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.unit-action-btn:hover,
+.project-action-btn:hover {
+  color: var(--text);
+  background: var(--surface-soft);
+}
+
+.project-action-btn.danger:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
 .unit-card-meta {
   display: flex;
   flex-direction: column;

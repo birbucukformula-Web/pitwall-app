@@ -12,6 +12,7 @@ import {
   UserX,
   Plus,
   Trash2,
+  Pencil,
   Archive,
   FolderKanban,
   Building2,
@@ -20,7 +21,8 @@ import {
   X,
 } from "lucide-react";
 import { metadataApi } from "../../api/metadata";
-import type { Member } from "../../api/metadata";
+import type { Member, CreateUnitPayload } from "../../api/metadata";
+import type { Unit, Project } from "../../types/task";
 import "./Settings.css";
 
 type Theme = "light" | "dark";
@@ -89,10 +91,25 @@ export default function Settings() {
   const [unitColor, setUnitColor] = useState(PRESET_COLORS[0]);
   const [unitParent, setUnitParent] = useState<string>("");
 
+  // Birim Düzenleme State'leri
+  const [editingUnit, setEditingUnit] = useState<Unit | null>(null);
+  const [isEditUnitModalOpen, setIsEditUnitModalOpen] = useState(false);
+  const [editUnitName, setEditUnitName] = useState("");
+  const [editUnitCode, setEditUnitCode] = useState("");
+  const [editUnitColor, setEditUnitColor] = useState(PRESET_COLORS[0]);
+  const [editUnitParent, setEditUnitParent] = useState<string>("");
+
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [projectName, setProjectName] = useState("");
   const [projectDescription, setProjectDescription] = useState("");
   const [projectColor, setProjectColor] = useState(PRESET_COLORS[0]);
+
+  // Proje Düzenleme State'leri
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [isEditProjectModalOpen, setIsEditProjectModalOpen] = useState(false);
+  const [editProjectName, setEditProjectName] = useState("");
+  const [editProjectDescription, setEditProjectDescription] = useState("");
+  const [editProjectColor, setEditProjectColor] = useState(PRESET_COLORS[0]);
 
   // Hata ve Bilgi Mesajları
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -169,10 +186,25 @@ export default function Settings() {
     },
   });
 
+  const updateUnitMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Partial<CreateUnitPayload> }) =>
+      metadataApi.updateUnit(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["units"] });
+      setIsEditUnitModalOpen(false);
+      setEditingUnit(null);
+      setSuccessMessage("Birim başarıyla güncellendi.");
+    },
+    onError: (err: any) => {
+      setErrorMessage(err.message || "Birim güncellenemedi.");
+    },
+  });
+
   const createProjectMutation = useMutation({
     mutationFn: (data: any) => metadataApi.createProject(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
+      queryClient.invalidateQueries({ queryKey: ["projects", "all"] });
       setIsProjectModalOpen(false);
       setProjectName("");
       setProjectDescription("");
@@ -187,7 +219,25 @@ export default function Settings() {
     mutationFn: ({ id, data }: { id: number; data: any }) => metadataApi.updateProject(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
-      setSuccessMessage("Proje durumu güncellendi.");
+      queryClient.invalidateQueries({ queryKey: ["projects", "all"] });
+      setIsEditProjectModalOpen(false);
+      setEditingProject(null);
+      setSuccessMessage("Proje başarıyla güncellendi.");
+    },
+    onError: (err: any) => {
+      setErrorMessage(err.message || "Proje güncellenemedi.");
+    },
+  });
+
+  const deleteProjectMutation = useMutation({
+    mutationFn: (id: number) => metadataApi.deleteProject(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      queryClient.invalidateQueries({ queryKey: ["projects", "all"] });
+      setSuccessMessage("Proje başarıyla silindi.");
+    },
+    onError: (err: any) => {
+      setErrorMessage(err.message || "Proje silinemedi.");
     },
   });
 
@@ -203,6 +253,30 @@ export default function Settings() {
     });
   };
 
+  // Handler: Birim Düzenleme
+  const handleOpenEditUnit = (u: Unit) => {
+    setEditingUnit(u);
+    setEditUnitName(u.name || "");
+    setEditUnitCode(u.code || "");
+    setEditUnitColor(u.color || PRESET_COLORS[0]);
+    setEditUnitParent(u.parent ? String(u.parent) : "");
+    setIsEditUnitModalOpen(true);
+  };
+
+  const handleUpdateUnit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUnit || !editUnitName.trim()) return;
+    updateUnitMutation.mutate({
+      id: editingUnit.id,
+      data: {
+        name: editUnitName.trim(),
+        code: editUnitCode.trim(),
+        color: editUnitColor,
+        parent: editUnitParent ? parseInt(editUnitParent) : null,
+      },
+    });
+  };
+
   // Handler: Proje Ekleme
   const handleCreateProject = (e: React.FormEvent) => {
     e.preventDefault();
@@ -211,6 +285,28 @@ export default function Settings() {
       name: projectName.trim(),
       description: projectDescription.trim(),
       color: projectColor,
+    });
+  };
+
+  // Handler: Proje Düzenleme
+  const handleOpenEditProject = (p: Project) => {
+    setEditingProject(p);
+    setEditProjectName(p.name || "");
+    setEditProjectDescription(p.description || "");
+    setEditProjectColor(p.color || PRESET_COLORS[0]);
+    setIsEditProjectModalOpen(true);
+  };
+
+  const handleUpdateProject = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProject || !editProjectName.trim()) return;
+    updateProjectMutation.mutate({
+      id: editingProject.id,
+      data: {
+        name: editProjectName.trim(),
+        description: editProjectDescription.trim(),
+        color: editProjectColor,
+      },
     });
   };
 
@@ -685,18 +781,28 @@ export default function Settings() {
                             <h4>{u.name}</h4>
                             <span className="unit-code-badge">{u.code || "KODSUZ"}</span>
                           </div>
-                          <button
-                            type="button"
-                            className="unit-delete-btn"
-                            title="Birimi Sil"
-                            onClick={() => {
-                              if (window.confirm(`"${u.name}" birimini silmek istediğinize emin misiniz?`)) {
-                                deleteUnitMutation.mutate(u.id);
-                              }
-                            }}
-                          >
-                            <Trash2 size={14} />
-                          </button>
+                          <div style={{ display: "flex", gap: "4px" }}>
+                            <button
+                              type="button"
+                              className="unit-action-btn"
+                              title="Birimi Düzenle"
+                              onClick={() => handleOpenEditUnit(u)}
+                            >
+                              <Pencil size={14} />
+                            </button>
+                            <button
+                              type="button"
+                              className="unit-delete-btn"
+                              title="Birimi Sil"
+                              onClick={() => {
+                                if (window.confirm(`"${u.name}" birimini silmek istediğinize emin misiniz?`)) {
+                                  deleteUnitMutation.mutate(u.id);
+                                }
+                              }}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </div>
                         <div className="unit-card-meta">
                           <span>Üst Birim: <strong>{u.parent_name || "KÖK DEPARTMAN"}</strong></span>
@@ -734,7 +840,7 @@ export default function Settings() {
                         {p.is_archived && <span className="archived-pill">Arşivlendi</span>}
                       </div>
                       <p className="project-desc">{p.description || "Açıklama girilmemiş."}</p>
-                      <div className="project-card-footer">
+                      <div className="project-card-footer" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <button
                           type="button"
                           className="toggle-archive-btn"
@@ -748,6 +854,28 @@ export default function Settings() {
                           <Archive size={14} />
                           {p.is_archived ? "Arşivden Çıkar" : "Arşivle"}
                         </button>
+                        <div style={{ display: "flex", gap: "6px" }}>
+                          <button
+                            type="button"
+                            className="project-action-btn"
+                            title="Projeyi Düzenle"
+                            onClick={() => handleOpenEditProject(p)}
+                          >
+                            <Pencil size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            className="project-action-btn danger"
+                            title="Projeyi Sil"
+                            onClick={() => {
+                              if (window.confirm(`"${p.name}" projesini silmek istediğinize emin misiniz?`)) {
+                                deleteProjectMutation.mutate(p.id);
+                              }
+                            }}
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -876,6 +1004,171 @@ export default function Settings() {
                 </button>
                 <button type="submit" className="btn-submit" disabled={createProjectMutation.isPending}>
                   {createProjectMutation.isPending ? "Ekleniyor..." : "Projeyi Oluştur"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* BİRİM DÜZENLEME MODALI */}
+      {isEditUnitModalOpen && editingUnit && (
+        <div className="settings-modal-overlay">
+          <div className="settings-modal">
+            <div className="settings-modal-header">
+              <h3>Birimi Düzenle</h3>
+              <button
+                type="button"
+                className="close-btn"
+                onClick={() => {
+                  setIsEditUnitModalOpen(false);
+                  setEditingUnit(null);
+                }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <form onSubmit={handleUpdateUnit} className="settings-modal-form">
+              <div className="form-group">
+                <label>Birim / Takım Adı *</label>
+                <input
+                  type="text"
+                  placeholder="Örn: Telemetri, Aerodinamik"
+                  required
+                  value={editUnitName}
+                  onChange={(e) => setEditUnitName(e.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <label>Kısa Kod</label>
+                <input
+                  type="text"
+                  placeholder="Örn: TLM"
+                  value={editUnitCode}
+                  onChange={(e) => setEditUnitCode(e.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <label>Üst Birim (Hiyerarşi)</label>
+                <select
+                  value={editUnitParent}
+                  onChange={(e) => setEditUnitParent(e.target.value)}
+                >
+                  <option value="">KÖK BİRİM (Ana Departman)</option>
+                  {units
+                    .filter((u) => u.id !== editingUnit.id)
+                    .map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.name}
+                      </option>
+                    ))}
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Renk</label>
+                <div className="color-palette">
+                  {PRESET_COLORS.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      className={`color-preset-btn ${editUnitColor === c ? "selected" : ""}`}
+                      style={{ backgroundColor: c }}
+                      onClick={() => setEditUnitColor(c)}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="btn-cancel"
+                  onClick={() => {
+                    setIsEditUnitModalOpen(false);
+                    setEditingUnit(null);
+                  }}
+                >
+                  İptal
+                </button>
+                <button
+                  type="submit"
+                  className="btn-submit"
+                  disabled={updateUnitMutation.isPending}
+                >
+                  {updateUnitMutation.isPending ? "Kaydediliyor..." : "Değişiklikleri Kaydet"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* PROJE DÜZENLEME MODALI */}
+      {isEditProjectModalOpen && editingProject && (
+        <div className="settings-modal-overlay">
+          <div className="settings-modal">
+            <div className="settings-modal-header">
+              <h3>Projeyi Düzenle</h3>
+              <button
+                type="button"
+                className="close-btn"
+                onClick={() => {
+                  setIsEditProjectModalOpen(false);
+                  setEditingProject(null);
+                }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <form onSubmit={handleUpdateProject} className="settings-modal-form">
+              <div className="form-group">
+                <label>Proje Adı *</label>
+                <input
+                  type="text"
+                  placeholder="Örn: 2026 Rollout, SES Şasi Raporu"
+                  required
+                  value={editProjectName}
+                  onChange={(e) => setEditProjectName(e.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <label>Açıklama</label>
+                <textarea
+                  placeholder="Proje hakkında kısa bilgi..."
+                  rows={3}
+                  value={editProjectDescription}
+                  onChange={(e) => setEditProjectDescription(e.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <label>Renk</label>
+                <div className="color-palette">
+                  {PRESET_COLORS.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      className={`color-preset-btn ${editProjectColor === c ? "selected" : ""}`}
+                      style={{ backgroundColor: c }}
+                      onClick={() => setEditProjectColor(c)}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="btn-cancel"
+                  onClick={() => {
+                    setIsEditProjectModalOpen(false);
+                    setEditingProject(null);
+                  }}
+                >
+                  İptal
+                </button>
+                <button
+                  type="submit"
+                  className="btn-submit"
+                  disabled={updateProjectMutation.isPending}
+                >
+                  {updateProjectMutation.isPending ? "Kaydediliyor..." : "Değişiklikleri Kaydet"}
                 </button>
               </div>
             </form>

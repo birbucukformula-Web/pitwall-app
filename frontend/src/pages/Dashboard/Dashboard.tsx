@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import {
   AlertCircle,
@@ -33,6 +34,9 @@ export default function Dashboard() {
   const [selectedTask, setSelectedTask] =
     useState<Task | null>(null);
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  const taskIdParam = searchParams.get("task");
+
   /*
    * Bu oturum sırasında tamamlanan görevlerin
    * önceki durumunu saklıyoruz.
@@ -49,6 +53,24 @@ export default function Dashboard() {
     queryKey: ["tasks"],
     queryFn: () => tasksApi.getTasks(),
   });
+
+  useEffect(() => {
+    if (taskIdParam && allTasks.length > 0) {
+      const foundTask = allTasks.find((t) => String(t.id) === taskIdParam);
+      if (foundTask) {
+        setSelectedTask(foundTask);
+      }
+    }
+  }, [taskIdParam, allTasks]);
+
+  const handleCloseDrawer = () => {
+    setSelectedTask(null);
+    if (searchParams.has("task")) {
+      const next = new URLSearchParams(searchParams);
+      next.delete("task");
+      setSearchParams(next, { replace: true });
+    }
+  };
 
   const toggleStatusMutation = useMutation({
     mutationFn: ({
@@ -646,9 +668,7 @@ export default function Dashboard() {
       {selectedTask && (
         <TaskDrawer
           task={selectedTask}
-          onClose={() =>
-            setSelectedTask(null)
-          }
+          onClose={handleCloseDrawer}
           onToggleComplete={
             handleToggleComplete
           }

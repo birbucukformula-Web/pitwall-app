@@ -64,6 +64,56 @@ class TaskAPITests(TestCase):
         self.assertEqual(response.data['total'], 1)
         self.assertEqual(response.data['todo'], 1)
 
+    def test_task_notification_link_generation(self):
+        """Sinyaller birimli görevlerde /projects/<unit_id>?task=<task_id>, birimsizlerde /dashboard?task=<task_id> üretir."""
+        from apps.accounts.models import Notification
+        from apps.tasks.models import TaskActivity
+
+        # 1. Birimli görev
+        task_with_unit = Task.objects.create(
+            organization=self.org,
+            unit=self.unit,
+            title="Telemetri Anteni",
+            status="todo"
+        )
+        task_with_unit.assigned_to.add(self.user)
+        notif_assigned = Notification.objects.filter(recipient=self.user, task=task_with_unit, type="task_assigned").first()
+        self.assertIsNotNone(notif_assigned)
+        self.assertEqual(notif_assigned.link, f"/projects/{self.unit.id}?task={task_with_unit.id}")
+
+        # Durum değişikliği
+        task_with_unit.status = "in_progress"
+        task_with_unit.save()
+        notif_status = Notification.objects.filter(recipient=self.user, task=task_with_unit, type="task_updated").first()
+        self.assertIsNotNone(notif_status)
+        self.assertEqual(notif_status.link, f"/projects/{self.unit.id}?task={task_with_unit.id}")
+
+        # Yorum bildirimi
+        other_user = User.objects.create_user(
+            username="other_comm", email="comm@pitwall.app", password="pitwall123", organization=self.org
+        )
+        TaskActivity.objects.create(
+            task=task_with_unit,
+            user=other_user,
+            activity_type=TaskActivity.ActivityType.COMMENT,
+            content="Anten montajı yapıldı."
+        )
+        notif_comment = Notification.objects.filter(recipient=self.user, task=task_with_unit, type="comment").first()
+        self.assertIsNotNone(notif_comment)
+        self.assertEqual(notif_comment.link, f"/projects/{self.unit.id}?task={task_with_unit.id}")
+
+        # 2. Birimsiz görev fallback: /dashboard?task=<task_id>
+        task_no_unit = Task.objects.create(
+            organization=self.org,
+            unit=None,
+            title="Genel Görev",
+            status="todo"
+        )
+        task_no_unit.assigned_to.add(self.user)
+        notif_no_unit = Notification.objects.filter(recipient=self.user, task=task_no_unit, type="task_assigned").first()
+        self.assertIsNotNone(notif_no_unit)
+        self.assertEqual(notif_no_unit.link, f"/dashboard?task={task_no_unit.id}")
+
 class RoleBasedAccessTests(TestCase):
     def setUp(self):
         self.client = APIClient()

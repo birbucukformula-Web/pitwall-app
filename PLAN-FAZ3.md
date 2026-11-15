@@ -146,7 +146,13 @@ apps/tasks/models.py -> TaskActivity (Model Aktifleştirme & Genişletme)
   - 1 Captain (Tüm takımları ve görevleri yöneten),
   - 1 Elektrik Lead (Elektrik ve alt birimlerini gören/yöneten, Mekanik'i göremeyen),
   - 1 Mekanik Member (Sadece kendi birimini gören, durum değiştirebilen ancak yetkisiz düzenlemeye 403 alan).
-- [x] 32/32 unit testinin tamamı başarıyla geçti.
+- [x] 37/37 unit testinin tamamı başarıyla geçti (18 accounts, 8 tasks, 11 organizations) ve frontend derlemesi (`npm run build`) sıfır hata ile tamamlandı.
+  - **Faz 3 Düzeltme & Doğrulama Notu (R1-R5 Tamamlandı):**
+    - **R1 (Uygulama Planı ve Onay):** Faz 3 tespit edilen eksiklikler için kapsamlı uygulama planı hazırlandı, kullanıcı onayı alındı ve `dev` dalında tamamlandı.
+    - **R2 (Kayıt Olma ve Üye Onayı - `apps/accounts`):** `UserRegistrationSerializer` ile kayıt olan kullanıcıların Kaptan Onay Bekleyenler sekmesinde listelenmesi, onayda organizasyona atanması, bekleyen ret işleminde kalıcı silinmesi ve aktif üye pasife alınırken onay kuyruğuna düşmemesi sağlandı. İlgili birim testleri (18 test) başarıyla geçti.
+    - **R3 (Kaptan Yönetim Paneli Düzenleme & Silme - `Settings.tsx`):** Birimler sekmesine birim düzenleme modalı (`PATCH /units/<id>/`), Projeler sekmesine proje düzenleme (`PATCH /projects/<id>/`) ve silme (`DELETE /projects/<id>/`) kontrolleri eklendi.
+    - **R4 (Bildirim Tıklama ve TaskDrawer Derin Bağlantı):** `signals.py` bildirim bağlantıları `unit_id` varsa `/projects/<unit_id>?task=<id>`, yoksa `/dashboard?task=<id>` olarak üretildi; `Inbox.tsx`, `ProjectDetail.tsx` ve `ProjectTasksTab.tsx` üzerinde `task` sorgu parametresiyle `TaskDrawer` derin bağlantı (deep-linking) akışı uçtan uca bağlandı.
+    - **R5 (PLAN-FAZ3 Doğrulaması):** Tüm backend testleri (37/37) ve frontend derlemesi (`npm run build`) sıfır hata ile doğrulandı.
 
 **Bitti sayılır:** Tüm test suiteleri yeşil; çoklu departman, rol yetkileri, kalıcı bildirimler ve görev aktiviteleri uçtan uca çalışıyor.
 

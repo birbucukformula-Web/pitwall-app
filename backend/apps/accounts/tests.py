@@ -179,7 +179,7 @@ class AccountTests(TestCase):
             username="newbie",
             email="newbie@pitwall.app",
             password="pitwall123",
-            organization=self.org,
+            organization=None,
             is_active=False
         )
         captain = User.objects.create_user(
@@ -198,7 +198,7 @@ class AccountTests(TestCase):
         self.assertIn('newbie', usernames)
         self.assertNotIn('captain_boss', usernames)
 
-        # Onaylama (is_active=True yapma)
+        # Onaylama (is_active=True yapma ve organizasyona bağlama)
         patch_res = self.client.patch(f'/api/v1/members/{pending_user.id}/', {
             'is_active': True,
             'role': 'member'
@@ -206,6 +206,84 @@ class AccountTests(TestCase):
         self.assertEqual(patch_res.status_code, status.HTTP_200_OK)
         pending_user.refresh_from_db()
         self.assertTrue(pending_user.is_active)
+        self.assertEqual(pending_user.organization, self.org)
+
+    def test_user_registration_via_api(self):
+        response = self.client.post('/api/v1/auth/register/', {
+            'email': 'applicant@pitwall.app',
+            'first_name': 'Ali',
+            'last_name': 'Kaya',
+            'password': 'StrongPassword123!'
+        })
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        registered_user = User.objects.get(email='applicant@pitwall.app')
+        self.assertFalse(registered_user.is_active)
+        self.assertIsNone(registered_user.organization)
+
+    def test_captain_reject_pending_member_deletes_application(self):
+        pending_user = User.objects.create_user(
+            username="rejected_applicant",
+            email="rejected@pitwall.app",
+            password="pitwall123",
+            organization=None,
+            is_active=False
+        )
+        captain = User.objects.create_user(
+            username="captain_judge",
+            email="judge@pitwall.app",
+            password="pitwall123",
+            role="captain",
+            organization=self.org
+        )
+
+        self.client.force_authenticate(user=captain)
+        del_res = self.client.delete(f'/api/v1/members/{pending_user.id}/')
+        self.assertEqual(del_res.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(User.objects.filter(id=pending_user.id).exists())
+
+    def test_captain_deactivate_active_member_does_not_fall_into_pending_queue(self):
+        active_member = User.objects.create_user(
+            username="active_racer",
+            email="racer@pitwall.app",
+            password="pitwall123",
+            organization=self.org,
+            is_active=True
+        )
+        captain = User.objects.create_user(
+            username="captain_lead",
+            email="lead_boss@pitwall.app",
+            password="pitwall123",
+            role="captain",
+            organization=self.org
+        )
+
+        self.client.force_authenticate(user=captain)
+        # Aktif üyeyi sil/pasife al
+        del_res = self.client.delete(f'/api/v1/members/{active_member.id}/')
+        self.assertEqual(del_res.status_code, status.HTTP_204_NO_CONTENT)
+
+        # Üye kalıcı silinmemeli, pasif olmalı ve organizasyonunu korumalı
+        active_member.refresh_from_db()
+        self.assertFalse(active_member.is_active)
+        self.assertEqual(active_member.organization, self.org)
+
+        # Pending listesinde görünmemeli
+        pending_res = self.client.get('/api/v1/members/?status=pending')
+        self.assertEqual(pending_res.status_code, status.HTTP_200_OK)
+        pending_usernames = [u['username'] for u in pending_res.data]
+        self.assertNotIn("active_racer", pending_usernames)
+
+    def test_captain_cannot_deactivate_self(self):
+        captain = User.objects.create_user(
+            username="captain_self",
+            email="self@pitwall.app",
+            password="pitwall123",
+            role="captain",
+            organization=self.org
+        )
+        self.client.force_authenticate(user=captain)
+        del_res = self.client.delete(f'/api/v1/members/{captain.id}/')
+        self.assertEqual(del_res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_notification_endpoints_and_read_status(self):
         from apps.accounts.models import Notification

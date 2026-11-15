@@ -315,7 +315,10 @@ export default function Inbox() {
                                                     markAsRead(item.id);
                                                 }
                                                 if (item.link) {
-                                                    navigate(item.link);
+                                                    const targetLink = item.link.startsWith("/projects?task=")
+                                                        ? item.link.replace("/projects?task=", "/dashboard?task=")
+                                                        : item.link;
+                                                    navigate(targetLink);
                                                 }
                                             }}
                                             aria-label={`${item.title} bildirimini aç`}
