@@ -124,3 +124,84 @@ class RoleBasedAccessTests(TestCase):
         self.assertEqual(response2.status_code, status.HTTP_200_OK)
         self.task_gomulu.refresh_from_db()
         self.assertEqual(self.task_gomulu.status, 'in_progress')
+
+    def test_task_activities_get_and_post_comment(self):
+        """Kullanıcı göreve yorum ekleyebilir ve aktiviteleri listeleyebilir."""
+        self.client.force_authenticate(user=self.member_gomulu)
+
+        # 1. Yorum ekleme (POST /api/v1/tasks/<id>/activities/)
+        res = self.client.post(f'/api/v1/tasks/{self.task_gomulu.id}/activities/', {
+            'content': 'Sensör kalibrasyonu tamamlandı.'
+        })
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(res.data['content'], 'Sensör kalibrasyonu tamamlandı.')
+        self.assertIn('user_info', res.data)
+        self.assertEqual(res.data['user_info']['id'], self.member_gomulu.id)
+
+        # 2. Aktiviteleri listeleme (GET /api/v1/tasks/<id>/activities/)
+        list_res = self.client.get(f'/api/v1/tasks/{self.task_gomulu.id}/activities/')
+        self.assertEqual(list_res.status_code, status.HTTP_200_OK)
+        contents = [a['content'] for a in list_res.data]
+        self.assertIn('Sensör kalibrasyonu tamamlandı.', contents)
+
+    def test_multidepartment_cross_role_access_scenario(self):
+        """
+        1 Captain, 1 Elektrik Lead, 1 Mekanik Member arasındaki
+        çoklu departman ağacı yetki izolasyonu testi.
+        """
+        # Elektrik Ağacı
+        elektrik = Unit.objects.create(organization=self.org, name="Elektrik Departmanı")
+        hv = Unit.objects.create(organization=self.org, name="High Voltage", parent=elektrik)
+
+        # Mekanik Ağacı
+        mekanik = Unit.objects.create(organization=self.org, name="Mekanik Departmanı")
+        sasi = Unit.objects.create(organization=self.org, name="Şasi", parent=mekanik)
+
+        # Roller
+        captain = User.objects.create_user(
+            username="grand_captain", email="cap@pitwall.app", password="pitwall123",
+            organization=self.org, role="captain"
+        )
+        elektrik_lead = User.objects.create_user(
+            username="el_lead", email="el@pitwall.app", password="pitwall123",
+            organization=self.org, role="lead", unit=elektrik
+        )
+        mekanik_member = User.objects.create_user(
+            username="mek_member", email="mek@pitwall.app", password="pitwall123",
+            organization=self.org, role="member", unit=sasi
+        )
+
+        task_hv = Task.objects.create(organization=self.org, unit=hv, title="HV Inverter Montajı", status="todo")
+        task_sasi = Task.objects.create(organization=self.org, unit=sasi, title="Şasi Kaynağı", status="todo")
+
+        # 1. Captain her iki görevi de görür
+        self.client.force_authenticate(user=captain)
+        cap_res = self.client.get('/api/v1/tasks/')
+        cap_titles = [t['title'] for t in cap_res.data]
+        self.assertIn("HV Inverter Montajı", cap_titles)
+        self.assertIn("Şasi Kaynağı", cap_titles)
+
+        # 2. Elektrik Lead Elektrik alt birimlerini görür, Mekanik'i göremez
+        self.client.force_authenticate(user=elektrik_lead)
+        el_res = self.client.get('/api/v1/tasks/')
+        el_titles = [t['title'] for t in el_res.data]
+        self.assertIn("HV Inverter Montajı", el_titles)
+        self.assertNotIn("Şasi Kaynağı", el_titles)
+
+        # 3. Mekanik Member sadece Şasi'yi görür, Elektrik'i göremez
+        self.client.force_authenticate(user=mekanik_member)
+        mek_res = self.client.get('/api/v1/tasks/')
+        mek_titles = [t['title'] for t in mek_res.data]
+        self.assertIn("Şasi Kaynağı", mek_titles)
+        self.assertNotIn("HV Inverter Montajı", mek_titles)
+
+        # 4. Mekanik Member başlık değiştiremez (403), ama durum değiştirebilir (200)
+        mek_patch_title = self.client.patch(f'/api/v1/tasks/{task_sasi.id}/', {'title': 'Yetkisiz Başlık'})
+        self.assertEqual(mek_patch_title.status_code, status.HTTP_403_FORBIDDEN)
+
+        mek_patch_status = self.client.patch(f'/api/v1/tasks/{task_sasi.id}/', {'status': 'done'})
+        self.assertEqual(mek_patch_status.status_code, status.HTTP_200_OK)
+        task_sasi.refresh_from_db()
+        self.assertEqual(task_sasi.status, 'done')
+
+

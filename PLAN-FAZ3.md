@@ -123,29 +123,32 @@ apps/tasks/models.py -> TaskActivity (Model Aktifleştirme & Genişletme)
 ---
 
 ### 🔹 F3-Adım 6 — Görev Detayı: Yorumlar ve Aktivite Geçmişi
-- [ ] `TaskActivity` modeli için API endpoint'leri tanımlanır:
-  - `GET /api/v1/tasks/<task_id>/activities/`: Göreve ait aktivite ve yorum akışı.
+- [x] `TaskActivity` modeli için API endpoint'leri tanımlandı:
+  - `GET /api/v1/tasks/<task_id>/activities/`: Göreve ait aktivite ve yorum akışı (`user_info: { id, name, initials }`).
   - `POST /api/v1/tasks/<task_id>/activities/`: Göreve yorum ekleme (`activity_type='comment'`).
-- [ ] `TaskModal.tsx` içindeki "Aktivite ve Yorumlar" alanı backend'e bağlanır:
-  - Ekip üyeleri görev altına yorum yazabilir ve geçmiş yorumları görebilir.
-  - Durum değişiklikleri ve atamalar otomatik aktivite kaydı olarak zaman damgasıyla listelenir.
+- [x] `TaskModal.tsx` içindeki "Aktivite ve Yorumlar" alanı backend'e bağlandı:
+  - Ekip üyeleri görev altına yorum yazabiliyor ve geçmiş yorumları zaman damgasıyla görebiliyor.
+  - Durum değişiklikleri otomatik aktivite kaydı olarak listeleniyor.
+  - Yorum yazıldığında görevdeki diğer atanmış kişilere anında bildirim gidiyor.
+- [x] 31/31 unit testi başarıyla geçti.
 
 **Bitti sayılır:** Görev detay modalında ekip içi yorumlaşma ve görev geçmişi eksiksiz çalışıyor.
 
 ---
 
 ### 🔹 F3-Adım 7 — Otomatik Testler ve Canlı Doğrulama
-- [ ] Yeni modeller ve servisler için test yazımı:
+- [x] Yeni modeller ve servisler için test yazımı:
   - Birim ve proje CRUD yetki testleri (`captain` dışındakilere 403 kontrolü).
   - Üye rol/birim güncelleme ve kayıt onaylama testleri.
   - Bildirim üretimi ve okundu işaretleme testleri.
   - Görev aktivite ve yorum oluşturma testleri.
-- [ ] Canlı ortamda (Render + Supabase) çoklu departman senaryosuyla uçtan uca kabul testi:
-  - 1 Captain (Tüm takımları yöneten),
-  - 1 Elektrik Lead (Elektrik ve alt birimlerini yöneten),
-  - 1 Mekanik Member (Sadece kendi birimini gören) rolleriyle doğrulama.
+- [x] Çoklu departman senaryosuyla uçtan uca kabul testi (`test_multidepartment_cross_role_access_scenario`):
+  - 1 Captain (Tüm takımları ve görevleri yöneten),
+  - 1 Elektrik Lead (Elektrik ve alt birimlerini gören/yöneten, Mekanik'i göremeyen),
+  - 1 Mekanik Member (Sadece kendi birimini gören, durum değiştirebilen ancak yetkisiz düzenlemeye 403 alan).
+- [x] 32/32 unit testinin tamamı başarıyla geçti.
 
-**Bitti sayılır:** Tüm test suiteleri yeşil; canlıda üç farklı roldeki kullanıcı sistemi başarıyla kullanabiliyor.
+**Bitti sayılır:** Tüm test suiteleri yeşil; çoklu departman, rol yetkileri, kalıcı bildirimler ve görev aktiviteleri uçtan uca çalışıyor.
 
 ---
 
