@@ -5,6 +5,25 @@ export interface UnreadCountResponse {
   unread_count: number;
 }
 
+export function resolveNotificationLink(
+  notification: Pick<NotificationItem, "link" | "taskId" | "type">,
+): string {
+  const rawLink = notification.link?.trim() || "";
+  if (rawLink.startsWith("/projects?task=")) {
+    return rawLink.replace("/projects?task=", "/dashboard?task=");
+  }
+  if (rawLink) {
+    return rawLink;
+  }
+  if (notification.taskId) {
+    return `/dashboard?task=${notification.taskId}`;
+  }
+  if (notification.type === "announcement") {
+    return "/announcements";
+  }
+  return "";
+}
+
 export const notificationsApi = {
   getNotifications: async (status?: "unread"): Promise<NotificationItem[]> => {
     const url = status === "unread" ? "/notifications/?status=unread" : "/notifications/";

@@ -62,7 +62,7 @@ export default function Inbox() {
     const {
         notifications: items,
         unreadCount,
-        markAsRead,
+        openNotification,
         markManyAsRead,
         markAllAsRead: markAllNotificationsAsRead,
     } = useNotifications();
@@ -311,13 +311,8 @@ export default function Inbox() {
                                             type="button"
                                             className="inbox-row-open"
                                             onClick={() => {
-                                                if (!item.isRead) {
-                                                    markAsRead(item.id);
-                                                }
-                                                if (item.link) {
-                                                    const targetLink = item.link.startsWith("/projects?task=")
-                                                        ? item.link.replace("/projects?task=", "/dashboard?task=")
-                                                        : item.link;
+                                                const targetLink = openNotification(item);
+                                                if (targetLink) {
                                                     navigate(targetLink);
                                                 }
                                             }}

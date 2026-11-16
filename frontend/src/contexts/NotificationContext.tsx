@@ -5,7 +5,7 @@ import {
   type ReactNode,
 } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { notificationsApi } from "../api/notifications";
+import { notificationsApi, resolveNotificationLink } from "../api/notifications";
 
 export type NotificationType =
   | "task_assigned"
@@ -34,6 +34,7 @@ type NotificationContextValue = {
   markAsRead: (id: number) => void;
   markManyAsRead: (ids: number[]) => void;
   markAllAsRead: () => void;
+  openNotification: (notification: NotificationItem) => string;
   refetch: () => void;
 };
 
@@ -129,6 +130,17 @@ export function NotificationProvider({
     markAllAsReadMutation.mutate();
   }
 
+  function openNotification(notification: NotificationItem): string {
+    if (!notification.isRead) {
+      markAsRead(notification.id);
+    }
+    if (notification.taskId) {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["activities", notification.taskId] });
+    }
+    return resolveNotificationLink(notification);
+  }
+
   return (
     <NotificationContext.Provider
       value={{
@@ -139,6 +151,7 @@ export function NotificationProvider({
         markAsRead,
         markManyAsRead,
         markAllAsRead,
+        openNotification,
         refetch,
       }}
     >

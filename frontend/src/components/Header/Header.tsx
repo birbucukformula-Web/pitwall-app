@@ -61,7 +61,7 @@ export default function Header({
     unreadNotifications: activeNotifications,
     unreadCount,
     markAllAsRead,
-    markAsRead,
+    openNotification,
   } = useNotifications();
 
   const [
@@ -154,12 +154,11 @@ export default function Header({
   ) {
     setShowNotifications(false);
 
-    if (!notification.isRead) {
-      markAsRead(notification.id);
-    }
-
-    if (notification.link) {
-      navigate(notification.link);
+    const targetLink = openNotification(notification);
+    if (targetLink) {
+      setSelectedTask(null);
+      navigate(targetLink);
+      return;
     }
 
     if (notification.taskId) {
